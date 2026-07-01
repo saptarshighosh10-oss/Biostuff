@@ -3,3 +3,4 @@ __pycache__/
 *.pyo
 .DS_Store
 results/*.json
+!results/wetlab_results_template.json
