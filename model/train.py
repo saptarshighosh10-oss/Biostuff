@@ -49,9 +49,15 @@ def train(
     input_file: str | None = None,
     use_flab: bool = False,
     use_antiref: bool = False,
+    use_canya: bool = False,
+    use_figshare_agg: bool = False,
+    use_abdev: bool = False,
     min_failures: int = MIN_TRAINING_FAILURES,
     flab_percentile: float = 0.25,
     antiref_max: int = 500,
+    canya_max: int = 2000,
+    abdev_max: int = 300,
+    figshare_max: int = 2000,
 ):
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -91,6 +97,38 @@ def train(
         print(f"  Added {len(negatives)} AntiRef working sequences")
     else:
         print("\n[3/3] AntiRef skipped (pass --antiref to include)")
+
+    # ── Source 4: CANYA nucleation dataset ──────────────────────────
+    if use_canya:
+        print("\n[4/4] Loading CANYA nucleation data...")
+        from data.canya import load_canya_data
+        f, w = load_canya_data(max_sequences=canya_max)
+        all_failures.extend(f)
+        all_working.extend(w)
+        print(f"  CANYA: {len(f)} nucleators (failures), {len(w)} non-nucleators (working)")
+    else:
+        print("\n[4/4] CANYA skipped (pass --canya to include)")
+
+    # ── Source 5: Figshare Aggrescan3D database ───────────────────────
+    if use_figshare_agg:
+        print("\n[5/5] Loading Figshare A3D data...")
+        from data.figshare_agg import load_figshare_agg_data
+        f, w = load_figshare_agg_data(max_sequences=figshare_max)
+        all_failures.extend(f)
+        all_working.extend(w)
+        print(f"  Figshare A3D: {len(f)} failures, {len(w)} working")
+    else:
+        print("\n[5/5] Figshare A3D skipped (pass --figshare-agg to include)")
+
+    # ── Source 6: AbDev clinical antibody negatives ───────────────────
+    if use_abdev:
+        print("\n[6/6] Loading AbDev clinical antibody negatives...")
+        from data.abdev import load_abdev_negatives
+        negatives = load_abdev_negatives(max_sequences=abdev_max)
+        all_working.extend(negatives)
+        print(f"  AbDev: {len(negatives)} clinical antibody working sequences")
+    else:
+        print("\n[6/6] AbDev skipped (pass --abdev to include)")
 
     # ── Deduplicate across sources ───────────────────────────────────
     seen: set[str] = set()
@@ -182,18 +220,33 @@ if __name__ == "__main__":
     parser.add_argument("--input",    default=None,  help="Path to labeled_results.json")
     parser.add_argument("--flab",     action="store_true", help="Include FLAb experimental data")
     parser.add_argument("--antiref",  action="store_true", help="Include AntiRef negatives")
+    parser.add_argument("--canya",    action="store_true", help="Include CANYA nucleation data")
+    parser.add_argument("--figshare-agg", action="store_true", help="Include Figshare Aggrescan3D data")
+    parser.add_argument("--abdev",    action="store_true", help="Include AbDev clinical antibody negatives")
     parser.add_argument("--min-failures", type=int, default=MIN_TRAINING_FAILURES)
     parser.add_argument("--flab-percentile", type=float, default=0.25,
                         help="Score percentile cutoff for FLAb labeling (default 0.25)")
     parser.add_argument("--antiref-max", type=int, default=500,
                         help="Max AntiRef negatives to load (default 500)")
+    parser.add_argument("--canya-max", type=int, default=2000,
+                        help="Max CANYA sequences to load (default 2000)")
+    parser.add_argument("--figshare-max", type=int, default=2000,
+                        help="Max Figshare A3D sequences to load (default 2000)")
+    parser.add_argument("--abdev-max", type=int, default=300,
+                        help="Max AbDev sequences to load (default 300)")
     args = parser.parse_args()
 
     train(
         input_file=args.input,
         use_flab=args.flab,
         use_antiref=args.antiref,
+        use_canya=args.canya,
+        use_figshare_agg=args.figshare_agg,
+        use_abdev=args.abdev,
         min_failures=args.min_failures,
         flab_percentile=args.flab_percentile,
         antiref_max=args.antiref_max,
+        canya_max=args.canya_max,
+        figshare_max=args.figshare_max,
+        abdev_max=args.abdev_max,
     )
