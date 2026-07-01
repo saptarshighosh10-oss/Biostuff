@@ -22,7 +22,6 @@ FEATURE_NAMES = [
     "charge_density",
     "hydrophobic_patch_score",
     "camsol_score",
-    "sequence_length",
     # mutation-based
     "n_mutations",
     "mean_hydrophobicity_delta",
@@ -85,7 +84,6 @@ def extract_features(candidate: dict) -> dict:
         "charge_density": seq_feats.get("charge_density", 0.0),
         "hydrophobic_patch_score": seq_feats.get("hydrophobic_patch_score", 0.0),
         "camsol_score": camsol,
-        "sequence_length": float(len(seq)),
         "n_mutations": float(len(mutations)),
         "mean_hydrophobicity_delta": sum(hydro_deltas) / len(hydro_deltas) if hydro_deltas else 0.0,
         "total_charge_delta": sum(charge_deltas),
