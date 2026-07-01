@@ -95,13 +95,32 @@ def fetch_antibody_chains(pdb_id: str) -> list[AntibodyChain]:
     return chains
 
 
-def fetch_antibody_dataset(pdb_ids: list[str], max_per_entry: int = 2) -> list[AntibodyChain]:
-    """Fetch antibody chains from a list of PDB IDs."""
+def fetch_antibody_dataset(
+    pdb_ids: list[str], max_per_entry: int = 2, workers: int = 20
+) -> list[AntibodyChain]:
+    """Fetch antibody chains from a list of PDB IDs in parallel."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    results: dict[str, list[AntibodyChain]] = {}
+
+    def _fetch(pdb_id: str) -> tuple[str, list[AntibodyChain]]:
+        return pdb_id, fetch_antibody_chains(pdb_id)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_fetch, pid): pid for pid in pdb_ids}
+        done = 0
+        for future in as_completed(futures):
+            pdb_id, chains = future.result()
+            results[pdb_id] = chains[:max_per_entry]
+            done += 1
+            if done % 50 == 0:
+                print(f"  fetched {done}/{len(pdb_ids)}...")
+
+    # preserve input order
     all_chains = []
     for pdb_id in pdb_ids:
-        chains = fetch_antibody_chains(pdb_id)
-        all_chains.extend(chains[:max_per_entry])
-        print(f"  {pdb_id}: {len(chains)} antibody chains found")
+        all_chains.extend(results.get(pdb_id, []))
+    print(f"  fetched {len(pdb_ids)} entries → {len(all_chains)} chains")
     return all_chains
 
 
