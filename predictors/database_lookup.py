@@ -2,9 +2,11 @@
 Cross-reference candidates against protein databases via free REST APIs.
 
 Sources:
-  EBI PDBe API    — maps PDB ID → UniProt accession(s)
-  UniProt REST    — aggregation/disease annotations for each accession
-  EBI Proteins    — known natural/pathogenic variants at mutation positions
+  EBI PDBe API         — maps PDB ID → UniProt accession(s)
+  PDBe Graph API       — residue-level SIFTS annotations, surface accessibility,
+                         secondary structure, conservation scores
+  UniProt REST         — aggregation/disease annotations for each accession
+  EBI Proteins API     — known natural/pathogenic variants at mutation positions
 """
 
 import requests
@@ -12,6 +14,9 @@ import time
 
 # ── API endpoints ────────────────────────────────────────────────────────────
 PDBE_UNIPROT_URL   = "https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/{pdb_id}"
+PDBE_GRAPH_URL     = "https://www.ebi.ac.uk/pdbe/graph-api/residue_mapping/{pdb_id}/{chain_id}/{residue}"
+PDBE_SUMMARY_URL   = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/summary/{pdb_id}"
+PDBE_SIFTS_URL     = "https://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/{pdb_id}"
 UNIPROT_ENTRY_URL  = "https://rest.uniprot.org/uniprotkb/{accession}.json"
 UNIPROT_SEARCH_URL = "https://rest.uniprot.org/uniprotkb/search"
 EBI_VARIATION_URL  = "https://www.ebi.ac.uk/proteins/api/variation/{accession}"
@@ -154,6 +159,58 @@ def get_known_variants_at_positions(accession: str, positions: list[int]) -> lis
     return hits[:5]
 
 
+# ── PDBe Graph API — residue-level structural context ───────────────────────
+
+def get_pdbe_residue_annotations(pdb_id: str, chain_id: str, residue_number: int) -> dict:
+    """
+    Fetch SIFTS residue-level annotations from PDBe Graph API for one residue.
+    Returns secondary structure, surface accessibility, and conservation signals
+    where available.
+    """
+    url = PDBE_GRAPH_URL.format(
+        pdb_id=pdb_id.lower(),
+        chain_id=chain_id,
+        residue=residue_number + 1,  # PDBe uses 1-indexed
+    )
+    data = _get(url)
+    if not data:
+        return {}
+
+    # flatten the first residue node if present
+    nodes = data.get("data", {}).get("residues", [])
+    if not nodes:
+        return {}
+
+    node = nodes[0]
+    return {
+        "secondary_structure": node.get("secondary_structure", ""),
+        "relative_asa": node.get("relative_asa"),          # solvent accessibility 0-1
+        "conservation_score": node.get("conservation"),
+        "is_interface": node.get("is_interface", False),
+    }
+
+
+def get_mutation_structural_context(
+    pdb_id: str, chain_id: str, mutations: list
+) -> list[dict]:
+    """
+    For each mutation, fetch its structural context from PDBe Graph API.
+    Returns list of context dicts (one per mutation, None fields if API fails).
+    """
+    results = []
+    for pos, orig, mut in mutations:
+        ctx = get_pdbe_residue_annotations(pdb_id, chain_id, pos)
+        ctx["position"] = pos
+        ctx["orig"] = orig
+        ctx["mut"] = mut
+        # flag mutations that are buried (low ASA) — these tend to disrupt folding
+        asa = ctx.get("relative_asa")
+        ctx["is_buried"] = (asa is not None and asa < 0.2)
+        ctx["is_surface"] = (asa is not None and asa > 0.5)
+        results.append(ctx)
+    return results
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 def lookup_candidate(candidate: dict) -> dict:
@@ -191,6 +248,14 @@ def lookup_candidate(candidate: dict) -> dict:
     if mutation_positions:
         variants = get_known_variants_at_positions(accession, mutation_positions)
         evidence["variants_at_mutation_sites"] = variants
+
+    # PDBe Graph API — structural context at mutation positions
+    chain_id = candidate.get("anchor_chain", "A")
+    if mutations:
+        struct_context = get_mutation_structural_context(pdb_id, chain_id, mutations)
+        evidence["structural_context"] = struct_context
+    else:
+        evidence["structural_context"] = []
 
     # confidence scoring
     signals = 0
