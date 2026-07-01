@@ -16,7 +16,7 @@ from pathlib import Path
 
 from data.fetch_pdb import search_antibody_entries
 from data.fetch_sequences import fetch_antibody_dataset, AntibodyChain
-from data.perturb import generate_variants
+from data.perturb import generate_variants, load_esm2
 from features.cdr import extract_cdrs
 from predictors.aggregation_risk import fast_risk_score, full_risk_score
 
@@ -24,11 +24,12 @@ RESULTS_DIR = Path("results")
 
 
 def run_phase1(
-    max_pdb_entries: int = 10,
+    max_pdb_entries: int = 300,
     variants_per_sequence: int = 5,
     mutations_per_variant: int = 2,
     use_esmfold: bool = False,
-    top_n: int = 20,             # always return top N by risk score regardless of threshold
+    use_esm2: bool = False,
+    top_n: int = 20,
     output_file: str = "results/phase1_candidates.json",
 ):
     """
@@ -45,6 +46,17 @@ def run_phase1(
     print("=" * 60)
     print("PHASE 1: Anchor → Perturb → Predict → Flag")
     print("=" * 60)
+
+    # ── Load ESM-2 if requested ──────────────────────────────────
+    esm2_model, esm2_alphabet = None, None
+    if use_esm2:
+        print("\nLoading ESM-2 model for guided mutations...")
+        esm2_model, esm2_alphabet = load_esm2()
+        if esm2_model is None:
+            print("  fair-esm not installed — falling back to BLOSUM62.")
+            print("  Install with: pip install fair-esm")
+        else:
+            print("  ESM-2 loaded.")
 
     # ── Step 1: Fetch anchor sequences ──────────────────────────
     print(f"\n[1/5] Fetching up to {max_pdb_entries} antibody PDB entries...")
@@ -77,6 +89,8 @@ def run_phase1(
             chain.sequence,
             n_variants=variants_per_sequence,
             mutations_per_variant=mutations_per_variant,
+            esm2_model=esm2_model,
+            esm2_alphabet=esm2_alphabet,
         )
         for variant_seq, mutations in variants:
             if not mutations:
@@ -153,13 +167,15 @@ def run_phase1(
     print(f"  ESMFold used:     {'yes, top ' + str(min(top_n, len(scored))) if use_esmfold else 'no'}")
     print(f"  Top {top_n} saved to: {output_file}")
     print(f"{'=' * 60}")
+    mutation_mode = "ESM-2" if (use_esm2 and esm2_model is not None) else "BLOSUM62"
     print(f"\nTop 5 candidates:")
     for i, v in enumerate(top_candidates[:5]):
         dscore = v["risk"].get("disagreement_score")
         dscore_str = f" | disagreement={dscore:.3f}" if dscore is not None else ""
         print(f"  {i+1}. {v['anchor_pdb']} {v['chain_type']} | "
               f"mutations={v['mutations']} | risk={v['risk']['combined_risk']:.3f}{dscore_str}")
-    print(f"\nOnce you have >=30 confirmed failures, run model/train.py.")
+    print(f"\n  Mutation mode: {mutation_mode}")
+    print(f"Once you have >=30 confirmed failures, run model/train.py.")
 
     return top_candidates
 
@@ -170,7 +186,8 @@ if __name__ == "__main__":
     parser.add_argument("--entries", type=int, default=100, help="PDB entries to fetch")
     parser.add_argument("--variants", type=int, default=5, help="Variants per sequence")
     parser.add_argument("--mutations", type=int, default=2, help="Mutations per variant")
-    parser.add_argument("--esmfold", action="store_true", help="Enable ESMFold API calls")
+    parser.add_argument("--esmfold", action="store_true", help="Enable ESMFold API calls on top candidates")
+    parser.add_argument("--esm2", action="store_true", help="Use ESM-2 for guided mutations (requires: pip install fair-esm)")
     parser.add_argument("--top", type=int, default=20, help="How many top candidates to save")
     args = parser.parse_args()
 
@@ -179,5 +196,6 @@ if __name__ == "__main__":
         variants_per_sequence=args.variants,
         mutations_per_variant=args.mutations,
         use_esmfold=args.esmfold,
+        use_esm2=args.esm2,
         top_n=args.top,
     )

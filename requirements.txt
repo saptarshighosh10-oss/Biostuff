@@ -1,1 +1,2 @@
 requests>=2.31.0
+fair-esm>=2.0.0  # optional: ESM-2 guided mutations. install before running with --esm2

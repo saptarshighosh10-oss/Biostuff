@@ -1,14 +1,19 @@
 """
-BLOSUM62-guided sequence perturbation.
-Generates mutations that are statistically plausible (similar to ProteinMPNN proposals)
-rather than random noise. CDR positions are perturbed preferentially.
+Sequence perturbation for variant generation.
+
+Two modes:
+  ESM-2 guided (preferred): uses protein language model probabilities to propose
+    mutations that are evolutionarily plausible — directly inspired by EVOLVEpro.
+  BLOSUM62 fallback: used when ESM-2 is not installed.
+
+ESM-2 install: pip install fair-esm
 """
 
 import random
 from features.cdr import cdr_positions
 
-# BLOSUM62 substitution scores — higher = more conservative
-# Only includes substitutions with score >= 0 (plausible replacements)
+# ── BLOSUM62 fallback ────────────────────────────────────────────────────────
+
 BLOSUM62_SUBSTITUTIONS: dict[str, list[tuple[str, int]]] = {
     "A": [("S", 1), ("T", 0), ("V", 0), ("G", 0)],
     "R": [("K", 2), ("Q", 1), ("H", 0)],
@@ -32,62 +37,115 @@ BLOSUM62_SUBSTITUTIONS: dict[str, list[tuple[str, int]]] = {
     "V": [("I", 3), ("L", 1), ("M", 1), ("T", 0), ("A", 0)],
 }
 
+AMINO_ACIDS = list("ACDEFGHIKLMNPQRSTVWY")
 
-def _sample_substitution(aa: str, seed: int | None = None) -> str:
-    """Sample a plausible substitution for an amino acid using BLOSUM62 weights."""
-    rng = random.Random(seed)
+
+def _blosum62_substitution(aa: str, rng: random.Random) -> str:
     candidates = BLOSUM62_SUBSTITUTIONS.get(aa.upper(), [])
     if not candidates:
         return aa
     amino_acids, weights = zip(*candidates)
-    # higher BLOSUM62 score = more likely to be sampled
-    adjusted_weights = [w + 1 for w in weights]
-    return rng.choices(amino_acids, weights=adjusted_weights, k=1)[0]
+    return rng.choices(amino_acids, weights=[w + 1 for w in weights], k=1)[0]
 
+
+# ── ESM-2 guided mutations ───────────────────────────────────────────────────
+
+def load_esm2():
+    """
+    Load the smallest ESM-2 model (8M params, ~25MB).
+    Returns (model, alphabet) or (None, None) if fair-esm not installed.
+    """
+    try:
+        import esm
+        import torch
+        model, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
+        model.eval()
+        if torch.cuda.is_available():
+            model = model.cuda()
+        return model, alphabet
+    except ImportError:
+        return None, None
+
+
+def _esm2_substitutions(
+    model, alphabet, sequence: str, position: int, top_k: int = 5
+) -> list[tuple[str, float]]:
+    """
+    Get ESM-2's top-k predicted amino acids at a masked position.
+    High probability = evolutionarily plausible substitution.
+    """
+    import torch
+
+    seq_masked = sequence[:position] + "<mask>" + sequence[position + 1:]
+    batch_converter = alphabet.get_batch_converter()
+    _, _, tokens = batch_converter([("seq", seq_masked)])
+
+    if next(model.parameters()).is_cuda:
+        tokens = tokens.cuda()
+
+    with torch.no_grad():
+        results = model(tokens, repr_layers=[])
+        logits = results["logits"][0, position + 1]  # +1 for <cls> token
+        probs = torch.softmax(logits, dim=-1)
+
+    original = sequence[position].upper()
+    aa_probs = []
+    for aa in AMINO_ACIDS:
+        if aa == original or aa == "C":  # don't suggest Cys mutations
+            continue
+        idx = alphabet.get_idx(aa)
+        aa_probs.append((aa, probs[idx].item()))
+
+    aa_probs.sort(key=lambda x: x[1], reverse=True)
+    return aa_probs[:top_k]
+
+
+# ── Position sampling (shared) ───────────────────────────────────────────────
+
+def _sample_positions(sequence: str, n: int, prefer_cdrs: bool, rng: random.Random) -> list[int]:
+    seq = sequence.upper()
+    cdr_pos = cdr_positions(sequence) if prefer_cdrs else set()
+    weights = [3.0 if i in cdr_pos else 1.0 for i in range(len(seq))]
+    weights = [0.0 if seq[i] == "C" else w for i, w in enumerate(weights)]
+    total = sum(weights)
+    if total == 0:
+        return []
+    norm = [w / total for w in weights]
+    return list(set(rng.choices(range(len(seq)), weights=norm, k=n)))
+
+
+# ── Public API ───────────────────────────────────────────────────────────────
 
 def generate_variant(
     sequence: str,
-    n_mutations: int = 1,
+    n_mutations: int = 2,
     prefer_cdrs: bool = True,
     seed: int | None = None,
+    esm2_model=None,
+    esm2_alphabet=None,
 ) -> tuple[str, list[tuple[int, str, str]]]:
     """
-    Generate one mutated variant of the sequence.
-
-    Args:
-        sequence: parent sequence
-        n_mutations: number of mutations to introduce (1-3 recommended)
-        prefer_cdrs: if True, bias mutations toward CDR positions
-        seed: random seed for reproducibility
-
-    Returns:
-        (mutant_sequence, mutations) where mutations = [(pos, original, mutant), ...]
+    Generate one mutated variant.
+    Uses ESM-2 if model is provided, otherwise falls back to BLOSUM62.
     """
     rng = random.Random(seed)
     seq = list(sequence.upper())
-    n = len(seq)
-
-    cdr_pos = cdr_positions(sequence) if prefer_cdrs else set()
-
-    # build position weights: CDR positions 3x more likely to be mutated
-    weights = [3.0 if i in cdr_pos else 1.0 for i in range(n)]
-
-    # don't mutate Cys (framework-stabilizing disulfides)
-    weights = [0.0 if seq[i] == "C" else w for i, w in enumerate(weights)]
-
-    total = sum(weights)
-    if total == 0:
-        return sequence, []
-
-    norm_weights = [w / total for w in weights]
-
-    positions = rng.choices(range(n), weights=norm_weights, k=min(n_mutations, n))
-    positions = list(set(positions))
+    positions = _sample_positions(sequence, n_mutations, prefer_cdrs, rng)
 
     mutations = []
     for pos in positions:
         original = seq[pos]
-        mutant = _sample_substitution(original, seed=seed)
+
+        if esm2_model is not None:
+            subs = _esm2_substitutions(esm2_model, esm2_alphabet, "".join(seq), pos)
+            if subs:
+                candidates, probs = zip(*subs)
+                mutant = rng.choices(candidates, weights=probs, k=1)[0]
+            else:
+                mutant = _blosum62_substitution(original, rng)
+        else:
+            mutant = _blosum62_substitution(original, rng)
+
         if mutant != original:
             seq[pos] = mutant
             mutations.append((pos, original, mutant))
@@ -100,12 +158,17 @@ def generate_variants(
     n_variants: int = 5,
     mutations_per_variant: int = 2,
     seed: int = 42,
+    esm2_model=None,
+    esm2_alphabet=None,
 ) -> list[tuple[str, list[tuple[int, str, str]]]]:
-    """
-    Generate multiple variants for a single parent sequence.
-    Each variant gets a different seed to ensure diversity.
-    """
+    """Generate multiple variants, each with a different seed for diversity."""
     return [
-        generate_variant(sequence, n_mutations=mutations_per_variant, seed=seed + i)
+        generate_variant(
+            sequence,
+            n_mutations=mutations_per_variant,
+            seed=seed + i,
+            esm2_model=esm2_model,
+            esm2_alphabet=esm2_alphabet,
+        )
         for i in range(n_variants)
     ]
