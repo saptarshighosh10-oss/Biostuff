@@ -76,6 +76,22 @@ class AggregationFailureModel:
         rf_proba = self.rf.predict_proba(X)[:, 1]
         return (lr_proba + rf_proba) / 2.0
 
+    def predict_with_uncertainty(self, X: list[list[float]]) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Returns (ensemble_prob, confidence_gap) for each sample.
+        confidence_gap = abs(LR_prob - RF_prob): 0 = both models agree, 1 = maximum disagreement.
+        High gap + high risk = uncertain but concerning = highest wet-lab value.
+        """
+        if not self.trained:
+            raise RuntimeError("Model not trained yet.")
+        X = np.array(X, dtype=float)
+        X_scaled = self.scaler.transform(X)
+        lr_proba = self.lr.predict_proba(X_scaled)[:, 1]
+        rf_proba = self.rf.predict_proba(X)[:, 1]
+        ensemble = (lr_proba + rf_proba) / 2.0
+        gap = np.abs(lr_proba - rf_proba)
+        return ensemble, gap
+
     def predict(self, features: dict) -> float:
         """Score a single candidate dict. Returns failure probability 0-1."""
         from model.features import features_to_vector, FEATURE_NAMES

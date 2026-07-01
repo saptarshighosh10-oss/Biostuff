@@ -30,7 +30,9 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
     model = AggregationFailureModel.load(MODEL_PATH)
     feat_dict = extract_from_sequence(sequence, mutations)
     vec = features_to_vector(feat_dict)
-    prob = float(model.predict_proba([vec])[0])
+    probs, gaps = model.predict_with_uncertainty([vec])
+    prob = float(probs[0])
+    gap  = float(gaps[0])
 
     # top 5 contributing features (value × importance)
     importance = dict(model.feature_importance())
@@ -41,8 +43,12 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
         reverse=True,
     )
 
+    confidence = "high" if gap < 0.15 else "medium" if gap < 0.30 else "low"
+
     return {
         "failure_probability": round(prob, 4),
+        "confidence_gap":      round(gap, 4),
+        "confidence":          confidence,
         "risk_level": "high" if prob >= 0.7 else "medium" if prob >= 0.4 else "low",
         "top_features": [
             {"feature": name, "value": round(val, 4), "importance": round(imp, 4)}
@@ -84,6 +90,7 @@ if __name__ == "__main__":
     if args.sequence:
         result = score_sequence(args.sequence)
         print(f"\nFailure probability: {result['failure_probability']:.4f} ({result['risk_level']})")
+        print(f"Confidence:          {result['confidence']} (gap={result['confidence_gap']:.4f})")
         print("Top contributing features:")
         for f in result["top_features"]:
             print(f"  {f['feature']:35s} value={f['value']:.3f}  importance={f['importance']:.4f}")
@@ -92,8 +99,9 @@ if __name__ == "__main__":
         results = score_file(args.file, top_n=args.top)
         print(f"\nTop {len(results)} candidates re-scored by trained model:\n")
         for i, r in enumerate(results):
-            print(f"  {i+1}. {r['anchor_pdb']} | trained_prob={r['failure_probability']:.3f} "
-                  f"({r['risk_level']}) | phase1_risk={r['phase1_risk']:.3f}")
+            conf_str = f"confidence={r['confidence']} gap={r['confidence_gap']:.3f}"
+            print(f"  {i+1}. {r['anchor_pdb']} | prob={r['failure_probability']:.3f} "
+                  f"({r['risk_level']}) | {conf_str} | phase1_risk={r['phase1_risk']:.3f}")
             print(f"       mutations: {r['mutations']}")
             top_feat = r['top_features'][0] if r['top_features'] else {}
             if top_feat:
