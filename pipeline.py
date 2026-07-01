@@ -140,7 +140,7 @@ def run_phase1(
     print(f"\nNext: run with --esmfold to add structure-based scoring on these.")
     print(f"Once you have >=30 confirmed failures, run model/train.py.")
 
-    return flagged
+    return top_candidates
 
 
 if __name__ == "__main__":
