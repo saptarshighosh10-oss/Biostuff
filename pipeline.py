@@ -196,12 +196,12 @@ def run_phase1(
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Run Phase 1 antibody aggregation pipeline")
-    parser.add_argument("--entries", type=int, default=100, help="PDB entries to fetch")
-    parser.add_argument("--variants", type=int, default=5, help="Variants per sequence")
+    parser.add_argument("--entries", type=int, default=2000, help="PDB entries to fetch")
+    parser.add_argument("--variants", type=int, default=20, help="Variants per sequence")
     parser.add_argument("--mutations", type=int, default=2, help="Mutations per variant")
     parser.add_argument("--esmfold", action="store_true", help="Enable ESMFold API calls on top candidates")
     parser.add_argument("--esm2", action="store_true", help="Use ESM-2 for guided mutations (requires: pip install fair-esm)")
-    parser.add_argument("--top", type=int, default=20, help="How many top candidates to save")
+    parser.add_argument("--top", type=int, default=200, help="How many top candidates to save")
     args = parser.parse_args()
 
     run_phase1(

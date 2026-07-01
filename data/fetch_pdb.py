@@ -1,6 +1,7 @@
 """
 Fetch confirmed-working antibody sequences from PDB.
-Searches multiple keywords (ANTIBODY, IMMUNOGLOBULIN, FAB) to maximise coverage.
+Searches across antibodies, nanobodies, VHH domains, scFv, bispecifics,
+and camelid antibodies to maximise sequence diversity.
 Uses the PDB REST API — no account needed, runs on any laptop.
 """
 
@@ -11,7 +12,19 @@ from pathlib import Path
 PDB_SEARCH_URL = "https://search.rcsb.org/rcsbsearch/v2/query"
 PDB_DATA_URL = "https://data.rcsb.org/rest/v1/core/entry"
 
-SEARCH_TERMS = ["ANTIBODY", "IMMUNOGLOBULIN", "FAB FRAGMENT"]
+# Cast wide: classical antibodies + single-domain + engineered formats
+SEARCH_TERMS = [
+    "ANTIBODY",
+    "IMMUNOGLOBULIN",
+    "FAB FRAGMENT",
+    "NANOBODY",
+    "SINGLE CHAIN ANTIBODY",
+    "VHH",
+    "BISPECIFIC ANTIBODY",
+    "MONOCLONAL ANTIBODY",
+    "CAMELID ANTIBODY",
+    "VARIABLE FRAGMENT",
+]
 
 
 def _build_query(keyword: str, rows: int) -> dict:
@@ -33,10 +46,9 @@ def _build_query(keyword: str, rows: int) -> dict:
     }
 
 
-def search_antibody_entries(max_results: int = 300) -> list[str]:
+def search_antibody_entries(max_results: int = 2000) -> list[str]:
     """
-    Search PDB with multiple antibody keywords and return deduplicated PDB IDs.
-    Queries ANTIBODY + IMMUNOGLOBULIN + FAB FRAGMENT to maximise diversity.
+    Search PDB across all antibody-related keywords and return deduplicated PDB IDs.
     """
     per_term = max(max_results // len(SEARCH_TERMS), 100)
     all_ids: set[str] = set()

@@ -1,6 +1,6 @@
 """
-Fetch actual antibody sequences (FASTA) from PDB entries.
-Filters chains by keywords that indicate VH/VL antibody chains.
+Fetch actual antibody/nanobody/scFv sequences (FASTA) from PDB entries.
+Filters chains by keywords that indicate therapeutic protein formats.
 """
 
 import re
@@ -10,8 +10,14 @@ from dataclasses import dataclass
 FASTA_URL = "https://www.rcsb.org/fasta/entry/{pdb_id}"
 
 ANTIBODY_KEYWORDS = {
+    # classical antibody
     "heavy chain", "light chain", "vh", "vl", "fab",
     "immunoglobulin", "antibody", "variable domain",
+    # single-domain / camelid
+    "nanobody", "vhh", "single domain", "camelid",
+    # engineered formats
+    "single chain", "scfv", "variable fragment", "fv fragment",
+    "bispecific", "monoclonal",
 }
 
 
@@ -19,7 +25,7 @@ ANTIBODY_KEYWORDS = {
 class AntibodyChain:
     pdb_id: str
     chain_id: str
-    chain_type: str   # "heavy" | "light" | "unknown"
+    chain_type: str   # "heavy" | "light" | "nanobody" | "scfv" | "unknown"
     sequence: str
     description: str
 
@@ -55,9 +61,13 @@ def parse_fasta(fasta_text: str) -> list[tuple[str, str]]:
 
 def _classify_chain(description: str) -> str:
     desc_lower = description.lower()
-    if any(k in desc_lower for k in ("heavy", "vh", "heavy chain")):
+    if any(k in desc_lower for k in ("nanobody", "vhh", "single domain", "camelid")):
+        return "nanobody"
+    if any(k in desc_lower for k in ("single chain", "scfv", "variable fragment", "fv fragment")):
+        return "scfv"
+    if any(k in desc_lower for k in ("heavy", "heavy chain")):
         return "heavy"
-    if any(k in desc_lower for k in ("light", "vl", "light chain", "kappa", "lambda")):
+    if any(k in desc_lower for k in ("light", "light chain", "kappa", "lambda")):
         return "light"
     return "unknown"
 
@@ -96,7 +106,7 @@ def fetch_antibody_chains(pdb_id: str) -> list[AntibodyChain]:
 
 
 def fetch_antibody_dataset(
-    pdb_ids: list[str], max_per_entry: int = 2, workers: int = 20
+    pdb_ids: list[str], max_per_entry: int = 3, workers: int = 20
 ) -> list[AntibodyChain]:
     """Fetch antibody chains from a list of PDB IDs in parallel."""
     from concurrent.futures import ThreadPoolExecutor, as_completed
