@@ -15,16 +15,46 @@ ANTIREF_RAW_BASE = "https://raw.githubusercontent.com/brineylab/antiref/main"
 
 AA_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]{20,}$", re.IGNORECASE)
 
+# Known filenames to try directly before hitting the API
+ANTIREF_KNOWN_FILES = [
+    "antiref90.fasta",
+    "antiref90.fa",
+    "antiref85.fasta",
+    "antiref85.fa",
+    "antiref95.fasta",
+    "antiref100.fasta",
+    "antiref70.fasta",
+    "sequences.fasta",
+    "antiref.fasta",
+]
+
 
 def _list_fasta_files() -> list[str]:
+    # Try direct raw URLs for known filenames first (bypasses API rate limit)
+    found = []
+    for fname in ANTIREF_KNOWN_FILES:
+        url = f"{ANTIREF_RAW_BASE}/{fname}"
+        try:
+            r = requests.head(url, timeout=8)
+            if r.status_code == 200:
+                found.append(fname)
+        except requests.RequestException:
+            continue
+    if found:
+        return found
+
+    # Fall back to GitHub API
     try:
         r = requests.get(ANTIREF_API_URL, timeout=15,
                          headers={"Accept": "application/vnd.github.v3+json"})
         r.raise_for_status()
-        return [f["name"] for f in r.json()
-                if f["name"].endswith(".fasta") or f["name"].endswith(".fa")]
+        items = r.json()
+        if isinstance(items, list):
+            return [f["name"] for f in items
+                    if f["name"].endswith(".fasta") or f["name"].endswith(".fa")]
     except requests.RequestException:
-        return []
+        pass
+    return []
 
 
 def _parse_fasta_stream(text: str, max_seqs: int) -> list[str]:

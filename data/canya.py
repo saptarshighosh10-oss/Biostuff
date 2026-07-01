@@ -20,6 +20,20 @@ AA_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]{4,}$", re.IGNORECASE)
 # Zenodo fallback — search by concept DOI if GitHub data not found
 ZENODO_SEARCH_URL = "https://zenodo.org/api/records?q=CANYA+nucleation+aggregation&sort=mostrecent&size=3"
 
+# Known direct raw URLs to probe before hitting the GitHub API
+CANYA_KNOWN_URLS = [
+    f"{GITHUB_RAW_BASE}/data/CANYA_dataset.csv",
+    f"{GITHUB_RAW_BASE}/data/canya_dataset.csv",
+    f"{GITHUB_RAW_BASE}/data/dataset.csv",
+    f"{GITHUB_RAW_BASE}/data/sequences.csv",
+    f"{GITHUB_RAW_BASE}/data/CANYA.csv",
+    f"{GITHUB_RAW_BASE}/data/train.csv",
+    f"{GITHUB_RAW_BASE}/data/all_sequences.csv",
+    f"{GITHUB_RAW_BASE}/CANYA_dataset.csv",
+    f"{GITHUB_RAW_BASE}/CANYA.csv",
+    f"{GITHUB_RAW_BASE}/dataset.csv",
+]
+
 
 def _list_repo_csvs(subdir: str = "") -> list[dict]:
     """List CSV files in the CANYA repo (root or subdirectory)."""
@@ -132,12 +146,38 @@ def _parse_canya_csv(
     return nucleators, non_nucleators
 
 
+def _try_known_urls(max_sequences: int) -> tuple[list[dict], list[dict]]:
+    """Probe known direct raw URLs before using the GitHub API."""
+    for url in CANYA_KNOWN_URLS:
+        try:
+            r = requests.head(url, timeout=8)
+            if r.status_code != 200:
+                continue
+            print(f"  Found: {url.split('/')[-1]}")
+            r2 = requests.get(url, timeout=60)
+            r2.raise_for_status()
+            failures, working = _parse_canya_csv(r2.text, max_sequences)
+            if failures or working:
+                return failures, working
+        except requests.RequestException:
+            continue
+    return [], []
+
+
 def load_canya_data(max_sequences: int = 2000) -> tuple[list[dict], list[dict]]:
     """
     Load CANYA nucleation data.
     Returns (nucleators→failures, non_nucleators→working).
     """
     print("Fetching CANYA data from GitHub...")
+
+    # Try direct known URLs first (avoids API rate limits)
+    all_failures, all_working = _try_known_urls(max_sequences)
+    if all_failures or all_working:
+        n = min(len(all_failures), len(all_working), max_sequences // 2)
+        print(f"  CANYA: {len(all_failures)} nucleators, {len(all_working)} non-nucleators loaded")
+        return all_failures[:n], all_working[:n]
+
     csv_files = _list_repo_csvs()
 
     all_failures, all_working = [], []
