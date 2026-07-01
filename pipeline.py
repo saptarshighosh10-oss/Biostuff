@@ -142,11 +142,18 @@ def run_phase1(
                     "camsol_score": variant["risk"]["camsol_score"],
                     "structure_features": struct,
                 })
+                # structural risk: low pLDDT confidence = structurally suspect
+                struct_risk = min(
+                    1.0,
+                    struct.get("plddt_variance", 0) / 200.0
+                    + struct.get("low_confidence_fraction", 0),
+                )
+                seq_risk = variant["risk"]["combined_risk"]
                 variant["risk"]["structure_features"] = struct
                 variant["risk"]["disagreement_score"] = disagreement
-                variant["risk"]["combined_risk"] = max(
-                    variant["risk"]["combined_risk"],
-                    disagreement,
+                # blend: sequence + structure + disagreement as independent signals
+                variant["risk"]["combined_risk"] = (
+                    0.5 * seq_risk + 0.3 * struct_risk + 0.2 * disagreement
                 )
             time.sleep(1)
             print(f"      ESMFold {i + 1}/{esmfold_n} done")
