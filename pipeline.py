@@ -152,8 +152,19 @@ def run_phase1(
         # re-sort after ESMFold updates
         scored.sort(key=lambda v: v["risk"].get("combined_risk", 0), reverse=True)
 
-    # ── Output ───────────────────────────────────────────────────
-    top_candidates = scored[:top_n]
+    # ── Output: diverse top N (one per anchor PDB) ───────────────
+    # Without this, similar sequences from the same family dominate
+    # the top N with identical mutations — not useful.
+    seen_anchors: set[str] = set()
+    diverse_top: list[dict] = []
+    for v in scored:
+        anchor = v["anchor_pdb"]
+        if anchor not in seen_anchors:
+            seen_anchors.add(anchor)
+            diverse_top.append(v)
+        if len(diverse_top) >= top_n:
+            break
+    top_candidates = diverse_top
 
     with open(output_file, "w") as f:
         json.dump(top_candidates, f, indent=2, default=str)
