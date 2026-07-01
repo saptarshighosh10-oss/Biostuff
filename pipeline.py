@@ -1,33 +1,153 @@
 """
-End-to-end pipeline orchestration.
-Phase 1: fetch → compute features → predict → flag disagreements.
-Training happens only after sufficient wet-lab data is collected.
+Phase 1 pipeline — fully wired end-to-end.
+
+Steps:
+  1. Fetch anchor sequences from PDB
+  2. Extract CDR regions
+  3. Generate BLOSUM62-guided variants
+  4. Score each variant (fast sequence-based, then ESMFold for high-risk)
+  5. Flag high-disagreement candidates for wet-lab testing
+  6. Save results to JSON
 """
 
+import json
+import time
+from pathlib import Path
+
 from data.fetch_pdb import search_antibody_entries
-from features import sequence as seq_features
-from predictors.ensemble import run_all
-from labeling.auto_label import auto_label
+from data.fetch_sequences import fetch_antibody_dataset, AntibodyChain
+from data.perturb import generate_variants
+from features.cdr import extract_cdrs
+from predictors.aggregation_risk import fast_risk_score, full_risk_score
+
+RESULTS_DIR = Path("results")
 
 
-def run_phase1(max_entries: int = 20):
+def run_phase1(
+    max_pdb_entries: int = 10,
+    variants_per_sequence: int = 5,
+    mutations_per_variant: int = 2,
+    use_esmfold: bool = False,   # set True to call ESMFold API (slower, rate-limited)
+    output_file: str = "results/phase1_candidates.json",
+):
     """
-    Phase 1: Pull anchors, compute features, flag high-disagreement variants.
-    No training yet — just building the signal layer.
+    Run the full Phase 1 pipeline.
+
+    Args:
+        max_pdb_entries: how many PDB entries to pull anchors from
+        variants_per_sequence: how many mutated variants to generate per anchor
+        mutations_per_variant: mutations per variant (keep <=3 for attribution)
+        use_esmfold: whether to call ESMFold API for structure-based disagreement
+        output_file: where to save flagged candidates
     """
-    print("=== Phase 1: Anchor + Predict + Flag ===\n")
+    RESULTS_DIR.mkdir(exist_ok=True)
+    print("=" * 60)
+    print("PHASE 1: Anchor → Perturb → Predict → Flag")
+    print("=" * 60)
 
-    print(f"Fetching up to {max_entries} antibody PDB entries...")
-    pdb_ids = search_antibody_entries(max_results=max_entries)
-    print(f"Found {len(pdb_ids)} entries: {pdb_ids[:5]}...\n")
+    # ── Step 1: Fetch anchor sequences ──────────────────────────
+    print(f"\n[1/5] Fetching up to {max_pdb_entries} antibody PDB entries...")
+    pdb_ids = search_antibody_entries(max_results=max_pdb_entries)
+    print(f"      Found {len(pdb_ids)} PDB IDs")
 
-    # placeholder: in practice, fetch actual sequences from PDB entries
-    print("Next step: fetch sequences for each PDB ID and run predictors.")
-    print("Run predictors/ensemble.py on each sequence.")
-    print("Flag any with disagreement_score > 0.5 for wet-lab testing.\n")
+    print("\n[2/5] Fetching sequences for each entry...")
+    anchors: list[AntibodyChain] = fetch_antibody_dataset(pdb_ids, max_per_entry=2)
+    print(f"      Retrieved {len(anchors)} antibody chains")
 
-    print("=== Phase 1 scaffold ready. Implement sequence fetching next. ===")
+    if not anchors:
+        print("No antibody chains found. Try increasing max_pdb_entries.")
+        return []
+
+    # ── Step 2: Extract CDRs (informational) ────────────────────
+    print("\n[3/5] Extracting CDR regions...")
+    for chain in anchors:
+        cdrs = extract_cdrs(chain.sequence, chain.chain_type)
+        if cdrs:
+            print(f"      {chain.pdb_id} chain {chain.chain_id}: "
+                  f"CDR1={cdrs.cdr1[:6]}... CDR3={cdrs.cdr3[:6]}...")
+
+    # ── Step 3: Generate variants ────────────────────────────────
+    print(f"\n[4/5] Generating {variants_per_sequence} variants per anchor "
+          f"({mutations_per_variant} mutations each)...")
+    all_variants = []
+    for chain in anchors:
+        variants = generate_variants(
+            chain.sequence,
+            n_variants=variants_per_sequence,
+            mutations_per_variant=mutations_per_variant,
+        )
+        for variant_seq, mutations in variants:
+            if not mutations:
+                continue
+            all_variants.append({
+                "anchor_pdb": chain.pdb_id,
+                "anchor_chain": chain.chain_id,
+                "chain_type": chain.chain_type,
+                "anchor_sequence": chain.sequence,
+                "variant_sequence": variant_seq,
+                "mutations": [(pos, orig, mut) for pos, orig, mut in mutations],
+                "n_mutations": len(mutations),
+            })
+
+    print(f"      Generated {len(all_variants)} variants total")
+
+    # ── Step 4: Score variants ───────────────────────────────────
+    print(f"\n[5/5] Scoring variants "
+          f"({'sequence + ESMFold' if use_esmfold else 'sequence-only, fast'})...")
+
+    flagged = []
+    for i, variant in enumerate(all_variants):
+        seq = variant["variant_sequence"]
+
+        if use_esmfold:
+            risk = full_risk_score(seq, use_esmfold=True)
+            time.sleep(1)  # be polite to ESMFold API
+        else:
+            risk = fast_risk_score(seq)
+
+        variant["risk"] = {
+            k: v for k, v in risk.items()
+            if k not in ("sequence_features", "pdb_string")
+        }
+        variant["flag_for_wetlab"] = risk.get("flag_for_wetlab", risk.get("flag_for_esmfold", False))
+
+        if variant["flag_for_wetlab"]:
+            flagged.append(variant)
+
+        if (i + 1) % 10 == 0:
+            print(f"      Scored {i + 1}/{len(all_variants)}...")
+
+    # ── Output ───────────────────────────────────────────────────
+    flagged.sort(key=lambda v: v["risk"].get("combined_risk", 0), reverse=True)
+
+    with open(output_file, "w") as f:
+        json.dump(flagged, f, indent=2)
+
+    print(f"\n{'=' * 60}")
+    print(f"PHASE 1 COMPLETE")
+    print(f"  Anchors:          {len(anchors)} chains")
+    print(f"  Variants tested:  {len(all_variants)}")
+    print(f"  Flagged for test: {len(flagged)} ({100*len(flagged)/max(len(all_variants),1):.0f}%)")
+    print(f"  Results saved to: {output_file}")
+    print(f"{'=' * 60}")
+    print(f"\nNext step: take top flagged variants to wet-lab.")
+    print(f"Once you have >=30 confirmed failures, run model/train.py.")
+
+    return flagged
 
 
 if __name__ == "__main__":
-    run_phase1()
+    import argparse
+    parser = argparse.ArgumentParser(description="Run Phase 1 antibody aggregation pipeline")
+    parser.add_argument("--entries", type=int, default=10, help="PDB entries to fetch")
+    parser.add_argument("--variants", type=int, default=5, help="Variants per sequence")
+    parser.add_argument("--mutations", type=int, default=2, help="Mutations per variant")
+    parser.add_argument("--esmfold", action="store_true", help="Enable ESMFold API calls")
+    args = parser.parse_args()
+
+    run_phase1(
+        max_pdb_entries=args.entries,
+        variants_per_sequence=args.variants,
+        mutations_per_variant=args.mutations,
+        use_esmfold=args.esmfold,
+    )
