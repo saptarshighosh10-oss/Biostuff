@@ -103,3 +103,23 @@ def fetch_antibody_dataset(pdb_ids: list[str], max_per_entry: int = 2) -> list[A
         all_chains.extend(chains[:max_per_entry])
         print(f"  {pdb_id}: {len(chains)} antibody chains found")
     return all_chains
+
+
+def deduplicate_chains(
+    chains: list[AntibodyChain], identity_threshold: float = 0.9
+) -> list[AntibodyChain]:
+    """
+    Remove chains whose sequence is >=identity_threshold similar to an already-kept chain.
+    Prevents near-identical antibody families (e.g. MC-series Bence-Jones proteins)
+    from flooding variant generation with redundant mutations.
+    """
+    from difflib import SequenceMatcher
+
+    unique: list[AntibodyChain] = []
+    for chain in chains:
+        for kept in unique:
+            if SequenceMatcher(None, chain.sequence, kept.sequence).ratio() >= identity_threshold:
+                break
+        else:
+            unique.append(chain)
+    return unique

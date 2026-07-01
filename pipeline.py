@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 
 from data.fetch_pdb import search_antibody_entries
-from data.fetch_sequences import fetch_antibody_dataset, AntibodyChain
+from data.fetch_sequences import fetch_antibody_dataset, deduplicate_chains, AntibodyChain
 from data.perturb import generate_variants, load_esm2
 from features.cdr import extract_cdrs
 from predictors.aggregation_risk import fast_risk_score, full_risk_score
@@ -66,6 +66,8 @@ def run_phase1(
     print("\n[2/5] Fetching sequences for each entry...")
     anchors: list[AntibodyChain] = fetch_antibody_dataset(pdb_ids, max_per_entry=2)
     print(f"      Retrieved {len(anchors)} antibody chains")
+    anchors = deduplicate_chains(anchors, identity_threshold=0.9)
+    print(f"      After deduplication: {len(anchors)} unique chains")
 
     if not anchors:
         print("\nNo antibody chains found. This usually means the PDB FASTA")
