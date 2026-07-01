@@ -27,7 +27,8 @@ def run_phase1(
     max_pdb_entries: int = 10,
     variants_per_sequence: int = 5,
     mutations_per_variant: int = 2,
-    use_esmfold: bool = False,   # set True to call ESMFold API (slower, rate-limited)
+    use_esmfold: bool = False,
+    top_n: int = 20,             # always return top N by risk score regardless of threshold
     output_file: str = "results/phase1_candidates.json",
 ):
     """
@@ -55,7 +56,8 @@ def run_phase1(
     print(f"      Retrieved {len(anchors)} antibody chains")
 
     if not anchors:
-        print("No antibody chains found. Try increasing max_pdb_entries.")
+        print("\nNo antibody chains found. This usually means the PDB FASTA")
+        print("headers didn't match the keyword filter. Try --entries 30.")
         return []
 
     # ── Step 2: Extract CDRs (informational) ────────────────────
