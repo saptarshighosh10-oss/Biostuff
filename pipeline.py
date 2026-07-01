@@ -97,7 +97,7 @@ def run_phase1(
     print(f"\n[5/5] Scoring variants "
           f"({'sequence + ESMFold' if use_esmfold else 'sequence-only, fast'})...")
 
-    flagged = []
+    scored = []
     for i, variant in enumerate(all_variants):
         seq = variant["variant_sequence"]
 
@@ -111,28 +111,33 @@ def run_phase1(
             k: v for k, v in risk.items()
             if k not in ("sequence_features", "pdb_string")
         }
-        variant["flag_for_wetlab"] = risk.get("flag_for_wetlab", risk.get("flag_for_esmfold", False))
-
-        if variant["flag_for_wetlab"]:
-            flagged.append(variant)
+        scored.append(variant)
 
         if (i + 1) % 10 == 0:
             print(f"      Scored {i + 1}/{len(all_variants)}...")
 
-    # ── Output ───────────────────────────────────────────────────
-    flagged.sort(key=lambda v: v["risk"].get("combined_risk", 0), reverse=True)
+    # ── Output: always return top N by risk score ─────────────────
+    # Hard threshold skips too many conservative mutations — instead
+    # always surface the highest-risk variants for review.
+    scored.sort(key=lambda v: v["risk"].get("combined_risk", 0), reverse=True)
+    top_candidates = scored[:top_n]
 
     with open(output_file, "w") as f:
-        json.dump(flagged, f, indent=2)
+        json.dump(top_candidates, f, indent=2)
 
+    scores = [v["risk"]["combined_risk"] for v in scored]
     print(f"\n{'=' * 60}")
     print(f"PHASE 1 COMPLETE")
     print(f"  Anchors:          {len(anchors)} chains")
     print(f"  Variants tested:  {len(all_variants)}")
-    print(f"  Flagged for test: {len(flagged)} ({100*len(flagged)/max(len(all_variants),1):.0f}%)")
-    print(f"  Results saved to: {output_file}")
+    print(f"  Risk score range: {min(scores):.3f} – {max(scores):.3f}")
+    print(f"  Top {top_n} saved to: {output_file}")
     print(f"{'=' * 60}")
-    print(f"\nNext step: take top flagged variants to wet-lab.")
+    print(f"\nTop 5 candidates:")
+    for i, v in enumerate(top_candidates[:5]):
+        print(f"  {i+1}. {v['anchor_pdb']} {v['chain_type']} | "
+              f"mutations={v['mutations']} | risk={v['risk']['combined_risk']:.3f}")
+    print(f"\nNext: run with --esmfold to add structure-based scoring on these.")
     print(f"Once you have >=30 confirmed failures, run model/train.py.")
 
     return flagged
@@ -145,6 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("--variants", type=int, default=5, help="Variants per sequence")
     parser.add_argument("--mutations", type=int, default=2, help="Mutations per variant")
     parser.add_argument("--esmfold", action="store_true", help="Enable ESMFold API calls")
+    parser.add_argument("--top", type=int, default=20, help="How many top candidates to save")
     args = parser.parse_args()
 
     run_phase1(
@@ -152,4 +158,5 @@ if __name__ == "__main__":
         variants_per_sequence=args.variants,
         mutations_per_variant=args.mutations,
         use_esmfold=args.esmfold,
+        top_n=args.top,
     )
