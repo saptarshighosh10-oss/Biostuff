@@ -52,12 +52,17 @@ def train(
     use_canya: bool = False,
     use_figshare_agg: bool = False,
     use_abdev: bool = False,
+    use_sabdab: bool = False,
+    use_anchors: bool = False,
+    anchor_file: str = "results/phase1_candidates.json",
     min_failures: int = MIN_TRAINING_FAILURES,
     flab_percentile: float = 0.25,
     antiref_max: int = 500,
     canya_max: int = 2000,
     abdev_max: int = 300,
     figshare_max: int = 2000,
+    sabdab_max: int = 500,
+    anchor_max: int = 500,
 ):
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -129,6 +134,25 @@ def train(
         print(f"  AbDev: {len(negatives)} clinical antibody working sequences")
     else:
         print("\n[6/6] AbDev skipped (pass --abdev to include)")
+
+    # ── Source 7: SAbDab structural antibody database ─────────────────
+    if use_sabdab:
+        print("\n[7/7] Loading SAbDab sequences...")
+        from data.sabdab import load_sabdab_negatives
+        negatives = load_sabdab_negatives(max_sequences=sabdab_max)
+        all_working.extend(negatives)
+        print(f"  SAbDab: {len(negatives)} working sequences")
+    else:
+        print("\n[7/7] SAbDab skipped (pass --sabdab to include)")
+
+    # ── Source 8: Phase 1 anchor sequences (already on disk) ─────────
+    if use_anchors:
+        print("\n[8/8] Loading Phase 1 anchor sequences as negatives...")
+        from data.anchor_negatives import load_anchor_negatives
+        negatives = load_anchor_negatives(anchor_file, max_sequences=anchor_max)
+        all_working.extend(negatives)
+    else:
+        print("\n[8/8] Anchor sequences skipped (pass --anchors to include)")
 
     # ── Deduplicate across sources ───────────────────────────────────
     seen: set[str] = set()
@@ -223,6 +247,9 @@ if __name__ == "__main__":
     parser.add_argument("--canya",    action="store_true", help="Include CANYA nucleation data")
     parser.add_argument("--figshare-agg", action="store_true", help="Include Figshare Aggrescan3D data")
     parser.add_argument("--abdev",    action="store_true", help="Include AbDev clinical antibody negatives")
+    parser.add_argument("--sabdab",   action="store_true", help="Include SAbDab structural antibody negatives")
+    parser.add_argument("--anchors",  action="store_true", help="Include Phase 1 anchor sequences as negatives")
+    parser.add_argument("--anchor-file", default="results/phase1_candidates.json")
     parser.add_argument("--min-failures", type=int, default=MIN_TRAINING_FAILURES)
     parser.add_argument("--flab-percentile", type=float, default=0.25,
                         help="Score percentile cutoff for FLAb labeling (default 0.25)")
@@ -243,6 +270,9 @@ if __name__ == "__main__":
         use_canya=args.canya,
         use_figshare_agg=args.figshare_agg,
         use_abdev=args.abdev,
+        use_sabdab=args.sabdab,
+        use_anchors=args.anchors,
+        anchor_file=args.anchor_file,
         min_failures=args.min_failures,
         flab_percentile=args.flab_percentile,
         antiref_max=args.antiref_max,
