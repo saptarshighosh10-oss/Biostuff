@@ -45,6 +45,10 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
 
     confidence = "high" if gap < 0.15 else "medium" if gap < 0.30 else "low"
 
+    # closest known reference of each class — "this looks like X"
+    working_neighbors = model.nearest_neighbors(vec, label=0, top_k=1)
+    failure_neighbors = model.nearest_neighbors(vec, label=1, top_k=1)
+
     return {
         "failure_probability": round(prob, 4),
         "confidence_gap":      round(gap, 4),
@@ -54,6 +58,8 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
             {"feature": name, "value": round(val, 4), "importance": round(imp, 4)}
             for name, val, imp in contributions[:5]
         ],
+        "closest_working": working_neighbors[0] if working_neighbors else None,
+        "closest_failure": failure_neighbors[0] if failure_neighbors else None,
     }
 
 
@@ -94,6 +100,11 @@ if __name__ == "__main__":
         print("Top contributing features:")
         for f in result["top_features"]:
             print(f"  {f['feature']:35s} value={f['value']:.3f}  importance={f['importance']:.4f}")
+        cw, cf = result.get("closest_working"), result.get("closest_failure")
+        if cw:
+            print(f"\nClosest known WORKING reference:  {cw['name']} (source={cw['source']}, distance={cw['distance']:.3f})")
+        if cf:
+            print(f"Closest known FAILURE reference:  {cf['name']} (source={cf['source']}, distance={cf['distance']:.3f})")
 
     elif args.file:
         results = score_file(args.file, top_n=args.top)
@@ -103,6 +114,9 @@ if __name__ == "__main__":
             print(f"  {i+1}. {r['anchor_pdb']} | prob={r['failure_probability']:.3f} "
                   f"({r['risk_level']}) | {conf_str} | phase1_risk={r['phase1_risk']:.3f}")
             print(f"       mutations: {r['mutations']}")
+            cw, cf = r.get("closest_working"), r.get("closest_failure")
+            if cw:
+                print(f"       closest working: {cw['name']} (distance={cw['distance']:.3f})")
             top_feat = r['top_features'][0] if r['top_features'] else {}
             if top_feat:
                 print(f"       top driver: {top_feat['feature']} = {top_feat['value']:.3f}")

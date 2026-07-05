@@ -50,6 +50,21 @@ def _group_id_for(entry: dict) -> str:
     return hashlib.md5(seq.encode()).hexdigest() if seq else "unknown"
 
 
+def _identity_for(entry: dict, idx: int) -> dict:
+    """
+    Human-readable identity for one training row, used to power
+    nearest_neighbors() lookups at inference — "this candidate most
+    resembles known-working protein X".
+    """
+    name = (entry.get("name") or entry.get("anchor_pdb") or entry.get("group_id")
+            or f"{entry.get('source', 'entry')}_{idx}")
+    return {
+        "name": str(name),
+        "source": entry.get("source", ""),
+        "sequence": entry.get("variant_sequence", ""),
+    }
+
+
 def load_labeled_data(input_file: str) -> tuple[list, list]:
     if not Path(input_file).exists():
         return [], []
@@ -223,19 +238,21 @@ def train(
 
     # ── Extract features ─────────────────────────────────────────────
     print("\nExtracting features...")
-    X, y, groups = [], [], []
-    for entry in failures_dedup:
+    X, y, groups, identities = [], [], [], []
+    for i, entry in enumerate(failures_dedup):
         feats = extract_features(entry)
         X.append(features_to_vector(feats))
         y.append(1)
         groups.append(_group_id_for(entry))
+        identities.append(_identity_for(entry, i))
         if (len(X)) % 200 == 0:
             print(f"  {len(X)} features extracted...")
-    for entry in working_dedup:
+    for i, entry in enumerate(working_dedup):
         feats = extract_features(entry)
         X.append(features_to_vector(feats))
         y.append(0)
         groups.append(_group_id_for(entry))
+        identities.append(_identity_for(entry, i))
 
     n_groups = len(set(groups))
     print(f"  Feature vector size: {len(FEATURE_NAMES)}")
@@ -245,7 +262,7 @@ def train(
     # ── Train ────────────────────────────────────────────────────────
     print("\nTraining (logistic regression + random forest, grouped 5-fold CV)...")
     model = AggregationFailureModel()
-    model.train(X, y, FEATURE_NAMES, groups=groups)
+    model.train(X, y, FEATURE_NAMES, groups=groups, identities=identities)
 
     cv = model.cv_scores
     lr_auc = cv["logistic_regression_auc"]

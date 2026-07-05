@@ -165,7 +165,7 @@ def _scores_to_labels(
 
         if label is not None:
             entry = {"variant_sequence": seq.upper(), "label": label,
-                     "score": score, "score_col": score_col_name}
+                     "score": score, "score_col": score_col_name, "source": "flab"}
             (failures if label == "confirmed_failure" else working).append(entry)
 
     return failures, working
