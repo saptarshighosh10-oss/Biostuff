@@ -84,7 +84,7 @@ def load_labeled_data(input_file: str) -> tuple[list, list]:
     return failures, working
 
 
-def train(
+def build_training_data(
     input_file: str | None = None,
     use_flab: bool = False,
     use_antiref: bool = False,
@@ -105,11 +105,15 @@ def train(
     anchor_max: int = 500,
     proteingym_assays: int = 84,
     proteingym_seed: int | None = 42,
-):
-    SAVE_DIR.mkdir(parents=True, exist_ok=True)
-
+) -> tuple[list, list, list, list] | None:
+    """
+    Load every requested data source, deduplicate, and featurize.
+    Returns (X, y, groups, identities), or None if there isn't enough data
+    to train. Shared by train() and model/significance.py so the permutation
+    test runs on the exact same data a training run would use.
+    """
     print("=" * 60)
-    print("TRAINING: Aggregation Failure Model")
+    print("LOADING TRAINING DATA")
     print("=" * 60)
 
     all_failures: list = []
@@ -258,6 +262,25 @@ def train(
     print(f"  Feature vector size: {len(FEATURE_NAMES)}")
     print(f"  Total samples: {len(X)} ({sum(y)} failures, {len(y)-sum(y)} working)")
     print(f"  Distinct CV groups: {n_groups}")
+
+    return X, y, groups, identities
+
+
+def train(**kwargs) -> AggregationFailureModel | None:
+    """
+    Build training data (see build_training_data for all kwargs) and fit
+    the model. Prints CV results, feature importances, and saves model.pkl.
+    """
+    SAVE_DIR.mkdir(parents=True, exist_ok=True)
+
+    print("=" * 60)
+    print("TRAINING: Aggregation Failure Model")
+    print("=" * 60)
+
+    data = build_training_data(**kwargs)
+    if data is None:
+        return None
+    X, y, groups, identities = data
 
     # ── Train ────────────────────────────────────────────────────────
     print("\nTraining (logistic regression + random forest, grouped 5-fold CV)...")

@@ -14,20 +14,23 @@ from pathlib import Path
 MODEL_PATH = "model/saved/model.pkl"
 
 
-def score_sequence(sequence: str, mutations: list | None = None) -> dict:
+def score_sequence(sequence: str, mutations: list | None = None, model=None) -> dict:
     """
     Score a single sequence. Returns risk probability + top contributing features.
     No API calls — uses only sequence-based and multi-predictor features.
+    Pass a pre-loaded `model` to avoid re-reading model.pkl from disk when
+    scoring many sequences in a loop (e.g. from model/report.py).
     """
     from model.failure_model import AggregationFailureModel
     from model.features import extract_from_sequence, features_to_vector, FEATURE_NAMES
 
-    if not Path(MODEL_PATH).exists():
-        raise FileNotFoundError(
-            f"No trained model found at {MODEL_PATH}. Run `python -m model.train` first."
-        )
+    if model is None:
+        if not Path(MODEL_PATH).exists():
+            raise FileNotFoundError(
+                f"No trained model found at {MODEL_PATH}. Run `python -m model.train` first."
+            )
+        model = AggregationFailureModel.load(MODEL_PATH)
 
-    model = AggregationFailureModel.load(MODEL_PATH)
     feat_dict = extract_from_sequence(sequence, mutations)
     vec = features_to_vector(feat_dict)
     probs, gaps = model.predict_with_uncertainty([vec])
@@ -65,16 +68,19 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
 
 def score_file(input_file: str, top_n: int = 10):
     """Re-score candidates from a JSON file using the trained model."""
+    from model.failure_model import AggregationFailureModel
+
     with open(input_file) as f:
         candidates = json.load(f)
 
+    model = AggregationFailureModel.load(MODEL_PATH)
     results = []
     for c in candidates[:top_n]:
         seq = c.get("variant_sequence", "")
         mutations = c.get("mutations", [])
         if not seq:
             continue
-        score = score_sequence(seq, mutations)
+        score = score_sequence(seq, mutations, model=model)
         results.append({
             "anchor_pdb": c.get("anchor_pdb", "?"),
             "mutations": mutations,
