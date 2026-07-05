@@ -64,7 +64,7 @@ def train(
     figshare_max: int = 2000,
     sabdab_max: int = 500,
     anchor_max: int = 500,
-    proteingym_assays: int = 6,
+    proteingym_assays: int = 12,
 ):
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("--sabdab",   action="store_true", help="Include SAbDab structural antibody negatives")
     parser.add_argument("--anchors",  action="store_true", help="Include Phase 1 anchor sequences as negatives")
     parser.add_argument("--proteingym", action="store_true", help="Include ProteinGym DMS stability failures (mutants)")
-    parser.add_argument("--proteingym-assays", type=int, default=6, help="Number of ProteinGym assays to load")
+    parser.add_argument("--proteingym-assays", type=int, default=12, help="Number of ProteinGym assays to load")
     parser.add_argument("--anchor-file", default="results/phase1_candidates.json")
     parser.add_argument("--min-failures", type=int, default=MIN_TRAINING_FAILURES)
     parser.add_argument("--flab-percentile", type=float, default=0.25,

@@ -108,7 +108,12 @@ def _download_assay(filename: str) -> str | None:
     return None
 
 
-def _parse_assay(text: str, percentile: float, max_rows: int) -> tuple[list[dict], list[dict]]:
+def _parse_assay(text: str, percentile: float, max_keep: int) -> tuple[list[dict], list[dict]]:
+    """
+    Parse one assay. Thresholds are computed over the FULL fitness distribution
+    (not a truncated head), then `max_keep` most-extreme failures and workings
+    are kept — so labels stay correct and the cap only limits redundancy.
+    """
     reader = csv.DictReader(io.StringIO(text))
     rows = list(reader)
     if not rows:
@@ -122,7 +127,7 @@ def _parse_assay(text: str, percentile: float, max_rows: int) -> tuple[list[dict
         return [], []
 
     entries = []
-    for row in rows[:max_rows]:
+    for row in rows:  # read the whole file — thresholds need the true distribution
         seq = row.get(seq_col, "").strip().upper()
         if not seq or not AA_PATTERN.match(seq):
             continue
@@ -141,21 +146,25 @@ def _parse_assay(text: str, percentile: float, max_rows: int) -> tuple[list[dict
     low_t  = scores[int(n * percentile)]
     high_t = scores[int(n * (1 - percentile))]
 
-    failures, working = [], []
-    for seq, score, muts in entries:
-        if score <= low_t:
-            failures.append({"variant_sequence": seq, "label": "confirmed_failure",
-                             "mutations": muts, "source": "proteingym", "dms_score": score})
-        elif score >= high_t:
-            working.append({"variant_sequence": seq, "label": "working",
-                            "mutations": muts, "source": "proteingym", "dms_score": score})
+    fail_pool = [e for e in entries if e[1] <= low_t]
+    work_pool = [e for e in entries if e[1] >= high_t]
+    # keep the most extreme examples (clearest failures / clearest working)
+    fail_pool.sort(key=lambda e: e[1])                # lowest fitness first
+    work_pool.sort(key=lambda e: e[1], reverse=True)  # highest fitness first
+
+    failures = [{"variant_sequence": s, "label": "confirmed_failure",
+                 "mutations": m, "source": "proteingym", "dms_score": sc}
+                for s, sc, m in fail_pool[:max_keep]]
+    working  = [{"variant_sequence": s, "label": "working",
+                 "mutations": m, "source": "proteingym", "dms_score": sc}
+                for s, sc, m in work_pool[:max_keep]]
     return failures, working
 
 
 def load_proteingym_data(
     percentile: float = 0.25,
-    max_assays: int = 6,
-    max_per_assay: int = 800,
+    max_assays: int = 12,
+    max_per_assay: int = 1200,
 ) -> tuple[list[dict], list[dict]]:
     """
     Load DMS stability/expression failures from ProteinGym.
