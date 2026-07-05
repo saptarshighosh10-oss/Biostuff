@@ -22,6 +22,7 @@ Label convention (fitness, higher = more functional/stable):
 
 import csv
 import io
+import random
 import re
 import requests
 
@@ -108,11 +109,16 @@ def _download_assay(filename: str) -> str | None:
     return None
 
 
-def _parse_assay(text: str, percentile: float, max_keep: int) -> tuple[list[dict], list[dict]]:
+def _parse_assay(text: str, percentile: float, max_keep: int,
+                 rng: random.Random | None = None) -> tuple[list[dict], list[dict]]:
     """
     Parse one assay. Thresholds are computed over the FULL fitness distribution
-    (not a truncated head), then `max_keep` most-extreme failures and workings
-    are kept — so labels stay correct and the cap only limits redundancy.
+    (not a truncated head), then `max_keep` failures and workings are kept.
+
+    rng=None  → keep the most-extreme (clearest) examples, deterministic.
+    rng set   → randomly sample from the failure/working pools, spreading
+                coverage across the whole range and making runs reproducibly
+                varied (change the seed for a different subsample).
     """
     reader = csv.DictReader(io.StringIO(text))
     rows = list(reader)
@@ -148,9 +154,14 @@ def _parse_assay(text: str, percentile: float, max_keep: int) -> tuple[list[dict
 
     fail_pool = [e for e in entries if e[1] <= low_t]
     work_pool = [e for e in entries if e[1] >= high_t]
-    # keep the most extreme examples (clearest failures / clearest working)
-    fail_pool.sort(key=lambda e: e[1])                # lowest fitness first
-    work_pool.sort(key=lambda e: e[1], reverse=True)  # highest fitness first
+    if rng is not None:
+        # random sample across the whole failure/working range (seeded)
+        rng.shuffle(fail_pool)
+        rng.shuffle(work_pool)
+    else:
+        # keep the most extreme examples (clearest failures / clearest working)
+        fail_pool.sort(key=lambda e: e[1])                # lowest fitness first
+        work_pool.sort(key=lambda e: e[1], reverse=True)  # highest fitness first
 
     failures = [{"variant_sequence": s, "label": "confirmed_failure",
                  "mutations": m, "source": "proteingym", "dms_score": sc}
@@ -163,20 +174,29 @@ def _parse_assay(text: str, percentile: float, max_keep: int) -> tuple[list[dict
 
 def load_proteingym_data(
     percentile: float = 0.25,
-    max_assays: int = 12,
-    max_per_assay: int = 1200,
+    max_assays: int = 84,
+    max_per_assay: int = 1500,
+    seed: int | None = 42,
 ) -> tuple[list[dict], list[dict]]:
     """
     Load DMS stability/expression failures from ProteinGym.
     Returns (failures, working) — mutant sequences with populated mutation lists.
+
+    max_assays: how many stability/expression assays to pull (84 = all available).
+    seed:       None keeps the most-extreme examples deterministically;
+                an int enables seeded random sampling across the fitness range —
+                vary it across runs to check the model is robust, not fitting noise.
     """
+    rng = random.Random(seed) if seed is not None else None
+
     print("Fetching ProteinGym assay index...")
     assays = list_stability_assays(max_assays=max_assays)
     if not assays:
         print("  No ProteinGym assays available. Skipping.")
         return [], []
 
-    print(f"Selected {len(assays)} stability/expression assays. Downloading...")
+    print(f"Selected {len(assays)} stability/expression assays "
+          f"({'random sample, seed=' + str(seed) if rng else 'most-extreme'}). Downloading...")
     all_failures, all_working = [], []
     seen: set[str] = set()
 
@@ -186,7 +206,7 @@ def load_proteingym_data(
         if not text:
             print(f"  {a['DMS_id']}: data file unreachable (Colab/HF needed) — skipped")
             continue
-        failures, working = _parse_assay(text, percentile, max_per_assay)
+        failures, working = _parse_assay(text, percentile, max_per_assay, rng=rng)
         # dedup across assays
         nf = nw = 0
         for e in failures:

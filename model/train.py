@@ -64,7 +64,8 @@ def train(
     figshare_max: int = 2000,
     sabdab_max: int = 500,
     anchor_max: int = 500,
-    proteingym_assays: int = 12,
+    proteingym_assays: int = 84,
+    proteingym_seed: int | None = 42,
 ):
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -160,7 +161,7 @@ def train(
     if use_proteingym:
         print("\n[9/9] Loading ProteinGym deep mutational scanning failures...")
         from data.proteingym import load_proteingym_data
-        f, w = load_proteingym_data(max_assays=proteingym_assays)
+        f, w = load_proteingym_data(max_assays=proteingym_assays, seed=proteingym_seed)
         all_failures.extend(f)
         all_working.extend(w)
         print(f"  ProteinGym: {len(f)} failures, {len(w)} working (mutants)")
@@ -263,7 +264,8 @@ if __name__ == "__main__":
     parser.add_argument("--sabdab",   action="store_true", help="Include SAbDab structural antibody negatives")
     parser.add_argument("--anchors",  action="store_true", help="Include Phase 1 anchor sequences as negatives")
     parser.add_argument("--proteingym", action="store_true", help="Include ProteinGym DMS stability failures (mutants)")
-    parser.add_argument("--proteingym-assays", type=int, default=12, help="Number of ProteinGym assays to load")
+    parser.add_argument("--proteingym-assays", type=int, default=84, help="Number of ProteinGym assays to load (84 = all)")
+    parser.add_argument("--proteingym-seed", type=int, default=42, help="Random seed for ProteinGym sampling (vary to test robustness)")
     parser.add_argument("--anchor-file", default="results/phase1_candidates.json")
     parser.add_argument("--min-failures", type=int, default=MIN_TRAINING_FAILURES)
     parser.add_argument("--flab-percentile", type=float, default=0.25,
@@ -289,6 +291,7 @@ if __name__ == "__main__":
         use_anchors=args.anchors,
         use_proteingym=args.proteingym,
         proteingym_assays=args.proteingym_assays,
+        proteingym_seed=args.proteingym_seed,
         anchor_file=args.anchor_file,
         min_failures=args.min_failures,
         flab_percentile=args.flab_percentile,
