@@ -14,12 +14,15 @@ from pathlib import Path
 MODEL_PATH = "model/saved/model.pkl"
 
 
-def score_sequence(sequence: str, mutations: list | None = None, model=None) -> dict:
+def score_sequence(sequence: str, mutations: list | None = None, model=None, n_neighbors: int = 3) -> dict:
     """
     Score a single sequence. Returns risk probability + top contributing features.
     No API calls — uses only sequence-based and multi-predictor features.
     Pass a pre-loaded `model` to avoid re-reading model.pkl from disk when
     scoring many sequences in a loop (e.g. from model/report.py).
+
+    n_neighbors: how many closest known references to return per class
+    (working/failure), ranked nearest first — not just the single closest.
     """
     from model.failure_model import AggregationFailureModel
     from model.features import extract_from_sequence, features_to_vector, FEATURE_NAMES
@@ -48,9 +51,10 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None) -> 
 
     confidence = "high" if gap < 0.15 else "medium" if gap < 0.30 else "low"
 
-    # closest known reference of each class — "this looks like X"
-    working_neighbors = model.nearest_neighbors(vec, label=0, top_k=1)
-    failure_neighbors = model.nearest_neighbors(vec, label=1, top_k=1)
+    # closest known references of each class, ranked nearest first —
+    # "this looks like X, and if not, here's the next-closest match"
+    working_neighbors = model.nearest_neighbors(vec, label=0, top_k=n_neighbors)
+    failure_neighbors = model.nearest_neighbors(vec, label=1, top_k=n_neighbors)
 
     return {
         "failure_probability": round(prob, 4),
@@ -63,10 +67,12 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None) -> 
         ],
         "closest_working": working_neighbors[0] if working_neighbors else None,
         "closest_failure": failure_neighbors[0] if failure_neighbors else None,
+        "closest_working_list": working_neighbors,
+        "closest_failure_list": failure_neighbors,
     }
 
 
-def score_file(input_file: str, top_n: int = 10):
+def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3):
     """Re-score candidates from a JSON file using the trained model."""
     from model.failure_model import AggregationFailureModel
 
@@ -80,7 +86,7 @@ def score_file(input_file: str, top_n: int = 10):
         mutations = c.get("mutations", [])
         if not seq:
             continue
-        score = score_sequence(seq, mutations, model=model)
+        score = score_sequence(seq, mutations, model=model, n_neighbors=n_neighbors)
         results.append({
             "anchor_pdb": c.get("anchor_pdb", "?"),
             "mutations": mutations,
@@ -97,32 +103,41 @@ if __name__ == "__main__":
     parser.add_argument("--sequence", help="Single sequence to score")
     parser.add_argument("--file", help="Score candidates from a JSON file")
     parser.add_argument("--top", type=int, default=10)
+    parser.add_argument("--neighbors", type=int, default=3,
+                        help="How many closest known references to show per class (default 3)")
     args = parser.parse_args()
 
     if args.sequence:
-        result = score_sequence(args.sequence)
+        result = score_sequence(args.sequence, n_neighbors=args.neighbors)
         print(f"\nFailure probability: {result['failure_probability']:.4f} ({result['risk_level']})")
         print(f"Confidence:          {result['confidence']} (gap={result['confidence_gap']:.4f})")
         print("Top contributing features:")
         for f in result["top_features"]:
             print(f"  {f['feature']:35s} value={f['value']:.3f}  importance={f['importance']:.4f}")
-        cw, cf = result.get("closest_working"), result.get("closest_failure")
-        if cw:
-            print(f"\nClosest known WORKING reference:  {cw['name']} (source={cw['source']}, distance={cw['distance']:.3f})")
-        if cf:
-            print(f"Closest known FAILURE reference:  {cf['name']} (source={cf['source']}, distance={cf['distance']:.3f})")
+
+        cw_list = result.get("closest_working_list") or []
+        cf_list = result.get("closest_failure_list") or []
+        if cw_list:
+            print(f"\nClosest known WORKING references (nearest first):")
+            for n in cw_list:
+                print(f"  #{n['rank']}  {n['name']:35s} (source={n['source']}, distance={n['distance']:.3f})")
+        if cf_list:
+            print(f"\nClosest known FAILURE references (nearest first):")
+            for n in cf_list:
+                print(f"  #{n['rank']}  {n['name']:35s} (source={n['source']}, distance={n['distance']:.3f})")
 
     elif args.file:
-        results = score_file(args.file, top_n=args.top)
+        results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors)
         print(f"\nTop {len(results)} candidates re-scored by trained model:\n")
         for i, r in enumerate(results):
             conf_str = f"confidence={r['confidence']} gap={r['confidence_gap']:.3f}"
             print(f"  {i+1}. {r['anchor_pdb']} | prob={r['failure_probability']:.3f} "
                   f"({r['risk_level']}) | {conf_str} | phase1_risk={r['phase1_risk']:.3f}")
             print(f"       mutations: {r['mutations']}")
-            cw, cf = r.get("closest_working"), r.get("closest_failure")
-            if cw:
-                print(f"       closest working: {cw['name']} (distance={cw['distance']:.3f})")
+            cw_list = r.get("closest_working_list") or []
+            if cw_list:
+                names = ", ".join(f"{n['name']} ({n['distance']:.2f})" for n in cw_list)
+                print(f"       closest working (nearest first): {names}")
             top_feat = r['top_features'][0] if r['top_features'] else {}
             if top_feat:
                 print(f"       top driver: {top_feat['feature']} = {top_feat['value']:.3f}")

@@ -104,13 +104,14 @@ def render_report(report: dict) -> str:
         for f in s["top_features"][:3]:
             lines.append(f"  - {_phrase(f['feature'])}: value={f['value']:.3f} (importance={f['importance']:.3f})")
 
-        cw, cf = s.get("closest_working"), s.get("closest_failure")
-        if cw or cf:
-            lines.append("\nClosest known references:")
-            if cw:
-                lines.append(f"  - working:  {cw['name']} (source={cw['source']}, distance={cw['distance']:.2f})")
-            if cf:
-                lines.append(f"  - failure:  {cf['name']} (source={cf['source']}, distance={cf['distance']:.2f})")
+        cw_list = s.get("closest_working_list") or []
+        cf_list = s.get("closest_failure_list") or []
+        if cw_list or cf_list:
+            lines.append("\nClosest known references (nearest first):")
+            for n in cw_list:
+                lines.append(f"  - working  #{n['rank']}: {n['name']} (source={n['source']}, distance={n['distance']:.2f})")
+            for n in cf_list:
+                lines.append(f"  - failure  #{n['rank']}: {n['name']} (source={n['source']}, distance={n['distance']:.2f})")
     else:
         lines.append("\n(no sequence available to score)")
 
