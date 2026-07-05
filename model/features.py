@@ -56,6 +56,14 @@ def extract_features(candidate: dict) -> dict:
     struct = risk.get("structure_features") or {}
     mp = candidate.get("multi_predictor", {})
 
+    # Compute the multi-predictor features in-process if absent, so training
+    # and inference featurize identically (no train/serve skew). These are the
+    # TANGO/AGGRESCAN/Zyggregator aggregation signals — the most domain-relevant
+    # features, previously zeroed for every training sample.
+    if not mp and seq:
+        from predictors.multi_predictor import run_all_predictors
+        mp = run_all_predictors(seq)
+
     # sequence features
     seq_feats = seq_compute_all(seq) if seq else {}
     camsol = mean_camsol_score(seq) if seq else 0.0
@@ -112,14 +120,11 @@ def features_to_vector(feat_dict: dict) -> list[float]:
 def extract_from_sequence(sequence: str, mutations: list | None = None) -> dict:
     """
     Extract features from a raw sequence with no Phase 1/2 data.
-    Used for fast inference on new sequences.
-    Runs multi-predictor in-process (no API calls).
+    Used for fast inference on new sequences. extract_features now computes the
+    multi-predictor signals in-process, so this is a thin wrapper — the training
+    and inference paths share one identical featurization.
     """
-    from predictors.multi_predictor import run_all_predictors
-    mp_results = run_all_predictors(sequence)
-    candidate = {
+    return extract_features({
         "variant_sequence": sequence,
         "mutations": mutations or [],
-        "multi_predictor": mp_results,
-    }
-    return extract_features(candidate)
+    })
