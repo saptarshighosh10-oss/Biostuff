@@ -3,8 +3,8 @@ Fast inference on new sequences using the trained failure model.
 No ESMFold API calls — runs entirely on CPU from sequence alone.
 
 Usage:
-    python model/predict.py --sequence EVQLVESGGGLVQPGG...
-    python model/predict.py --file results/phase2_candidates.json --top 10
+    python -m model.predict --sequence EVQLVESGGGLVQPGG...
+    python -m model.predict --file results/phase2_candidates.json --top 10
 """
 
 import json
@@ -24,7 +24,7 @@ def score_sequence(sequence: str, mutations: list | None = None) -> dict:
 
     if not Path(MODEL_PATH).exists():
         raise FileNotFoundError(
-            f"No trained model found at {MODEL_PATH}. Run model/train.py first."
+            f"No trained model found at {MODEL_PATH}. Run `python -m model.train` first."
         )
 
     model = AggregationFailureModel.load(MODEL_PATH)

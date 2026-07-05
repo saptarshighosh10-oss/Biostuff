@@ -5,7 +5,7 @@ Takes wet-lab results, merges them with existing training data,
 and retrains the model. Run this after each round of wet-lab testing.
 
 Usage:
-    python model/feedback.py --results results/wetlab_results.json
+    python -m model.feedback --results results/wetlab_results.json
 
 The wetlab_results.json file should look like:
     [

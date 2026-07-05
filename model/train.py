@@ -1,19 +1,25 @@
 """
 Training orchestrator.
 
-Three data sources (can be combined):
-  --input  results/labeled_results.json   your own wet-lab labeled data
-  --flab                                  FLAb 31-dataset experimental aggregation data
-  --antiref                               AntiRef human germline negatives
+Data sources (any combination):
+  --input        results/labeled_results.json   your own wet-lab labeled data
+  --flab                                        FLAb experimental aggregation datasets
+  --antiref                                     AntiRef human germline negatives
+  --canya                                       CANYA nucleation peptides
+  --figshare-agg                                Figshare Aggrescan3D structural scores
+  --abdev                                       AbDev clinical-stage antibody negatives
+  --sabdab                                      SAbDab structural antibody negatives
+  --anchors                                     your own Phase 1 PDB anchor chains
+  --proteingym                                  ProteinGym deep mutational scan failures
 
 Output: model/saved/model.pkl
 
 Usage:
-    # train from FLAb + AntiRef right now (no wet-lab needed)
-    python model/train.py --flab --antiref
+    # train from public data right now (no wet-lab needed)
+    python -m model.train --flab --abdev --anchors --proteingym
 
     # add your own wet-lab data on top
-    python model/train.py --flab --antiref --input results/labeled_results.json
+    python -m model.train --flab --abdev --anchors --input results/labeled_results.json
 """
 
 import hashlib
@@ -207,7 +213,7 @@ def train(
     if len(failures_dedup) < min_failures:
         print(
             f"\nNot enough failures to train ({len(failures_dedup)} < {min_failures}).\n"
-            f"Try: python model/train.py --flab --antiref"
+            f"Try: python -m model.train --flab --abdev --anchors"
         )
         return None
 
@@ -274,7 +280,7 @@ def train(
     print(f"  Saved to:   {save_path}")
     print(f"{'=' * 60}")
     print(f"\nRe-score your candidates:")
-    print(f"  python model/predict.py --file results/phase3_candidates.json")
+    print(f"  python -m model.predict --file results/phase3_candidates.json")
 
     return model
 
