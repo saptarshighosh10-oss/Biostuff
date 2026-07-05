@@ -54,6 +54,7 @@ def train(
     use_abdev: bool = False,
     use_sabdab: bool = False,
     use_anchors: bool = False,
+    use_proteingym: bool = False,
     anchor_file: str = "results/phase1_candidates.json",
     min_failures: int = MIN_TRAINING_FAILURES,
     flab_percentile: float = 0.25,
@@ -63,6 +64,7 @@ def train(
     figshare_max: int = 2000,
     sabdab_max: int = 500,
     anchor_max: int = 500,
+    proteingym_assays: int = 6,
 ):
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -147,12 +149,23 @@ def train(
 
     # ── Source 8: Phase 1 anchor sequences (already on disk) ─────────
     if use_anchors:
-        print("\n[8/8] Loading Phase 1 anchor sequences as negatives...")
+        print("\n[8/9] Loading Phase 1 anchor sequences as negatives...")
         from data.anchor_negatives import load_anchor_negatives
         negatives = load_anchor_negatives(anchor_file, max_sequences=anchor_max)
         all_working.extend(negatives)
     else:
-        print("\n[8/8] Anchor sequences skipped (pass --anchors to include)")
+        print("\n[8/9] Anchor sequences skipped (pass --anchors to include)")
+
+    # ── Source 9: ProteinGym DMS failures (mutants with delta features) ──
+    if use_proteingym:
+        print("\n[9/9] Loading ProteinGym deep mutational scanning failures...")
+        from data.proteingym import load_proteingym_data
+        f, w = load_proteingym_data(max_assays=proteingym_assays)
+        all_failures.extend(f)
+        all_working.extend(w)
+        print(f"  ProteinGym: {len(f)} failures, {len(w)} working (mutants)")
+    else:
+        print("\n[9/9] ProteinGym skipped (pass --proteingym to include)")
 
     # ── Deduplicate across sources ───────────────────────────────────
     seen: set[str] = set()
@@ -249,6 +262,8 @@ if __name__ == "__main__":
     parser.add_argument("--abdev",    action="store_true", help="Include AbDev clinical antibody negatives")
     parser.add_argument("--sabdab",   action="store_true", help="Include SAbDab structural antibody negatives")
     parser.add_argument("--anchors",  action="store_true", help="Include Phase 1 anchor sequences as negatives")
+    parser.add_argument("--proteingym", action="store_true", help="Include ProteinGym DMS stability failures (mutants)")
+    parser.add_argument("--proteingym-assays", type=int, default=6, help="Number of ProteinGym assays to load")
     parser.add_argument("--anchor-file", default="results/phase1_candidates.json")
     parser.add_argument("--min-failures", type=int, default=MIN_TRAINING_FAILURES)
     parser.add_argument("--flab-percentile", type=float, default=0.25,
@@ -272,6 +287,8 @@ if __name__ == "__main__":
         use_abdev=args.abdev,
         use_sabdab=args.sabdab,
         use_anchors=args.anchors,
+        use_proteingym=args.proteingym,
+        proteingym_assays=args.proteingym_assays,
         anchor_file=args.anchor_file,
         min_failures=args.min_failures,
         flab_percentile=args.flab_percentile,
