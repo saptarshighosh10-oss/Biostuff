@@ -162,7 +162,9 @@ def run_feedback(results_file: str, retrain: bool = True):
         train(
             input_file=str(TRAINING_DATA_PATH),
             use_flab=True,
-            use_antiref=True,
+            use_abdev=True,
+            use_anchors=True,
+            flab_percentile=0.4,
         )
         print("\nModel updated. Run predict.py to re-score your candidates.")
     else:

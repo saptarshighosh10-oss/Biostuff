@@ -20,6 +20,20 @@ ABDEV_RAW_BASE = "https://raw.githubusercontent.com/Lailabcode/AbDev/main"
 
 AA_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]{10,}$", re.IGNORECASE)
 
+# Known sequence files in Lailabcode/AbDev — fallback when the contents API is
+# unavailable. raw.githubusercontent is reachable where api.github.com is not.
+KNOWN_ABDEV_FILES = [
+    "seq_H.fasta",
+    "seq_L.fasta",
+    "Sequence_Info.csv",
+]
+
+
+def _known_files() -> list[dict]:
+    """Fallback file list built from known raw URLs (no API needed)."""
+    return [{"name": n, "download_url": f"{ABDEV_RAW_BASE}/{n}", "path": n}
+            for n in KNOWN_ABDEV_FILES]
+
 
 def _list_repo_files(subdir: str = "") -> list[dict]:
     """List files in the AbDev repo (root or subdirectory)."""
@@ -43,9 +57,10 @@ def _list_repo_files(subdir: str = "") -> list[dict]:
                 subname = item["name"].lower()
                 if subname in ("data", "sequences", "antibodies", "ab", "fasta", "csv"):
                     files.extend(_list_repo_files(item["name"]))
-        return files
+        # if the API returned nothing usable, fall back to known files
+        return files if files else (_known_files() if not subdir else [])
     except requests.RequestException:
-        return []
+        return _known_files() if not subdir else []
 
 
 def _parse_fasta(text: str, max_seqs: int) -> list[str]:

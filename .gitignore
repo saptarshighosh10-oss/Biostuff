@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 results/*.json
 !results/wetlab_results_template.json
+results/viz/
+model/saved/

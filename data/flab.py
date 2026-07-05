@@ -21,19 +21,50 @@ GITHUB_RAW_BASE = "https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggr
 
 AA_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]{20,}$", re.IGNORECASE)
 
+# Known aggregation CSVs in Graylab/FLAb — used as a fallback when the GitHub
+# contents API is unavailable (rate-limited or proxy-blocked). raw.githubusercontent
+# is far more reliable than api.github.com, so we probe these directly first.
+KNOWN_FLAB_FILES = [
+    "jain2017biophyscial_HICRT.csv",
+    "jain2017biophysical_ACSINS.csv",
+    "jain2017biophysical_CSIBLI.csv",
+    "jain2017biophysical_SAS.csv",
+    "jain2017biophysical_SGACSINS.csv",
+    "jain2024assessment_ACSINS.csv",
+    "jain2024assessment_CIC.csv",
+    "jain2024assessment_CSSINS.csv",
+    "jain2024assessment_Fab_pI.csv",
+    "jain2024assessment_HIC.csv",
+    "jain2024assessment_SEC.csv",
+    "jain2024assessment_cIEF.csv",
+    "jetha2019homology_RT.csv",
+    "kraft2019herapin_relrt.csv",
+    "shanehsazzadeh2023unlocking_ACSINS.csv",
+    "shanehsazzadeh2023unlocking_CGE.csv",
+    "shanehsazzadeh2023unlocking_HICRRT.csv",
+    "shanehsazzadeh2023unlocking_NRCGE.csv",
+    "shanehsazzadeh2023unlocking_SEC.csv",
+]
+
 
 # ── GitHub file discovery ────────────────────────────────────────────────────
 
 def list_flab_datasets() -> list[str]:
-    """Return list of CSV filenames in FLAb's aggregation directory."""
+    """
+    Return list of CSV filenames in FLAb's aggregation directory.
+    Tries the GitHub contents API first; on any failure, falls back to the
+    known filename list (verified reachable via raw.githubusercontent.com).
+    """
     try:
         r = requests.get(GITHUB_API_URL, timeout=20,
                          headers={"Accept": "application/vnd.github.v3+json"})
         r.raise_for_status()
-        return [f["name"] for f in r.json() if f["name"].endswith(".csv")]
+        names = [f["name"] for f in r.json() if f["name"].endswith(".csv")]
+        if names:
+            return names
     except requests.RequestException as e:
-        print(f"  Could not list FLAb datasets: {e}")
-        return []
+        print(f"  GitHub API unavailable ({e}); using known FLAb file list")
+    return list(KNOWN_FLAB_FILES)
 
 
 def download_csv(filename: str) -> str | None:
