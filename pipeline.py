@@ -151,6 +151,7 @@ def run_phase1(
                 seq_risk = variant["risk"]["combined_risk"]
                 variant["risk"]["structure_features"] = struct
                 variant["risk"]["disagreement_score"] = disagreement
+                variant["risk"]["pdb_string"] = fold["pdb_string"]
                 # blend: sequence + structure + disagreement as independent signals
                 variant["risk"]["combined_risk"] = (
                     0.5 * seq_risk + 0.3 * struct_risk + 0.2 * disagreement

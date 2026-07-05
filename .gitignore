@@ -5,4 +5,5 @@ __pycache__/
 results/*.json
 !results/wetlab_results_template.json
 results/viz/
+results/experiment_log.jsonl
 model/saved/

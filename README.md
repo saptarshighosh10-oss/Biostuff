@@ -37,11 +37,17 @@ Runs entirely free on Google Colab: no GPU required, no paid APIs.
 
 ## Quickstart (Colab)
 
-Open `colab_phase1.ipynb` in Google Colab and run cells top to bottom, or from a shell:
+Open `colab_phase1.ipynb` in Google Colab and run cells top to bottom, or run everything in one command:
 
 ```bash
 pip install -r requirements.txt
+python run_all.py --mode quick   # fast settings, checks the whole chain works
+python run_all.py --mode full    # the real, maximum-data run
+```
 
+Or run each stage yourself:
+
+```bash
 # Phase 1 — generate and score candidates
 python pipeline.py --entries 2000 --variants 20 --esm2 --esmfold --top 200
 
@@ -62,6 +68,9 @@ python -m model.report --file results/phase3_candidates.json --top 5
 
 # Visualize results (risk distribution, mutation hotspots, substitution types)
 python visualize.py
+
+# View a candidate's actual 3D structure, with mutations and hotspots highlighted
+python -m model.structure_viewer --file results/phase2_candidates.json --index 0
 ```
 
 ## Data sources
@@ -103,6 +112,14 @@ python -m model.significance --flab --abdev --anchors --permutations 50
 python -m model.validate --plot
 ```
 
+**Calibration reliability diagram** (`model/calibration_plot.py`) — builds out-of-fold calibrated predictions across the same grouped CV splits and plots predicted probability vs. observed failure rate per bin against the diagonal (perfect calibration). This is the visual proof behind the calibration claim above, not just an assertion.
+
+```bash
+python -m model.calibration_plot --flab --abdev --anchors
+```
+
+**Experiment log** — every `model/train.py` run appends its data sources, sample counts, and AUC to `results/experiment_log.jsonl`, so you can see the trajectory across runs instead of one snapshot number. View it with `python -m model.train --history`, or skip logging a one-off run with `--no-log`.
+
 ## Interpreting a candidate
 
 `model/predict.py` reports a calibrated failure probability, a confidence gap (disagreement between the LR and RF sub-models — high gap + high risk is the most valuable case to test next), and the top contributing features. `model/report.py` stitches this together with the closest known working/failure reference protein and a rescue-mutation suggestion into one narrative per candidate:
@@ -112,6 +129,8 @@ python -m model.report --file results/phase3_candidates.json --index 0
 ```
 
 `model/rescue.py` searches for the smallest sequence change that most reduces predicted risk — reverting a mutation to wild-type, or an exhaustive single-position substitution search that can find a better-than-wild-type fix. These are computational hypotheses from the same model that scored the candidate, not verified fixes — treat them as a prioritized shortlist for the wet-lab queue.
+
+`model/structure_viewer.py` renders the actual 3D structure for any candidate that went through `--esmfold` in Phase 1: cartoon colored by ESMFold confidence (blue = confident, red = unconfident), mutated positions as magenta spheres, and Phase 2 consensus hotspots as orange highlights. Displays inline in Colab/Jupyter (`view_candidate(candidate)`) or exports a standalone HTML file from the CLI.
 
 ## Active learning loop
 
@@ -140,10 +159,11 @@ data/              PDB fetching, sequence/mutation loaders, all public data-sour
 features/          sequence-level physical property + aggregation-mechanism features
 predictors/        CamSol, ESMFold, multi-predictor (TANGO/AGGRESCAN/Zyggregator), database lookups
 model/             feature extraction, trained failure model, train/predict/rescue/report/
-                   significance/feedback/validate CLIs
+                   significance/calibration_plot/structure_viewer/feedback/validate CLIs
 pipeline.py        Phase 1 orchestration
 pipeline_phase2.py Phase 2 orchestration
 pipeline_phase3.py Phase 3 orchestration
+run_all.py         one-command orchestrator chaining every phase end to end
 visualize.py       results plotting (risk distribution, mutation hotspots, substitution types)
 colab_phase1.ipynb one-notebook walkthrough of the whole pipeline
 ```

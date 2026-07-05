@@ -31,6 +31,57 @@ from model.failure_model import AggregationFailureModel, MIN_TRAINING_FAILURES
 from model.features import extract_features, features_to_vector, FEATURE_NAMES
 
 SAVE_DIR = Path("model/saved")
+EXPERIMENT_LOG = Path("results/experiment_log.jsonl")
+
+
+def _log_experiment(kwargs: dict, model: "AggregationFailureModel") -> None:
+    """
+    Append one line to results/experiment_log.jsonl recording this run's data
+    sources and results, so AUC/calibration can be tracked as a trajectory
+    across runs instead of a single snapshot number.
+    """
+    import datetime
+
+    sources = {k: v for k, v in kwargs.items() if k.startswith("use_") and v}
+    cv = model.cv_scores
+    entry = {
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "sources": sorted(sources.keys()),
+        "n_failures": model.n_failures,
+        "n_working": model.n_working,
+        "n_groups": model.n_groups,
+        "used_grouped_cv": model.used_grouped_cv,
+        "lr_auc_mean": round(float(cv["logistic_regression_auc"].mean()), 4),
+        "rf_auc_mean": round(float(cv["random_forest_auc"].mean()), 4),
+        "best_auc": round(float(max(cv["logistic_regression_auc"].mean(), cv["random_forest_auc"].mean())), 4),
+        "calibration_method": model.calibration_method,
+    }
+    EXPERIMENT_LOG.parent.mkdir(parents=True, exist_ok=True)
+    with open(EXPERIMENT_LOG, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+    print(f"\nLogged this run to {EXPERIMENT_LOG}")
+
+
+def print_experiment_log(log_path: str = str(EXPERIMENT_LOG)) -> None:
+    """Print the training run history as a table, most recent last."""
+    p = Path(log_path)
+    if not p.exists():
+        print(f"No experiment log yet at {log_path} — run training first.")
+        return
+
+    with open(p) as f:
+        rows = [json.loads(line) for line in f if line.strip()]
+
+    if not rows:
+        print("Experiment log is empty.")
+        return
+
+    print(f"{'timestamp':20s} {'failures':>8s} {'working':>8s} {'groups':>7s} {'best_auc':>8s}  sources")
+    print("-" * 90)
+    for r in rows:
+        print(f"{r['timestamp']:20s} {r['n_failures']:>8d} {r['n_working']:>8d} "
+              f"{str(r.get('n_groups', '')):>7s} {r['best_auc']:>8.3f}  "
+              f"{','.join(s.replace('use_', '') for s in r['sources'])}")
 
 
 def _group_id_for(entry: dict) -> str:
@@ -266,10 +317,11 @@ def build_training_data(
     return X, y, groups, identities
 
 
-def train(**kwargs) -> AggregationFailureModel | None:
+def train(log_run: bool = True, **kwargs) -> AggregationFailureModel | None:
     """
     Build training data (see build_training_data for all kwargs) and fit
     the model. Prints CV results, feature importances, and saves model.pkl.
+    Appends a row to results/experiment_log.jsonl unless log_run=False.
     """
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -312,6 +364,9 @@ def train(**kwargs) -> AggregationFailureModel | None:
     save_path = str(SAVE_DIR / "model.pkl")
     model.save(save_path)
 
+    if log_run:
+        _log_experiment(kwargs, model)
+
     print(f"\n{'=' * 60}")
     print(f"TRAINING COMPLETE")
     print(f"  Failures:   {model.n_failures}")
@@ -350,9 +405,16 @@ if __name__ == "__main__":
                         help="Max Figshare A3D sequences to load (default 2000)")
     parser.add_argument("--abdev-max", type=int, default=300,
                         help="Max AbDev sequences to load (default 300)")
+    parser.add_argument("--no-log", action="store_true", help="Don't append this run to results/experiment_log.jsonl")
+    parser.add_argument("--history", action="store_true", help="Print the experiment log and exit (no training)")
     args = parser.parse_args()
 
+    if args.history:
+        print_experiment_log()
+        raise SystemExit(0)
+
     train(
+        log_run=not args.no_log,
         input_file=args.input,
         use_flab=args.flab,
         use_antiref=args.antiref,
