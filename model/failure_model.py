@@ -14,24 +14,38 @@ class AggregationFailureModel:
         self.trained = False
         self.lr = None
         self.rf = None
+        self.lr_calibrated = None
+        self.rf_calibrated = None
+        self.calibration_method = None
         self.scaler = None
         self.feature_names = None
         self.cv_scores = None
+        self.used_grouped_cv = False
+        self.n_groups = None
         self.n_failures = 0
         self.n_working = 0
 
     def is_ready_to_train(self, labeled_failures: list) -> bool:
         return len(labeled_failures) >= MIN_TRAINING_FAILURES
 
-    def train(self, X: list[list[float]], y: list[int], feature_names: list[str]):
+    def train(self, X: list[list[float]], y: list[int], feature_names: list[str],
+              groups: list | None = None):
         """
         Train on feature matrix X (n_samples × n_features) and binary labels y.
         y=1 means confirmed_failure, y=0 means working.
+
+        groups: optional per-sample group key (e.g. wild-type/assay ID or source
+        dataset). When provided with >=2 distinct groups, cross-validation uses
+        StratifiedGroupKFold so mutants of the same protein never split across
+        train/test folds — without this, near-duplicate variants leak between
+        folds and CV AUC is optimistically biased. Falls back to plain
+        StratifiedKFold when groups are absent or too few to split on.
         """
         from sklearn.linear_model import LogisticRegression
         from sklearn.ensemble import RandomForestClassifier
         from sklearn.preprocessing import StandardScaler
-        from sklearn.model_selection import StratifiedKFold, cross_val_score
+        from sklearn.calibration import CalibratedClassifierCV
+        from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold, cross_val_score
 
         X = np.array(X, dtype=float)
         y = np.array(y, dtype=int)
@@ -53,9 +67,24 @@ class AggregationFailureModel:
         self.lr = LogisticRegression(C=1.0, max_iter=1000, class_weight="balanced", random_state=42)
         self.rf = RandomForestClassifier(n_estimators=200, class_weight="balanced", random_state=42)
 
-        cv = StratifiedKFold(n_splits=min(5, self.n_failures), shuffle=True, random_state=42)
-        lr_scores = cross_val_score(self.lr, X_scaled, y, cv=cv, scoring="roc_auc")
-        rf_scores = cross_val_score(self.rf, X, y, cv=cv, scoring="roc_auc")
+        # ── choose grouped vs standard CV splitter ────────────────────────
+        groups_arr = np.array(groups) if groups is not None else None
+        n_unique_groups = len(np.unique(groups_arr)) if groups_arr is not None else 0
+        n_splits = min(5, self.n_failures)
+
+        if groups_arr is not None and n_unique_groups >= 2 and n_unique_groups >= n_splits:
+            cv = StratifiedGroupKFold(n_splits=max(2, n_splits), shuffle=True, random_state=42)
+            cv_splits = list(cv.split(X_scaled, y, groups=groups_arr))
+            self.used_grouped_cv = True
+            self.n_groups = n_unique_groups
+        else:
+            cv = StratifiedKFold(n_splits=max(2, n_splits), shuffle=True, random_state=42)
+            cv_splits = list(cv.split(X_scaled, y))
+            self.used_grouped_cv = False
+            self.n_groups = n_unique_groups if groups_arr is not None else None
+
+        lr_scores = cross_val_score(self.lr, X_scaled, y, cv=cv_splits, scoring="roc_auc")
+        rf_scores = cross_val_score(self.rf, X, y, cv=cv_splits, scoring="roc_auc")
 
         self.cv_scores = {
             "logistic_regression_auc": lr_scores,
@@ -64,30 +93,50 @@ class AggregationFailureModel:
 
         self.lr.fit(X_scaled, y)
         self.rf.fit(X, y)
+
+        # ── probability calibration ────────────────────────────────────────
+        # Raw LR/RF probabilities are not reliably calibrated (RF especially
+        # tends toward overconfidence near 0/1). Wrap each in a CV-calibrated
+        # classifier using the SAME fold splits as above, so "0.7" means the
+        # model is actually right about 70% of the time on held-out folds.
+        # Isotonic needs more data than sigmoid/Platt to avoid overfitting.
+        self.calibration_method = "isotonic" if len(y) >= 1000 else "sigmoid"
+        self.lr_calibrated = CalibratedClassifierCV(self.lr, method=self.calibration_method, cv=cv_splits)
+        self.lr_calibrated.fit(X_scaled, y)
+        self.rf_calibrated = CalibratedClassifierCV(self.rf, method=self.calibration_method, cv=cv_splits)
+        self.rf_calibrated.fit(X, y)
+
         self.trained = True
 
     def predict_proba(self, X: list[list[float]]) -> np.ndarray:
-        """Returns failure probability for each sample (ensemble average)."""
+        """Returns calibrated failure probability for each sample (ensemble average)."""
         if not self.trained:
             raise RuntimeError("Model not trained yet.")
         X = np.array(X, dtype=float)
         X_scaled = self.scaler.transform(X)
-        lr_proba = self.lr.predict_proba(X_scaled)[:, 1]
-        rf_proba = self.rf.predict_proba(X)[:, 1]
+        # getattr guards against model.pkl files saved before calibration was
+        # added — their __dict__ has no lr_calibrated/rf_calibrated key.
+        lr_model = getattr(self, "lr_calibrated", None) or self.lr
+        rf_model = getattr(self, "rf_calibrated", None) or self.rf
+        lr_proba = lr_model.predict_proba(X_scaled)[:, 1]
+        rf_proba = rf_model.predict_proba(X)[:, 1]
         return (lr_proba + rf_proba) / 2.0
 
     def predict_with_uncertainty(self, X: list[list[float]]) -> tuple[np.ndarray, np.ndarray]:
         """
-        Returns (ensemble_prob, confidence_gap) for each sample.
-        confidence_gap = abs(LR_prob - RF_prob): 0 = both models agree, 1 = maximum disagreement.
-        High gap + high risk = uncertain but concerning = highest wet-lab value.
+        Returns (ensemble_prob, confidence_gap) for each sample, using calibrated
+        probabilities. confidence_gap = abs(LR_prob - RF_prob): 0 = both models
+        agree, 1 = maximum disagreement. High gap + high risk = uncertain but
+        concerning = highest wet-lab value.
         """
         if not self.trained:
             raise RuntimeError("Model not trained yet.")
         X = np.array(X, dtype=float)
         X_scaled = self.scaler.transform(X)
-        lr_proba = self.lr.predict_proba(X_scaled)[:, 1]
-        rf_proba = self.rf.predict_proba(X)[:, 1]
+        lr_model = getattr(self, "lr_calibrated", None) or self.lr
+        rf_model = getattr(self, "rf_calibrated", None) or self.rf
+        lr_proba = lr_model.predict_proba(X_scaled)[:, 1]
+        rf_proba = rf_model.predict_proba(X)[:, 1]
         ensemble = (lr_proba + rf_proba) / 2.0
         gap = np.abs(lr_proba - rf_proba)
         return ensemble, gap

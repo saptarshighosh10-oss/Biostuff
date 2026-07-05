@@ -16,6 +16,7 @@ Usage:
     python model/train.py --flab --antiref --input results/labeled_results.json
 """
 
+import hashlib
 import json
 import argparse
 from pathlib import Path
@@ -24,6 +25,23 @@ from model.failure_model import AggregationFailureModel, MIN_TRAINING_FAILURES
 from model.features import extract_features, features_to_vector, FEATURE_NAMES
 
 SAVE_DIR = Path("model/saved")
+
+
+def _group_id_for(entry: dict) -> str:
+    """
+    Cross-validation group key: entries sharing a group_id (mutants of the same
+    wild-type/assay, or rows from the same study) must never be split across
+    train/test folds, or CV performance is inflated by near-duplicate leakage.
+    Loaders that group mutants (proteingym, flab, anchors) set "group_id"
+    explicitly; everything else falls back to a hash of its own sequence,
+    which is safe — each such entry is an independently-sourced protein with
+    no siblings to leak against.
+    """
+    gid = entry.get("group_id") or entry.get("dataset") or entry.get("anchor_pdb")
+    if gid:
+        return str(gid)
+    seq = entry.get("variant_sequence", "")
+    return hashlib.md5(seq.encode()).hexdigest() if seq else "unknown"
 
 
 def load_labeled_data(input_file: str) -> tuple[list, list]:
@@ -199,32 +217,40 @@ def train(
 
     # ── Extract features ─────────────────────────────────────────────
     print("\nExtracting features...")
-    X, y = [], []
+    X, y, groups = [], [], []
     for entry in failures_dedup:
         feats = extract_features(entry)
         X.append(features_to_vector(feats))
         y.append(1)
+        groups.append(_group_id_for(entry))
         if (len(X)) % 200 == 0:
             print(f"  {len(X)} features extracted...")
     for entry in working_dedup:
         feats = extract_features(entry)
         X.append(features_to_vector(feats))
         y.append(0)
+        groups.append(_group_id_for(entry))
 
+    n_groups = len(set(groups))
     print(f"  Feature vector size: {len(FEATURE_NAMES)}")
     print(f"  Total samples: {len(X)} ({sum(y)} failures, {len(y)-sum(y)} working)")
+    print(f"  Distinct CV groups: {n_groups}")
 
     # ── Train ────────────────────────────────────────────────────────
-    print("\nTraining (logistic regression + random forest, 5-fold CV)...")
+    print("\nTraining (logistic regression + random forest, grouped 5-fold CV)...")
     model = AggregationFailureModel()
-    model.train(X, y, FEATURE_NAMES)
+    model.train(X, y, FEATURE_NAMES, groups=groups)
 
     cv = model.cv_scores
     lr_auc = cv["logistic_regression_auc"]
     rf_auc = cv["random_forest_auc"]
-    print(f"\nCross-validation ROC-AUC:")
+    cv_kind = (f"grouped ({model.n_groups} groups) — mutants of the same protein "
+               f"never split across folds" if model.used_grouped_cv else
+               "standard (too few distinct groups to group-split)")
+    print(f"\nCross-validation ROC-AUC [{cv_kind}]:")
     print(f"  Logistic Regression: {lr_auc.mean():.3f} ± {lr_auc.std():.3f}")
     print(f"  Random Forest:       {rf_auc.mean():.3f} ± {rf_auc.std():.3f}")
+    print(f"  Probability calibration: {model.calibration_method}")
 
     if lr_auc.mean() < 0.6 and rf_auc.mean() < 0.6:
         print("\n  WARNING: AUC near 0.5 — model not learning well.")

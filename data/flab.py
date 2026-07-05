@@ -211,6 +211,10 @@ def load_dataset(
             scores.append(score)
 
     failures, working = _scores_to_labels(sequences, scores, percentile, score_col)
+    # tag with the source dataset so grouped CV never splits variants from the
+    # same study across train/test folds (they often share a parent antibody)
+    for entry in failures + working:
+        entry["group_id"] = filename
     print(f"    {filename}: {len(failures)} failures, {len(working)} working "
           f"(seq={seq_col}, score={score_col})")
     return failures, working

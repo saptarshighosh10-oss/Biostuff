@@ -50,6 +50,7 @@ def load_anchor_negatives(
             "source": "pdb_anchor",
             "anchor_pdb": c.get("anchor_pdb", ""),
             "chain_type": c.get("chain_type", ""),
+            "group_id": c.get("anchor_pdb", ""),
         })
         if len(result) >= max_sequences:
             break

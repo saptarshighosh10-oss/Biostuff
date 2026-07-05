@@ -110,7 +110,7 @@ def _download_assay(filename: str) -> str | None:
 
 
 def _parse_assay(text: str, percentile: float, max_keep: int,
-                 rng: random.Random | None = None) -> tuple[list[dict], list[dict]]:
+                 rng: random.Random | None = None, group_id: str = "") -> tuple[list[dict], list[dict]]:
     """
     Parse one assay. Thresholds are computed over the FULL fitness distribution
     (not a truncated head), then `max_keep` failures and workings are kept.
@@ -163,11 +163,14 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
         fail_pool.sort(key=lambda e: e[1])                # lowest fitness first
         work_pool.sort(key=lambda e: e[1], reverse=True)  # highest fitness first
 
+    # group_id = the assay/wild-type ID: all mutants of one protein share it,
+    # so grouped CV keeps them together and never leaks a near-duplicate
+    # variant of the same protein across train/test folds.
     failures = [{"variant_sequence": s, "label": "confirmed_failure",
-                 "mutations": m, "source": "proteingym", "dms_score": sc}
+                 "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
                 for s, sc, m in fail_pool[:max_keep]]
     working  = [{"variant_sequence": s, "label": "working",
-                 "mutations": m, "source": "proteingym", "dms_score": sc}
+                 "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
                 for s, sc, m in work_pool[:max_keep]]
     return failures, working
 
@@ -206,7 +209,7 @@ def load_proteingym_data(
         if not text:
             print(f"  {a['DMS_id']}: data file unreachable (Colab/HF needed) — skipped")
             continue
-        failures, working = _parse_assay(text, percentile, max_per_assay, rng=rng)
+        failures, working = _parse_assay(text, percentile, max_per_assay, rng=rng, group_id=a["DMS_id"])
         # dedup across assays
         nf = nw = 0
         for e in failures:
