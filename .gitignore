@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+results/*.json
+!results/wetlab_results_template.json
+results/viz/
+results/experiment_log.jsonl
+model/saved/

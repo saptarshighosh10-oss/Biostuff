@@ -1,0 +1,16 @@
+[
+  {
+    "variant_sequence": "PASTE_FULL_SEQUENCE_HERE",
+    "label": "confirmed_failure",
+    "anchor_pdb": "1NFD",
+    "mutations": [[201, "V", "E"], [92, "N", "D"]],
+    "notes": "aggregated visibly at 37C within 24h, OD600 increased"
+  },
+  {
+    "variant_sequence": "PASTE_FULL_SEQUENCE_HERE",
+    "label": "working",
+    "anchor_pdb": "1MCH",
+    "mutations": [[64, "S", "T"], [57, "S", "D"]],
+    "notes": "remained soluble, SEC showed single peak"
+  }
+]
