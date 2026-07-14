@@ -106,7 +106,8 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
 
 
 def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3,
-               output_file: str | None = None, progress_file: str | None = None):
+               output_file: str | None = None, progress_file: str | None = None,
+               progress_every: int = 1000):
     """Re-score candidates from a JSON file using the trained model."""
     from model.failure_model import AggregationFailureModel
 
@@ -129,7 +130,7 @@ def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3,
             "phase1_risk": c.get("risk", {}).get("combined_risk", 0.0),
             **score,
         })
-        if progress_file and (index == 1 or index % 1000 == 0 or index == total):
+        if progress_file and (index == 1 or index % progress_every == 0 or index == total):
             progress = {
                 "stage": "scoring",
                 "input_file": str(input_file),
@@ -167,6 +168,8 @@ if __name__ == "__main__":
                         help="How many closest known references to show per class (default 3)")
     parser.add_argument("--out", help="Write machine-readable prediction artifact to this JSON path")
     parser.add_argument("--progress", help="Write row-level progress JSON while scoring")
+    parser.add_argument("--progress-every", type=int, default=1000,
+                        help="Update progress after this many rows (default 1000)")
     args = parser.parse_args()
 
     if args.sequence:
@@ -190,7 +193,8 @@ if __name__ == "__main__":
 
     elif args.file:
         results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors,
-                             output_file=args.out, progress_file=args.progress)
+                             output_file=args.out, progress_file=args.progress,
+                             progress_every=args.progress_every)
         print(f"\nTop {len(results)} candidates re-scored by trained model:\n")
         for i, r in enumerate(results):
             conf_str = f"confidence={r['confidence']} gap={r['confidence_gap']:.3f}"
