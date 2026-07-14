@@ -1,9 +1,13 @@
 {
   "endpoint_family": "protein_mutation_fitness",
   "keep_all_labeled_rows": true,
-  "manifest_hash": "08d3f07fe1c135857ae5134c48a77eb35fbaa96f7c78bdad5c4bbe4e2eaf0fb3",
+  "manifest_hash": "353ae32cc192db097dbea52334a186dd28276cc3ec0c27145b27d1273c0cf09e",
   "max_assays": 217,
   "max_per_assay": 20000,
+  "quality_gate": {
+    "accepted": 1572872,
+    "quarantined": 0
+  },
   "schema_version": "1",
   "source": "ProteinGym",
   "source_role": "auxiliary_non_antibody",
@@ -87,7 +91,7 @@
     "A4D664_9INFA_Soh_CCL141_2019",
     "A4_HUMAN_Seuma_2021"
   ],
-  "test_sha256": "f8eda6786faf39776afc9cca242db79e42442496f4f307ac77d72907ceb539dc",
+  "test_sha256": "35385173edb9011628d7f7070e0f467aa63b956657184f25e8800fee12ae1e03",
   "train_count": 1260675,
   "train_groups": [
     "POLG_CXB3N_Mattenberger_2021",
@@ -99,5 +103,5 @@
     "HIS7_YEAST_Pokusaeva_2019",
     "SPG1_STRSG_Olson_2014"
   ],
-  "train_sha256": "4757b1954dc84cb53abf4fc936ff78441fabb49b328fc133ad3cfbbd85523cc0"
+  "train_sha256": "deccf6109a53a548180b38fa167f110580a7dc97afa9712d9ef9aabf4075a66c"
 }
