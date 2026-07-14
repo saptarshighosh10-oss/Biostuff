@@ -99,6 +99,9 @@ def render_report(report: dict) -> str:
     if s:
         lines.append(f"\nPredicted failure risk: {s['failure_probability']:.3f} ({s['risk_level']})")
         lines.append(f"Confidence:             {s['confidence']} (LR/RF gap={s['confidence_gap']:.3f})")
+        lines.append(f"Decision:               {s.get('decision', 'unknown')} — {s.get('decision_reason', 'no reason recorded')}")
+        if s.get("sequence_sha256"):
+            lines.append(f"Sequence SHA-256:       {s['sequence_sha256']}")
 
         lines.append("\nWhy — top contributing signals:")
         for f in s["top_features"][:3]:

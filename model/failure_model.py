@@ -22,6 +22,8 @@ class AggregationFailureModel:
         self.feature_names = None
         self.cv_scores = None
         self.used_grouped_cv = False
+        self.cv_strategy = None
+        self.random_seed = 42
         self.n_groups = None
         self.n_failures = 0
         self.n_working = 0
@@ -54,7 +56,7 @@ class AggregationFailureModel:
         from sklearn.ensemble import RandomForestClassifier
         from sklearn.preprocessing import StandardScaler
         from sklearn.calibration import CalibratedClassifierCV
-        from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold, cross_val_score
+        from sklearn.model_selection import StratifiedGroupKFold, cross_val_score
 
         X = np.array(X, dtype=float)
         y = np.array(y, dtype=int)
@@ -93,19 +95,22 @@ class AggregationFailureModel:
 
         # ── choose grouped vs standard CV splitter ────────────────────────
         groups_arr = np.array(groups) if groups is not None else None
-        n_unique_groups = len(np.unique(groups_arr)) if groups_arr is not None else 0
-        n_splits = min(5, self.n_failures)
+        if groups_arr is None:
+            raise ValueError("Grouped CV requires one group key per training row.")
+        n_unique_groups = len(np.unique(groups_arr))
+        groups_per_class = [len(np.unique(groups_arr[y == label])) for label in (0, 1)]
+        n_splits = min(5, n_unique_groups, *groups_per_class)
+        if n_splits < 2:
+            raise ValueError(
+                "Unsafe grouped CV: need at least two distinct groups per class. "
+                f"Got total={n_unique_groups}, per_class={groups_per_class}."
+            )
 
-        if groups_arr is not None and n_unique_groups >= 2 and n_unique_groups >= n_splits:
-            cv = StratifiedGroupKFold(n_splits=max(2, n_splits), shuffle=True, random_state=42)
-            cv_splits = list(cv.split(X_scaled, y, groups=groups_arr))
-            self.used_grouped_cv = True
-            self.n_groups = n_unique_groups
-        else:
-            cv = StratifiedKFold(n_splits=max(2, n_splits), shuffle=True, random_state=42)
-            cv_splits = list(cv.split(X_scaled, y))
-            self.used_grouped_cv = False
-            self.n_groups = n_unique_groups if groups_arr is not None else None
+        cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=self.random_seed)
+        cv_splits = list(cv.split(X_scaled, y, groups=groups_arr))
+        self.used_grouped_cv = True
+        self.cv_strategy = f"stratified_group_{n_splits}fold"
+        self.n_groups = n_unique_groups
 
         lr_scores = cross_val_score(self.lr, X_scaled, y, cv=cv_splits, scoring="roc_auc")
         rf_scores = cross_val_score(self.rf, X, y, cv=cv_splits, scoring="roc_auc")

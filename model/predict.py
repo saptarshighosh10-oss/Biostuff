@@ -9,6 +9,7 @@ Usage:
 
 import json
 import argparse
+import hashlib
 from pathlib import Path
 
 MODEL_PATH = "model/saved/model.pkl"
@@ -34,6 +35,9 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
             )
         model = AggregationFailureModel.load(MODEL_PATH)
 
+    from data.contract import canonical_sequence
+
+    sequence = canonical_sequence(sequence)
     feat_dict = extract_from_sequence(sequence, mutations)
     vec = features_to_vector(feat_dict)
     probs, gaps = model.predict_with_uncertainty([vec])
@@ -50,6 +54,19 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
     )
 
     confidence = "high" if gap < 0.15 else "medium" if gap < 0.30 else "low"
+    grouped_cv = bool(getattr(model, "used_grouped_cv", False))
+    if not grouped_cv:
+        decision = "abstain"
+        decision_reason = "model was not evaluated with grouped cross-validation"
+    elif confidence == "low":
+        decision = "abstain"
+        decision_reason = "ensemble disagreement exceeds the uncertainty ceiling"
+    elif prob >= 0.7:
+        decision = "prioritize_wet_lab"
+        decision_reason = "high modeled failure risk with acceptable model agreement"
+    else:
+        decision = "review"
+        decision_reason = "candidate is below the high-risk prioritization threshold"
 
     # closest known references of each class, ranked nearest first —
     # "this looks like X, and if not, here's the next-closest match"
@@ -57,10 +74,15 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
     failure_neighbors = model.nearest_neighbors(vec, label=1, top_k=n_neighbors)
 
     return {
+        "schema_version": "1",
+        "sequence_sha256": hashlib.sha256(sequence.encode("ascii")).hexdigest(),
         "failure_probability": round(prob, 4),
         "confidence_gap":      round(gap, 4),
         "confidence":          confidence,
         "risk_level": "high" if prob >= 0.7 else "medium" if prob >= 0.4 else "low",
+        "decision": decision,
+        "decision_reason": decision_reason,
+        "cv_strategy": getattr(model, "cv_strategy", None),
         "top_features": [
             {"feature": name, "value": round(val, 4), "importance": round(imp, 4)}
             for name, val, imp in contributions[:5]
@@ -72,7 +94,7 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
     }
 
 
-def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3):
+def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3, output_file: str | None = None):
     """Re-score candidates from a JSON file using the trained model."""
     from model.failure_model import AggregationFailureModel
 
@@ -95,6 +117,17 @@ def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3):
         })
 
     results.sort(key=lambda x: x["failure_probability"], reverse=True)
+    if output_file:
+        payload = {
+            "schema_version": "1",
+            "input_file": str(input_file),
+            "model_file": MODEL_PATH,
+            "results": results,
+        }
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("w") as f:
+            json.dump(payload, f, indent=2)
     return results
 
 
@@ -105,6 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--top", type=int, default=10)
     parser.add_argument("--neighbors", type=int, default=3,
                         help="How many closest known references to show per class (default 3)")
+    parser.add_argument("--out", help="Write machine-readable prediction artifact to this JSON path")
     args = parser.parse_args()
 
     if args.sequence:
@@ -127,7 +161,7 @@ if __name__ == "__main__":
                 print(f"  #{n['rank']}  {n['name']:35s} (source={n['source']}, distance={n['distance']:.3f})")
 
     elif args.file:
-        results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors)
+        results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors, output_file=args.out)
         print(f"\nTop {len(results)} candidates re-scored by trained model:\n")
         for i, r in enumerate(results):
             conf_str = f"confidence={r['confidence']} gap={r['confidence_gap']:.3f}"

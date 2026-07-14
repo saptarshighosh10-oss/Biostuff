@@ -28,6 +28,7 @@ from pathlib import Path
 
 TRAINING_DATA_PATH = Path("results/training_data.json")
 MODEL_PATH         = Path("model/saved/model.pkl")
+CONFLICT_LOG_PATH  = Path("results/wetlab_conflicts.jsonl")
 
 
 def load_existing(path: Path) -> list[dict]:
@@ -37,14 +38,15 @@ def load_existing(path: Path) -> list[dict]:
     return []
 
 
-def merge_results(existing: list[dict], new_results: list[dict]) -> tuple[list[dict], int]:
+def merge_results(existing: list[dict], new_results: list[dict]) -> tuple[list[dict], int, list[dict]]:
     """
     Merge new wet-lab results into existing training data.
     Deduplicates by variant_sequence.
     Returns (merged_list, n_added).
     """
-    seen = {e["variant_sequence"] for e in existing}
+    seen = {e["variant_sequence"]: e.get("label", "") for e in existing}
     added = 0
+    conflicts: list[dict] = []
     merged = list(existing)
     for entry in new_results:
         seq = entry.get("variant_sequence", "").strip().upper()
@@ -53,9 +55,18 @@ def merge_results(existing: list[dict], new_results: list[dict]) -> tuple[list[d
             print(f"  Skipping entry — missing sequence or invalid label: {entry.get('label')}")
             continue
         if seq in seen:
-            print(f"  Duplicate skipped: {seq[:20]}...")
+            if seen[seq] != label:
+                conflicts.append({
+                    "variant_sequence": seq,
+                    "existing_label": seen[seq],
+                    "incoming_label": label,
+                    "incoming": entry,
+                })
+                print(f"  CONFLICT quarantined: {seq[:20]}... ({seen[seq]} vs {label})")
+            else:
+                print(f"  Duplicate skipped: {seq[:20]}...")
             continue
-        seen.add(seq)
+        seen[seq] = label
         merged.append({
             "variant_sequence": seq,
             "label": label,
@@ -65,7 +76,7 @@ def merge_results(existing: list[dict], new_results: list[dict]) -> tuple[list[d
             "notes":       entry.get("notes", ""),
         })
         added += 1
-    return merged, added
+    return merged, added, conflicts
 
 
 def print_priority_list(candidates_file: str, top_n: int = 10):
@@ -138,8 +149,15 @@ def run_feedback(results_file: str, retrain: bool = True):
     existing = load_existing(TRAINING_DATA_PATH)
     print(f"Existing training data: {len(existing)} entries")
 
-    merged, n_added = merge_results(existing, new_results)
+    merged, n_added, conflicts = merge_results(existing, new_results)
     print(f"Added {n_added} new entries ({len(merged)} total)")
+
+    if conflicts:
+        CONFLICT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with CONFLICT_LOG_PATH.open("a", encoding="utf-8") as stream:
+            for conflict in conflicts:
+                stream.write(json.dumps(conflict, sort_keys=True) + "\n")
+        print(f"Quarantined {len(conflicts)} contradictory labels to {CONFLICT_LOG_PATH}")
 
     if n_added == 0:
         print("Nothing new to add — all sequences already in training data.")

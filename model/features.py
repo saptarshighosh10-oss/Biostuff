@@ -1,6 +1,6 @@
 """
 Feature extraction for the failure model.
-Produces a flat ~21-feature vector from any candidate dict or raw sequence.
+Produces a flat 27-feature vector from any candidate dict or raw sequence.
 Missing fields (e.g. no ESMFold, no Phase 2) default to 0 so the model still runs.
 """
 

@@ -17,6 +17,7 @@ Usage:
 import argparse
 import json
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 PRESETS = {
@@ -54,6 +55,18 @@ def _best_candidates_file() -> str | None:
     return None
 
 
+@contextmanager
+def _tracked_stage(ledger, name: str, *, inputs=(), outputs=()):
+    ledger.start(name, inputs=inputs, outputs=outputs)
+    try:
+        yield
+    except Exception as exc:
+        ledger.fail(name, exc)
+        raise
+    else:
+        ledger.complete(name, outputs=outputs)
+
+
 def run_all(
     mode: str = "quick",
     skip_phase1: bool = False,
@@ -68,43 +81,69 @@ def run_all(
 ) -> None:
     preset = PRESETS[mode]
     Path("results").mkdir(exist_ok=True)
+    from data.run_manifest import RunLedger
+    ledger = RunLedger("results/run_manifest.json", {
+        "mode": mode,
+        "preset": preset,
+        "skip_phase1": skip_phase1,
+        "skip_phase2": skip_phase2,
+        "skip_phase3": skip_phase3,
+        "skip_train": skip_train,
+        "skip_predict": skip_predict,
+        "skip_significance": skip_significance,
+        "skip_calibration": skip_calibration,
+        "skip_report": skip_report,
+        "skip_visualize": skip_visualize,
+    })
     t0 = time.time()
 
     if not skip_phase1:
         _section("PHASE 1 — anchor, mutate, score, flag")
         from pipeline import run_phase1
-        run_phase1(
-            max_pdb_entries=preset["entries"],
-            variants_per_sequence=preset["variants"],
-            mutations_per_variant=preset["mutations"],
-            use_esmfold=preset["esmfold"],
-            use_esm2=preset["esm2"],
-            top_n=preset["top1"],
-        )
+        with _tracked_stage(ledger, "phase1", outputs=["results/phase1_candidates.json"]):
+            run_phase1(
+                max_pdb_entries=preset["entries"],
+                variants_per_sequence=preset["variants"],
+                mutations_per_variant=preset["mutations"],
+                use_esmfold=preset["esmfold"],
+                use_esm2=preset["esm2"],
+                top_n=preset["top1"],
+            )
     else:
+        ledger.skip("phase1", "explicit --skip-phase1")
         print("Skipping Phase 1 (reusing existing results/phase1_candidates.json)")
 
     if not skip_phase2 and Path("results/phase1_candidates.json").exists():
         _section("PHASE 2 — multi-predictor consensus + explanation")
         from pipeline_phase2 import run_phase2
-        run_phase2(top_n=preset["phase2_top"], run_md=preset["phase2_md"])
+        with _tracked_stage(ledger, "phase2", inputs=["results/phase1_candidates.json"], outputs=["results/phase2_candidates.json"]):
+            run_phase2(top_n=preset["phase2_top"], run_md=preset["phase2_md"])
     elif not skip_phase2:
+        ledger.skip("phase2", "phase1 output missing")
         print("Skipping Phase 2 — no Phase 1 output found")
+    else:
+        ledger.skip("phase2", "explicit --skip-phase2")
 
     if not skip_phase3 and Path("results/phase2_candidates.json").exists():
         _section("PHASE 3 — database cross-reference")
         from pipeline_phase3 import run_phase3
-        run_phase3(top_n=preset["phase3_top"], delay=preset["phase3_delay"])
+        with _tracked_stage(ledger, "phase3", inputs=["results/phase2_candidates.json"], outputs=["results/phase3_candidates.json"]):
+            run_phase3(top_n=preset["phase3_top"], delay=preset["phase3_delay"])
     elif not skip_phase3:
+        ledger.skip("phase3", "phase2 output missing")
         print("Skipping Phase 3 — no Phase 2 output found")
+    else:
+        ledger.skip("phase3", "explicit --skip-phase3")
 
     candidates_file = _best_candidates_file()
 
     if not skip_train:
         _section("TRAIN — fit the failure model on public data")
         from model.train import train
-        train(**preset["train_sources"])
+        with _tracked_stage(ledger, "train", outputs=["model/saved/model.pkl", "results/experiment_log.jsonl"]):
+            train(**preset["train_sources"])
     else:
+        ledger.skip("train", "explicit --skip-train")
         print("Skipping training (reusing existing model/saved/model.pkl)")
 
     model_exists = Path("model/saved/model.pkl").exists()
@@ -112,19 +151,37 @@ def run_all(
     if not skip_predict and model_exists and candidates_file:
         _section("PREDICT — re-score candidates with the trained model")
         from model.predict import score_file
-        results = score_file(candidates_file, top_n=preset["phase3_top"])
+        predictions_file = "results/predictions.json"
+        with _tracked_stage(ledger, "predict", inputs=[candidates_file, "model/saved/model.pkl"], outputs=[predictions_file]):
+            results = score_file(candidates_file, top_n=preset["phase3_top"], output_file=predictions_file)
+        print(f"  Saved machine-readable predictions to {predictions_file}")
         for i, r in enumerate(results[:5]):
-            print(f"  {i + 1}. {r['anchor_pdb']} | prob={r['failure_probability']:.3f} ({r['risk_level']})")
+            print(f"  {i + 1}. {r['anchor_pdb']} | prob={r['failure_probability']:.3f} "
+                  f"({r['risk_level']}) | decision={r['decision']}")
+    elif skip_predict:
+        ledger.skip("predict", "explicit --skip-predict")
+    else:
+        ledger.skip("predict", "model or candidate input missing")
 
     if not skip_significance and model_exists:
         _section("SIGNIFICANCE — is the AUC better than chance?")
         from model.significance import run_significance_test
-        run_significance_test(n_permutations=preset["n_permutations"], **preset["train_sources"])
+        with _tracked_stage(ledger, "significance", inputs=["model/saved/model.pkl"]):
+            run_significance_test(n_permutations=preset["n_permutations"], **preset["train_sources"])
+    elif skip_significance:
+        ledger.skip("significance", "explicit --skip-significance")
+    else:
+        ledger.skip("significance", "model missing")
 
     if not skip_calibration and model_exists:
         _section("CALIBRATION — is 'X% risk' really X%?")
         from model.calibration_plot import run_calibration_check
-        run_calibration_check(**preset["train_sources"])
+        with _tracked_stage(ledger, "calibration", inputs=["model/saved/model.pkl"]):
+            run_calibration_check(**preset["train_sources"])
+    elif skip_calibration:
+        ledger.skip("calibration", "explicit --skip-calibration")
+    else:
+        ledger.skip("calibration", "model missing")
 
     if not skip_report and model_exists and candidates_file:
         _section("REPORT — unified narrative for the top candidates")
@@ -133,13 +190,23 @@ def run_all(
         with open(candidates_file) as f:
             candidates = json.load(f)
         model = AggregationFailureModel.load("model/saved/model.pkl")
-        for i in range(min(preset["report_top"], len(candidates))):
-            print("\n" + render_report(build_report(candidates[i], model=model)))
+        with _tracked_stage(ledger, "report", inputs=[candidates_file, "model/saved/model.pkl"]):
+            for i in range(min(preset["report_top"], len(candidates))):
+                print("\n" + render_report(build_report(candidates[i], model=model)))
+    elif skip_report:
+        ledger.skip("report", "explicit --skip-report")
+    else:
+        ledger.skip("report", "model or candidate input missing")
 
     if not skip_visualize and candidates_file:
         _section("VISUALIZE — results plots")
         from visualize import run_viz
-        run_viz(file=candidates_file)
+        with _tracked_stage(ledger, "visualize", inputs=[candidates_file]):
+            run_viz(file=candidates_file)
+    elif skip_visualize:
+        ledger.skip("visualize", "explicit --skip-visualize")
+    else:
+        ledger.skip("visualize", "candidate input missing")
 
     elapsed_min = (time.time() - t0) / 60
     _section(f"DONE in {elapsed_min:.1f} minutes")

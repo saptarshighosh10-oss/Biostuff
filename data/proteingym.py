@@ -26,12 +26,12 @@ import random
 import re
 import requests
 
-INDEX_URL = ("https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/"
-             "main/reference_files/DMS_substitutions.csv")
+INDEX_URL = "https://huggingface.co/datasets/OATML-Markslab/ProteinGym_v0.1/resolve/main/ProteinGym_reference_file_substitutions.csv"
 
 # Per-assay data file locations, tried in order. HuggingFace first (most
 # reliable in Colab), then the Harvard mirror.
 DATA_BASES = [
+    "https://huggingface.co/datasets/OATML-Markslab/ProteinGym_v0.1/resolve/main/ProteinGym_substitutions",
     "https://huggingface.co/datasets/OATML-Markslab/ProteinGym/resolve/main/DMS_ProteinGym_substitutions",
     "https://marks.hms.harvard.edu/proteingym/ProteinGym_v1.1/DMS_ProteinGym_substitutions",
 ]
@@ -69,8 +69,13 @@ def list_stability_assays(max_assays: int = 8) -> list[dict]:
         return []
 
     rows = list(csv.DictReader(io.StringIO(text)))
-    relevant = [r for r in rows
-                if r.get("coarse_selection_type") in ("Stability", "Expression")]
+    if any(r.get("coarse_selection_type") for r in rows):
+        relevant = [r for r in rows
+                    if r.get("coarse_selection_type") in ("Stability", "Expression")]
+    else:
+        # ProteinGym v0.1 exposes the complete substitution benchmark through
+        # selection_type rather than the legacy coarse_selection_type field.
+        relevant = [r for r in rows if r.get("DMS_id") and r.get("DMS_filename")]
 
     # sort: priority assays first, then by fewest mutants (faster downloads)
     def sort_key(r):
@@ -101,6 +106,15 @@ def _mutations_from_field(mutant_field: str) -> list:
     return mutations
 
 
+def _apply_mutations(target_sequence: str, mutations: list[tuple[int, str, str]]) -> str:
+    sequence = list(target_sequence.strip().upper())
+    for position, original, mutant in mutations:
+        if position < 0 or position >= len(sequence) or sequence[position] != original:
+            return ""
+        sequence[position] = mutant
+    return "".join(sequence)
+
+
 def _download_assay(filename: str) -> str | None:
     for base in DATA_BASES:
         text = _get_text(f"{base}/{filename}")
@@ -110,7 +124,8 @@ def _download_assay(filename: str) -> str | None:
 
 
 def _parse_assay(text: str, percentile: float, max_keep: int,
-                 rng: random.Random | None = None, group_id: str = "") -> tuple[list[dict], list[dict]]:
+                 rng: random.Random | None = None, group_id: str = "",
+                 target_sequence: str = "", keep_all: bool = False) -> tuple[list[dict], list[dict]]:
     """
     Parse one assay. Thresholds are computed over the FULL fitness distribution
     (not a truncated head), then `max_keep` failures and workings are kept.
@@ -129,23 +144,34 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
     seq_col   = next((c for c in header if c.lower() in ("mutated_sequence", "sequence")), None)
     score_col = next((c for c in header if c.lower() in ("dms_score", "score")), None)
     mut_col   = next((c for c in header if c.lower() == "mutant"), None)
-    if not seq_col or not score_col:
+    if not score_col or not mut_col:
         return [], []
 
     entries = []
     for row in rows:  # read the whole file — thresholds need the true distribution
-        seq = row.get(seq_col, "").strip().upper()
+        muts = _mutations_from_field(row.get(mut_col, ""))
+        seq = row.get(seq_col, "").strip().upper() if seq_col else _apply_mutations(target_sequence, muts)
         if not seq or not AA_PATTERN.match(seq):
             continue
         try:
             score = float(row[score_col])
         except (ValueError, TypeError, KeyError):
             continue
-        muts = _mutations_from_field(row.get(mut_col, "")) if mut_col else []
-        entries.append((seq, score, muts))
+        raw_bin = row.get("DMS_score_bin")
+        label_bin = int(raw_bin) if keep_all and raw_bin in ("0", "1", 0, 1) else None
+        entries.append((seq, score, muts, label_bin))
 
     if len(entries) < 8:
         return [], []
+
+    if keep_all and any(entry[3] is not None for entry in entries):
+        failures = [{"variant_sequence": seq, "label": "confirmed_failure",
+                     "mutations": muts, "source": "proteingym", "dms_score": score, "group_id": group_id}
+                    for seq, score, muts, label_bin in entries if label_bin == 0]
+        working = [{"variant_sequence": seq, "label": "working",
+                    "mutations": muts, "source": "proteingym", "dms_score": score, "group_id": group_id}
+                   for seq, score, muts, label_bin in entries if label_bin == 1]
+        return failures, working
 
     scores = sorted(e[1] for e in entries)
     n = len(scores)
@@ -168,10 +194,10 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
     # variant of the same protein across train/test folds.
     failures = [{"variant_sequence": s, "label": "confirmed_failure",
                  "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
-                for s, sc, m in fail_pool[:max_keep]]
+                for s, sc, m, _ in fail_pool[:max_keep]]
     working  = [{"variant_sequence": s, "label": "working",
                  "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
-                for s, sc, m in work_pool[:max_keep]]
+                for s, sc, m, _ in work_pool[:max_keep]]
     return failures, working
 
 
@@ -180,6 +206,7 @@ def load_proteingym_data(
     max_assays: int = 84,
     max_per_assay: int = 1500,
     seed: int | None = 42,
+    keep_all: bool = False,
 ) -> tuple[list[dict], list[dict]]:
     """
     Load DMS stability/expression failures from ProteinGym.
@@ -209,7 +236,10 @@ def load_proteingym_data(
         if not text:
             print(f"  {a['DMS_id']}: data file unreachable (Colab/HF needed) — skipped")
             continue
-        failures, working = _parse_assay(text, percentile, max_per_assay, rng=rng, group_id=a["DMS_id"])
+        failures, working = _parse_assay(
+            text, percentile, max_per_assay, rng=rng,
+            group_id=a["DMS_id"], target_sequence=a.get("target_seq", ""), keep_all=keep_all,
+        )
         # dedup across assays
         nf = nw = 0
         for e in failures:

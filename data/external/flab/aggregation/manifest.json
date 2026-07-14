@@ -1,0 +1,28 @@
+{
+  "source": "FLAb",
+  "category": "aggregation",
+  "source_url": "https://github.com/Graylab/FLAb/tree/main/data/aggregation",
+  "files": [
+
+    {"name": "README.md", "sha256": "2ad8a74fd84f9348b2637c1cae9c493dc4249ae11eff205f04b79a8edd52c3fd"},
+    {"name": "jain2017biophyscial_HICRT.csv", "sha256": "ae77930722c9b7a6d48dc5c7e381fe9344a635280e840b5718407855ea2f3e99"},
+    {"name": "jain2017biophysical_ACSINS.csv", "sha256": "895a537a9683b0a90f33841275895f378f45df3b76bab925e66697b1b0176cc2"},
+    {"name": "jain2017biophysical_CSIBLI.csv", "sha256": "aaf0ef0d713ad072a8c43e1a42afc01e2d23548f0137e4a4039ec1d949776c51"},
+    {"name": "jain2017biophysical_SAS.csv", "sha256": "1826276fb0fb14f31e0bdb611d75b3924815504a7a1c79b2d74d75ffa6284fc8"},
+    {"name": "jain2017biophysical_SGACSINS.csv", "sha256": "ace71730aa7c94575aeb7e0c5f76e8d4c600d44c7dffda003b67a75cdbb849b9"},
+    {"name": "jain2024assessment_ACSINS.csv", "sha256": "ceee0e83e046296d125825c1e2f9dc38abab4fcb496ff205cb558c5effee0825"},
+    {"name": "jain2024assessment_CIC.csv", "sha256": "0f25364c7a1ae56e26159908b7aab30af4249345eb32d353fb8d551f1ec7e53e"},
+    {"name": "jain2024assessment_CSSINS.csv", "sha256": "6b3e4d12186a6469e7e8738b51e991ff5a64fb93b879bf297307bc65ec6b770a"},
+    {"name": "jain2024assessment_Fab_pI.csv", "sha256": "3985033a43ac75f1aa97131f19f2e5625818f1872fd1f03b65d9bae3fd4bc2df"},
+    {"name": "jain2024assessment_HIC.csv", "sha256": "f8bf62ef80572c4ca2ce14a9be080a6046ba26803d55292094f3cd8b044d357e"},
+    {"name": "jain2024assessment_SEC.csv", "sha256": "c5a6a435fb5bfb5294c501003398809efafa7dbdade92e6d9b5d5a23e0ab8fd0"},
+    {"name": "jain2024assessment_cIEF.csv", "sha256": "fa50f45dfe228af2d3a2dc3187d45245e30cc2d85a5d2f946e6e82bb3508485b"},
+    {"name": "jetha2019homology_RT.csv", "sha256": "bda8e43a34c1d7680cc36b5453b63dbae75ff6e25f78308e4c55ddf8c7b41f91"},
+    {"name": "kraft2019herapin_relrt.csv", "sha256": "1ff695de982d066a26dcb946983a276ddd06bea3aaf0a57fe37580a30da9b5a8"},
+    {"name": "shanehsazzadeh2023unlocking_ACSINS.csv", "sha256": "fde92e71f10589a1805035b1cc56d89c3f8a16e3d45c120fdd9decbb7134b857"},
+    {"name": "shanehsazzadeh2023unlocking_CGE.csv", "sha256": "0fc340c8c011a01cd9e8507d9d8029394e3ca9dcc355ecdd8b00212af132db12"},
+    {"name": "shanehsazzadeh2023unlocking_HICRRT.csv", "sha256": "e02ad6c7900472e65efc8281e5bcebd7839cb010751b18b623dc20f4bb5b14fa"},
+    {"name": "shanehsazzadeh2023unlocking_NRCGE.csv", "sha256": "718c32b4989dd35e0516b834e80a10b70aa9d93848870b6926090896b8278735"},
+    {"name": "shanehsazzadeh2023unlocking_SEC.csv", "sha256": "19e45fe66052af856853260a0f32d1cc41fd1e169b9a1fd577a4a63ced5553ea"}
+  ]
+}

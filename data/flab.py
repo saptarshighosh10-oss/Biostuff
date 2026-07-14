@@ -13,11 +13,15 @@ No API key needed — uses GitHub raw content and the GitHub contents API.
 
 import csv
 import io
+import hashlib
+import json
 import re
 import requests
+from pathlib import Path
 
 GITHUB_API_URL  = "https://api.github.com/repos/Graylab/FLAb/contents/data/aggregation"
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation"
+LOCAL_FLAB_DIR = Path("data/external/flab/aggregation")
 
 AA_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]{20,}$", re.IGNORECASE)
 
@@ -67,8 +71,28 @@ def list_flab_datasets() -> list[str]:
     return list(KNOWN_FLAB_FILES)
 
 
-def download_csv(filename: str) -> str | None:
-    """Download a single FLAb CSV and return its text content."""
+def _local_manifest(local_dir: Path) -> dict[str, str]:
+    manifest_path = local_dir / "manifest.json"
+    if not manifest_path.exists():
+        raise RuntimeError(f"FLAb snapshot is missing its manifest: {manifest_path}")
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return {entry["name"]: entry["sha256"] for entry in payload["files"]}
+
+
+def download_csv(filename: str, local_dir: str | Path | None = LOCAL_FLAB_DIR) -> str | None:
+    """Read a verified local FLAb CSV, falling back to the public raw URL."""
+    if local_dir is not None:
+        snapshot_dir = Path(local_dir)
+        local_path = snapshot_dir / filename
+        if local_path.exists():
+            expected = _local_manifest(snapshot_dir).get(filename)
+            if not expected:
+                raise RuntimeError(f"FLAb file is absent from the manifest: {filename}")
+            actual = hashlib.sha256(local_path.read_bytes()).hexdigest()
+            if actual != expected:
+                raise RuntimeError(f"FLAb snapshot checksum mismatch: {filename}")
+            return local_path.read_text(encoding="utf-8")
+
     url = f"{GITHUB_RAW_BASE}/{filename}"
     try:
         r = requests.get(url, timeout=30)
@@ -97,6 +121,20 @@ def _detect_sequence_col(header: list[str], rows: list[dict]) -> str | None:
         if sample and all(AA_PATTERN.match(v.strip()) for v in sample[:5]):
             return col
     return None
+
+
+def _detect_sequence_cols(header: list[str], rows: list[dict]) -> tuple[str | None, str | None]:
+    """Detect paired heavy/light columns without dropping either chain."""
+    valid = []
+    for col in header:
+        sample = [row.get(col, "") for row in rows[:10] if row.get(col)]
+        if sample and all(AA_PATTERN.match(value.strip()) for value in sample[:5]):
+            valid.append(col)
+    heavy = next((col for col in valid if any(token in col.lower() for token in ("heavy", "vh"))), None)
+    light = next((col for col in valid if any(token in col.lower() for token in ("light", "vl"))), None)
+    if heavy or light:
+        return heavy, light
+    return _detect_sequence_col(header, rows), None
 
 
 def _detect_score_col(header: list[str], rows: list[dict], seq_col: str) -> str | None:
@@ -135,6 +173,7 @@ def _scores_to_labels(
     scores: list[float],
     percentile: float = 0.25,
     score_col_name: str = "",
+    dataset_name: str = "",
 ) -> tuple[list[dict], list[dict]]:
     """
     Threshold scores to produce binary labels.
@@ -164,8 +203,14 @@ def _scores_to_labels(
                     "working"           if score <= low_threshold else None)
 
         if label is not None:
-            entry = {"variant_sequence": seq.upper(), "label": label,
-                     "score": score, "score_col": score_col_name, "source": "flab"}
+            entry = {
+                "variant_sequence": seq.upper(), "label": label,
+                "score": score, "score_col": score_col_name,
+                "assay_metric": score_col_name, "endpoint_value": score,
+                "endpoint_direction": "lower_bad" if low_is_bad else "higher_bad",
+                "source": "flab", "dataset": dataset_name,
+                "source_url": f"{GITHUB_RAW_BASE}/{dataset_name}",
+            }
             (failures if label == "confirmed_failure" else working).append(entry)
 
     return failures, working
@@ -177,12 +222,13 @@ def load_dataset(
     filename: str,
     percentile: float = 0.25,
     max_rows: int = 500,
+    local_dir: str | Path | None = LOCAL_FLAB_DIR,
 ) -> tuple[list[dict], list[dict]]:
     """
     Download and parse one FLAb CSV.
     Returns (failures, working) as lists of labeled dicts.
     """
-    text = download_csv(filename)
+    text = download_csv(filename, local_dir=local_dir)
     if not text:
         return [], []
 
@@ -192,7 +238,8 @@ def load_dataset(
         return [], []
 
     header = list(rows[0].keys())
-    seq_col   = _detect_sequence_col(header, rows)
+    heavy_col, light_col = _detect_sequence_cols(header, rows)
+    seq_col = heavy_col or light_col
     score_col = _detect_score_col(header, rows, seq_col or "") if seq_col else None
 
     if not seq_col or not score_col:
@@ -200,8 +247,11 @@ def load_dataset(
         return [], []
 
     sequences, scores = [], []
+    sequence_metadata = {}
     for row in rows[:max_rows]:
-        seq = row.get(seq_col, "").strip().upper()
+        heavy = row.get(heavy_col, "").strip().upper() if heavy_col else ""
+        light = row.get(light_col, "").strip().upper() if light_col else ""
+        seq = heavy + light if heavy and light else heavy or light
         try:
             score = float(row[score_col])
         except (ValueError, TypeError):
@@ -209,12 +259,18 @@ def load_dataset(
         if AA_PATTERN.match(seq):
             sequences.append(seq)
             scores.append(score)
+            sequence_metadata[seq] = {
+                "vh_sequence": heavy or None,
+                "vl_sequence": light or None,
+                "pair_id": f"{filename}:{len(sequences)}" if heavy and light else None,
+            }
 
-    failures, working = _scores_to_labels(sequences, scores, percentile, score_col)
+    failures, working = _scores_to_labels(sequences, scores, percentile, score_col, filename)
     # tag with the source dataset so grouped CV never splits variants from the
     # same study across train/test folds (they often share a parent antibody)
     for entry in failures + working:
         entry["group_id"] = filename
+        entry.update(sequence_metadata.get(entry["variant_sequence"], {}))
     print(f"    {filename}: {len(failures)} failures, {len(working)} working "
           f"(seq={seq_col}, score={score_col})")
     return failures, working
@@ -223,13 +279,19 @@ def load_dataset(
 def load_all_flab_data(
     percentile: float = 0.25,
     max_per_dataset: int = 500,
+    local_dir: str | Path | None = LOCAL_FLAB_DIR,
 ) -> tuple[list[dict], list[dict]]:
     """
     Load all FLAb aggregation datasets.
     Returns (all_failures, all_working) combined across all datasets.
     """
-    print("Fetching FLAb dataset list from GitHub...")
-    filenames = list_flab_datasets()
+    snapshot_dir = Path(local_dir) if local_dir is not None else None
+    if snapshot_dir is not None and (snapshot_dir / "manifest.json").exists():
+        filenames = sorted(name for name in _local_manifest(snapshot_dir) if name.endswith(".csv"))
+        print(f"Using frozen FLAb snapshot: {snapshot_dir}")
+    else:
+        print("Fetching FLAb dataset list from GitHub...")
+        filenames = list_flab_datasets()
     if not filenames:
         print("  No datasets found. Check network access.")
         return [], []
@@ -240,7 +302,7 @@ def load_all_flab_data(
     seen_sequences: set[str] = set()
 
     for fname in filenames:
-        failures, working = load_dataset(fname, percentile, max_per_dataset)
+        failures, working = load_dataset(fname, percentile, max_per_dataset, local_dir=local_dir)
         # deduplicate across datasets
         for entry in failures + working:
             seq = entry["variant_sequence"]
