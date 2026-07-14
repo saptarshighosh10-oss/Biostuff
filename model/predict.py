@@ -105,7 +105,8 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
     }
 
 
-def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3, output_file: str | None = None):
+def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3,
+               output_file: str | None = None, progress_file: str | None = None):
     """Re-score candidates from a JSON file using the trained model."""
     from model.failure_model import AggregationFailureModel
 
@@ -114,7 +115,9 @@ def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3, output_fi
 
     model = AggregationFailureModel.load(MODEL_PATH)
     results = []
-    for c in candidates[:top_n]:
+    selected = candidates[:top_n]
+    total = len(selected)
+    for index, c in enumerate(selected, 1):
         seq = c.get("variant_sequence", "")
         mutations = c.get("mutations", [])
         if not seq:
@@ -126,6 +129,19 @@ def score_file(input_file: str, top_n: int = 10, n_neighbors: int = 3, output_fi
             "phase1_risk": c.get("risk", {}).get("combined_risk", 0.0),
             **score,
         })
+        if progress_file and (index == 1 or index % 1000 == 0 or index == total):
+            progress = {
+                "stage": "scoring",
+                "input_file": str(input_file),
+                "output_file": str(output_file) if output_file else None,
+                "completed": index,
+                "total": total,
+                "fraction": round(index / total, 6) if total else 1.0,
+            }
+            progress_path = Path(progress_file)
+            progress_path.parent.mkdir(parents=True, exist_ok=True)
+            progress_path.write_text(json.dumps(progress, indent=2) + "\n")
+            print(f"  scoring {index}/{total} ({index / total:.1%})", flush=True)
 
     results.sort(key=lambda x: x["failure_probability"], reverse=True)
     if output_file:
@@ -150,6 +166,7 @@ if __name__ == "__main__":
     parser.add_argument("--neighbors", type=int, default=3,
                         help="How many closest known references to show per class (default 3)")
     parser.add_argument("--out", help="Write machine-readable prediction artifact to this JSON path")
+    parser.add_argument("--progress", help="Write row-level progress JSON while scoring")
     args = parser.parse_args()
 
     if args.sequence:
@@ -172,7 +189,8 @@ if __name__ == "__main__":
                 print(f"  #{n['rank']}  {n['name']:35s} (source={n['source']}, distance={n['distance']:.3f})")
 
     elif args.file:
-        results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors, output_file=args.out)
+        results = score_file(args.file, top_n=args.top, n_neighbors=args.neighbors,
+                             output_file=args.out, progress_file=args.progress)
         print(f"\nTop {len(results)} candidates re-scored by trained model:\n")
         for i, r in enumerate(results):
             conf_str = f"confidence={r['confidence']} gap={r['confidence_gap']:.3f}"
