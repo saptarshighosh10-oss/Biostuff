@@ -9,7 +9,12 @@ from urllib import request
 
 
 def _generate(model: str, prompt: str, timeout: int = 120) -> str:
-    payload = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode()
+    payload = json.dumps({
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "think": False,
+    }).encode()
     req = request.Request(
         "http://127.0.0.1:11434/api/generate",
         data=payload,
