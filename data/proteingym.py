@@ -21,6 +21,7 @@ Label convention (fitness, higher = more functional/stable):
 """
 
 import csv
+import hashlib
 import io
 import random
 import re
@@ -58,6 +59,33 @@ def _get_text(url: str, timeout: int = 60) -> str | None:
         return None
 
 
+def _protein_group_id(row: dict) -> tuple[str, bool]:
+    """Return a stable protein-level group and whether sequence fallback was used."""
+    uniprot = (row.get("UniProt_ID") or row.get("UniProt_IDs") or "").strip()
+    if uniprot:
+        return f"uniprot:{uniprot}", False
+    sequence = (row.get("target_seq") or "").strip().upper()
+    if sequence:
+        digest = hashlib.sha256(sequence.encode()).hexdigest()[:24]
+        return f"sequence:{digest}", True
+    return f"assay-fallback:{row.get('DMS_id', 'unknown')}", True
+
+
+def _assay_metadata(row: dict) -> dict:
+    group, fallback = _protein_group_id(row)
+    endpoint = (row.get("coarse_selection_type") or row.get("selection_type") or "unknown").strip()
+    return {
+        "assay_id": row.get("DMS_id", ""),
+        "protein_group_id": group,
+        "group_id": group,
+        "uniprot_id": (row.get("UniProt_ID") or row.get("UniProt_IDs") or "").strip(),
+        "coarse_selection_type": row.get("coarse_selection_type", ""),
+        "selection_type": row.get("selection_type", ""),
+        "endpoint_family": endpoint or "unknown",
+        "protein_group_fallback": fallback,
+    }
+
+
 def list_stability_assays(max_assays: int = 8) -> list[dict]:
     """
     Read the ProteinGym index and return metadata for Stability/Expression
@@ -69,13 +97,10 @@ def list_stability_assays(max_assays: int = 8) -> list[dict]:
         return []
 
     rows = list(csv.DictReader(io.StringIO(text)))
-    if any(r.get("coarse_selection_type") for r in rows):
-        relevant = [r for r in rows
-                    if r.get("coarse_selection_type") in ("Stability", "Expression")]
-    else:
-        # ProteinGym v0.1 exposes the complete substitution benchmark through
-        # selection_type rather than the legacy coarse_selection_type field.
-        relevant = [r for r in rows if r.get("DMS_id") and r.get("DMS_filename")]
+    # Head A is deliberately general mutation-fitness pretraining. Keep every
+    # indexed endpoint with a downloadable substitution file; endpoint labels
+    # remain attached to each row for slice-level reporting.
+    relevant = [r for r in rows if r.get("DMS_id") and r.get("DMS_filename")]
 
     # sort: priority assays first, then by fewest mutants (faster downloads)
     def sort_key(r):
@@ -195,9 +220,7 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
         fail_pool.sort(key=lambda e: e[1])                # lowest fitness first
         work_pool.sort(key=lambda e: e[1], reverse=True)  # highest fitness first
 
-    # group_id = the assay/wild-type ID: all mutants of one protein share it,
-    # so grouped CV keeps them together and never leaks a near-duplicate
-    # variant of the same protein across train/test folds.
+    # group_id is supplied as a protein-level key by load_proteingym_data.
     failures = [{"variant_sequence": s, "label": "confirmed_failure",
                  "mutations": m, "mutation_count": len(m),
                  "variant_type": "multi_mutant" if len(m) > 1 else "single_mutant",
@@ -221,10 +244,10 @@ def load_proteingym_data(
     keep_all: bool = False,
 ) -> tuple[list[dict], list[dict]]:
     """
-    Load DMS stability/expression failures from ProteinGym.
+    Load ProteinGym DMS failures with protein-level grouping metadata.
     Returns (failures, working) — mutant sequences with populated mutation lists.
 
-    max_assays: how many stability/expression assays to pull (84 = all available).
+    max_assays: how many indexed assays to pull (84 = the historical default).
     seed:       None keeps the most-extreme examples deterministically;
                 an int enables seeded random sampling across the fitness range —
                 vary it across runs to check the model is robust, not fitting noise.
@@ -237,7 +260,7 @@ def load_proteingym_data(
         print("  No ProteinGym assays available. Skipping.")
         return [], []
 
-    print(f"Selected {len(assays)} stability/expression assays "
+    print(f"Selected {len(assays)} ProteinGym assays "
           f"({'random sample, seed=' + str(seed) if rng else 'most-extreme'}). Downloading...")
     all_failures, all_working = [], []
     seen: set[str] = set()
@@ -248,18 +271,23 @@ def load_proteingym_data(
         if not text:
             print(f"  {a['DMS_id']}: data file unreachable (Colab/HF needed) — skipped")
             continue
+        metadata = _assay_metadata(a)
         failures, working = _parse_assay(
             text, percentile, max_per_assay, rng=rng,
-            group_id=a["DMS_id"], target_sequence=a.get("target_seq", ""), keep_all=keep_all,
+            group_id=metadata["protein_group_id"], target_sequence=a.get("target_seq", ""), keep_all=keep_all,
         )
+        for entry in failures + working:
+            entry.update(metadata)
         # dedup across assays
         nf = nw = 0
         for e in failures:
-            if e["variant_sequence"] not in seen:
-                seen.add(e["variant_sequence"]); all_failures.append(e); nf += 1
+            key = (e["protein_group_id"], e["variant_sequence"], e["label"])
+            if key not in seen:
+                seen.add(key); all_failures.append(e); nf += 1
         for e in working:
-            if e["variant_sequence"] not in seen:
-                seen.add(e["variant_sequence"]); all_working.append(e); nw += 1
+            key = (e["protein_group_id"], e["variant_sequence"], e["label"])
+            if key not in seen:
+                seen.add(key); all_working.append(e); nw += 1
         print(f"  {a['DMS_id']}: {nf} failures, {nw} working")
 
     print(f"\nProteinGym total: {len(all_failures)} failures, {len(all_working)} working")

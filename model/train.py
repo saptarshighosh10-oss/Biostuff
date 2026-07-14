@@ -10,12 +10,13 @@ Data sources (any combination):
   --abdev                                       AbDev clinical-stage antibody negatives
   --sabdab                                      SAbDab structural antibody negatives
   --anchors                                     your own Phase 1 PDB anchor chains
-  --proteingym                                  ProteinGym deep mutational scan failures
+  --proteingym                                  Use the trained ProteinGym head as one derived feature
 
 Output: model/saved/model.pkl
 
 Usage:
-    # train from public data right now (no wet-lab needed)
+    # train the antibody model with the separate ProteinGym-derived feature
+    python -m model.pretrain_proteingym_fitness
     python -m model.train --flab --abdev --anchors --proteingym
 
     # add your own wet-lab data on top
@@ -251,16 +252,18 @@ def build_training_data(
     else:
         print("\n[8/9] Anchor sequences skipped (pass --anchors to include)")
 
-    # ── Source 9: ProteinGym DMS failures (mutants with delta features) ──
+    # ── Source 9: ProteinGym Head A derived feature ────────────────────
     if use_proteingym:
-        print("\n[9/9] Loading ProteinGym deep mutational scanning failures...")
-        from data.proteingym import load_proteingym_data
-        f, w = load_proteingym_data(max_assays=proteingym_assays, seed=proteingym_seed)
-        all_failures.extend(f)
-        all_working.extend(w)
-        print(f"  ProteinGym: {len(f)} failures, {len(w)} working (mutants)")
+        print("\n[9/9] Loading the separate ProteinGym fitness head...")
+        from model.pretrain_proteingym_fitness import load_general_fitness_model
+        fitness_head = load_general_fitness_model()
+        antibody_entries = all_failures + all_working
+        for entry in antibody_entries:
+            sequence = entry.get("variant_sequence", "")
+            entry["proteingym_fitness_score"] = fitness_head.score_general_fitness(sequence) if sequence else 0.0
+        print(f"  ProteinGym: derived feature added to {len(antibody_entries)} antibody entries")
     else:
-        print("\n[9/9] ProteinGym skipped (pass --proteingym to include)")
+        print("\n[9/9] ProteinGym head skipped (pass --proteingym to add its derived feature)")
 
     # ── Deduplicate across sources ───────────────────────────────────
     seen: set[str] = set()

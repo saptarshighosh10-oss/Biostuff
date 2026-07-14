@@ -1,4 +1,4 @@
-"""Build deterministic assay-disjoint ProteinGym auxiliary train/test cohorts."""
+"""Build deterministic protein-disjoint ProteinGym auxiliary cohorts."""
 
 from __future__ import annotations
 
@@ -19,10 +19,13 @@ def _group_order(groups: dict[str, list[dict]]) -> list[str]:
     )
 
 
-def split_by_assay(rows: list[dict], train_min: int = 200_000, test_min: int = 100_000) -> tuple[list[dict], list[dict], list[str], list[str]]:
+def split_by_protein(rows: list[dict], train_min: int = 200_000, test_min: int = 100_000) -> tuple[list[dict], list[dict], list[str], list[str], int]:
     by_group: dict[str, list[dict]] = {}
+    fallback_count = 0
     for row in rows:
-        group = str(row.get("group_id", "unknown"))
+        group = str(row.get("protein_group_id") or row.get("group_id", "unknown"))
+        if row.get("protein_group_fallback"):
+            fallback_count += 1
         by_group.setdefault(group, []).append(row)
 
     ordered = _group_order(by_group)
@@ -43,7 +46,9 @@ def split_by_assay(rows: list[dict], train_min: int = 200_000, test_min: int = 1
             f"ProteinGym cohort too small for requested partition: "
             f"train={len(train_rows)}, test={len(test_rows)}"
         )
-    return train_rows, test_rows, selected_train_groups, test_groups
+    if set(selected_train_groups) & set(test_groups):
+        raise RuntimeError("Protein-disjoint partition construction produced overlapping groups")
+    return train_rows, test_rows, selected_train_groups, test_groups, fallback_count
 
 
 def build(output_dir: str | Path = "data/external/proteingym", train_min: int = 1_000_000, test_min: int = 300_000, max_per_assay: int = 10_000, max_assays: int = 217) -> dict:
@@ -61,30 +66,34 @@ def build(output_dir: str | Path = "data/external/proteingym", train_min: int = 
         json.dumps(quarantine, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
-    train, test, train_groups, test_groups = split_by_assay(rows, train_min=train_min, test_min=test_min)
+    train, test, train_groups, test_groups, fallback_count = split_by_protein(
+        rows, train_min=train_min, test_min=test_min
+    )
     for name, payload in (("train.json", train), ("test.json", test)):
         (output / name).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     manifest = {
-        "schema_version": "1",
+        "schema_version": "2",
         "source": "ProteinGym",
         "source_url": "https://github.com/OATML-Markslab/ProteinGym",
         "endpoint_family": "protein_mutation_fitness",
         "source_role": "auxiliary_non_antibody",
+        "split_unit": "protein_group_id",
+        "protein_group_fallback_count": fallback_count,
         "max_per_assay": max_per_assay,
         "max_assays": max_assays,
         "keep_all_labeled_rows": True,
         "quality_gate": quality,
         "train_count": len(train),
         "test_count": len(test),
-        "train_groups": train_groups,
-        "test_groups": test_groups,
+        "train_protein_groups": train_groups,
+        "test_protein_groups": test_groups,
         "train_sha256": hashlib.sha256((output / "train.json").read_bytes()).hexdigest(),
         "test_sha256": hashlib.sha256((output / "test.json").read_bytes()).hexdigest(),
     }
     manifest["manifest_hash"] = hash_payload(manifest)
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"ProteinGym auxiliary partition: train={len(train)} test={len(test)}")
+    print(f"ProteinGym protein-disjoint partition: train={len(train)} test={len(test)}")
     return manifest
 
 

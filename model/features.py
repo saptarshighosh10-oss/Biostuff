@@ -1,6 +1,6 @@
 """
 Feature extraction for the failure model.
-Produces a flat 27-feature vector from any candidate dict or raw sequence.
+Produces a flat feature vector from any candidate dict or raw sequence.
 Missing fields (e.g. no ESMFold, no Phase 2) default to 0 so the model still runs.
 """
 
@@ -47,6 +47,8 @@ FEATURE_NAMES = [
     "zyggregator_mean",
     "n_consensus_hotspots",
     "mutation_hits_hotspot",
+    # Optional auxiliary Head A feature; zero when the separate head is absent.
+    "proteingym_fitness_score",
 ]
 
 
@@ -119,6 +121,7 @@ def extract_features(candidate: dict) -> dict:
         "zyggregator_mean": zygg.get("mean_score", 0.0),
         "n_consensus_hotspots": float(len(consensus)),
         "mutation_hits_hotspot": hits_hotspot,
+        "proteingym_fitness_score": float(candidate.get("proteingym_fitness_score", 0.0) or 0.0),
     }
 
 

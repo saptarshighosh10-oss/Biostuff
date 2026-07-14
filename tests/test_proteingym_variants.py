@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from data.proteingym import _parse_assay
+from data.build_proteingym_partition import split_by_protein
 
 
 class TestProteinGymVariants(unittest.TestCase):
@@ -18,6 +19,18 @@ class TestProteinGymVariants(unittest.TestCase):
         self.assertEqual(working[0]["variant_type"], "multi_mutant")
         self.assertEqual(working[0]["mutation_count"], 2)
         self.assertEqual(working[0]["wild_type_sequence"], "ACDEFGHIKLMN")
+
+    def test_split_is_protein_disjoint_not_assay_disjoint(self) -> None:
+        rows = [
+            {"protein_group_id": "uniprot:P1", "group_id": "uniprot:P1", "protein_group_fallback": False, "variant_sequence": "A" * 10, "label": "confirmed_failure"},
+            {"protein_group_id": "uniprot:P1", "group_id": "uniprot:P1", "protein_group_fallback": False, "variant_sequence": "C" * 10, "label": "working"},
+            {"protein_group_id": "uniprot:P2", "group_id": "uniprot:P2", "protein_group_fallback": False, "variant_sequence": "D" * 10, "label": "confirmed_failure"},
+            {"protein_group_id": "uniprot:P2", "group_id": "uniprot:P2", "protein_group_fallback": False, "variant_sequence": "E" * 10, "label": "working"},
+        ]
+        train, test, train_groups, test_groups, fallback_count = split_by_protein(rows, train_min=2, test_min=2)
+        self.assertFalse(set(train_groups) & set(test_groups))
+        self.assertFalse({row["protein_group_id"] for row in train} & {row["protein_group_id"] for row in test})
+        self.assertEqual(fallback_count, 0)
 
 
 if __name__ == "__main__":
