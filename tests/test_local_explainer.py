@@ -27,6 +27,20 @@ class TestLocalExplainer(unittest.TestCase):
             self.assertNotIn("local_description", result[1])
             self.assertEqual(_generate.call_count, 2)
 
+    @patch("model.local_explainer._generate", side_effect=["one", "PASS", "two", "PASS"])
+    def test_all_mode_processes_every_row(self, _generate) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "in.json"
+            target = root / "out.json"
+            source.write_text(json.dumps({"results": [
+                {"failure_probability": 0.1, "failure_explanation": {}},
+                {"failure_probability": 0.2, "failure_explanation": {}},
+            ]}))
+            summary = explain_selected(str(source), str(target), all_rows=True, checkpoint_every=1)
+            self.assertEqual(summary["selected"], 2)
+            self.assertEqual(_generate.call_count, 4)
+
 
 if __name__ == "__main__":
     unittest.main()

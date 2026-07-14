@@ -20,17 +20,20 @@ def _generate(model: str, prompt: str, timeout: int = 120) -> str:
 
 
 def explain_selected(input_file: str, output_file: str, top_n: int = 1000,
-                     model: str = "qwen3:1.7b", checker: str = "llama3.2:3b") -> dict:
-    """Rewrite only high-risk/uncertain rows; preserve deterministic evidence."""
+                     model: str = "qwen3:1.7b", checker: str = "llama3.2:3b",
+                     all_rows: bool = False, checkpoint_every: int = 50) -> dict:
+    """Rewrite selected rows, or every row, while preserving deterministic evidence."""
     payload = json.loads(Path(input_file).read_text(encoding="utf-8"))
     results = payload.get("results", payload if isinstance(payload, list) else [])
-    selected = [
+    selected = (results if all_rows else [
         row for row in results
         if row.get("failure_probability", 0.0) >= 0.7
         or row.get("confidence") == "low"
-    ][:top_n]
+    ][:top_n])
 
-    for row in selected:
+    for index, row in enumerate(selected, 1):
+        if row.get("local_description") and row.get("local_description_check"):
+            continue
         evidence = row.get("failure_explanation", {})
         prompt = (
             "Rewrite this evidence as two concise sentences. Do not add facts. "
@@ -44,11 +47,18 @@ def explain_selected(input_file: str, output_file: str, top_n: int = 1000,
             + json.dumps({"evidence": evidence, "description": row["local_description"]})
         )
         row["local_description_check"] = _generate(checker, check_prompt).upper()
+        row["local_description_source"] = "local_ollama_synthetic"
+        if index % checkpoint_every == 0:
+            _write_output(output_file, input_file, results)
 
+    _write_output(output_file, input_file, results)
+    return {"rows": len(results), "selected": len(selected), "output": output_file}
+
+
+def _write_output(output_file: str, input_file: str, results: list[dict]) -> None:
     output = {"schema_version": "1", "source": input_file, "results": results}
     Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     Path(output_file).write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
-    return {"rows": len(results), "selected": len(selected), "output": output_file}
 
 
 if __name__ == "__main__":
@@ -58,5 +68,8 @@ if __name__ == "__main__":
     parser.add_argument("--top", type=int, default=1000)
     parser.add_argument("--model", default="qwen3:1.7b")
     parser.add_argument("--checker", default="llama3.2:3b")
+    parser.add_argument("--all", action="store_true", help="Generate/check wording for every row")
+    parser.add_argument("--checkpoint-every", type=int, default=50)
     args = parser.parse_args()
-    print(explain_selected(args.input, args.output, args.top, args.model, args.checker))
+    print(explain_selected(args.input, args.output, args.top, args.model, args.checker,
+                           args.all, args.checkpoint_every))
