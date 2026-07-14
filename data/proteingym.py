@@ -166,10 +166,16 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
 
     if keep_all and any(entry[3] is not None for entry in entries):
         failures = [{"variant_sequence": seq, "label": "confirmed_failure",
-                     "mutations": muts, "source": "proteingym", "dms_score": score, "group_id": group_id}
+                     "mutations": muts, "mutation_count": len(muts),
+                     "variant_type": "multi_mutant" if len(muts) > 1 else "single_mutant",
+                     "wild_type_sequence": target_sequence, "source": "proteingym",
+                     "dms_score": score, "group_id": group_id}
                     for seq, score, muts, label_bin in entries if label_bin == 0]
         working = [{"variant_sequence": seq, "label": "working",
-                    "mutations": muts, "source": "proteingym", "dms_score": score, "group_id": group_id}
+                    "mutations": muts, "mutation_count": len(muts),
+                    "variant_type": "multi_mutant" if len(muts) > 1 else "single_mutant",
+                    "wild_type_sequence": target_sequence, "source": "proteingym",
+                    "dms_score": score, "group_id": group_id}
                    for seq, score, muts, label_bin in entries if label_bin == 1]
         return failures, working
 
@@ -193,11 +199,17 @@ def _parse_assay(text: str, percentile: float, max_keep: int,
     # so grouped CV keeps them together and never leaks a near-duplicate
     # variant of the same protein across train/test folds.
     failures = [{"variant_sequence": s, "label": "confirmed_failure",
-                 "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
+                 "mutations": m, "mutation_count": len(m),
+                 "variant_type": "multi_mutant" if len(m) > 1 else "single_mutant",
+                 "wild_type_sequence": target_sequence, "source": "proteingym",
+                 "dms_score": sc, "group_id": group_id}
                 for s, sc, m, _ in fail_pool[:max_keep]]
     working  = [{"variant_sequence": s, "label": "working",
-                 "mutations": m, "source": "proteingym", "dms_score": sc, "group_id": group_id}
-                for s, sc, m, _ in work_pool[:max_keep]]
+                 "mutations": m, "mutation_count": len(m),
+                 "variant_type": "multi_mutant" if len(m) > 1 else "single_mutant",
+                 "wild_type_sequence": target_sequence, "source": "proteingym",
+                 "dms_score": sc, "group_id": group_id}
+                 for s, sc, m, _ in work_pool[:max_keep]]
     return failures, working
 
 

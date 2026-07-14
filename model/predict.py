@@ -27,6 +27,7 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
     """
     from model.failure_model import AggregationFailureModel
     from model.features import extract_from_sequence, features_to_vector, FEATURE_NAMES
+    from model.explanations import explain_failure
 
     if model is None:
         if not Path(MODEL_PATH).exists():
@@ -52,6 +53,10 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
         key=lambda x: abs(x[1]) * x[2],
         reverse=True,
     )
+    top_features = [
+        {"feature": name, "value": round(val, 4), "importance": round(imp, 4)}
+        for name, val, imp in contributions[:5]
+    ]
 
     confidence = "high" if gap < 0.15 else "medium" if gap < 0.30 else "low"
     grouped_cv = bool(getattr(model, "used_grouped_cv", False))
@@ -68,6 +73,14 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
         decision = "review"
         decision_reason = "candidate is below the high-risk prioritization threshold"
 
+    failure_explanation = explain_failure(
+        mutations=mutations or [],
+        features=feat_dict,
+        probability=prob,
+        confidence=confidence,
+        top_features=top_features,
+    )
+
     # closest known references of each class, ranked nearest first —
     # "this looks like X, and if not, here's the next-closest match"
     working_neighbors = model.nearest_neighbors(vec, label=0, top_k=n_neighbors)
@@ -83,10 +96,8 @@ def score_sequence(sequence: str, mutations: list | None = None, model=None, n_n
         "decision": decision,
         "decision_reason": decision_reason,
         "cv_strategy": getattr(model, "cv_strategy", None),
-        "top_features": [
-            {"feature": name, "value": round(val, 4), "importance": round(imp, 4)}
-            for name, val, imp in contributions[:5]
-        ],
+        "top_features": top_features,
+        "failure_explanation": failure_explanation,
         "closest_working": working_neighbors[0] if working_neighbors else None,
         "closest_failure": failure_neighbors[0] if failure_neighbors else None,
         "closest_working_list": working_neighbors,

@@ -9,6 +9,7 @@ from pathlib import Path
 
 from data.contract import hash_payload
 from data.proteingym import load_proteingym_data
+from data.variant_quality import validate_rows
 
 
 def _group_order(groups: dict[str, list[dict]]) -> list[str]:
@@ -55,6 +56,11 @@ def build(output_dir: str | Path = "data/external/proteingym", train_min: int = 
         row["endpoint_family"] = "protein_mutation_fitness"
         row["source_role"] = "auxiliary_non_antibody"
 
+    rows, quarantine, quality = validate_rows(rows)
+    (output / "quarantine.json").write_text(
+        json.dumps(quarantine, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
     train, test, train_groups, test_groups = split_by_assay(rows, train_min=train_min, test_min=test_min)
     for name, payload in (("train.json", train), ("test.json", test)):
         (output / name).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -68,6 +74,7 @@ def build(output_dir: str | Path = "data/external/proteingym", train_min: int = 
         "max_per_assay": max_per_assay,
         "max_assays": max_assays,
         "keep_all_labeled_rows": True,
+        "quality_gate": quality,
         "train_count": len(train),
         "test_count": len(test),
         "train_groups": train_groups,
