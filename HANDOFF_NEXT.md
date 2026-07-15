@@ -20,7 +20,8 @@ Architecture gate that started this: the 2026-07-14 review at commit `5dc5c4b`.
 - **Head B** — antibody aggregation. `model/head_b_gbm.py`. Per-assay regression on
   `[ PLM(ESM-2 + AbLang2) | biophysical(28) ]`, leave-homology-cluster-out grouped CV,
   per-assay Spearman/MAE/enrichment + group-bootstrap CIs. It accepts only
-  aggregation/self-association/HIC/SEC/AC-SINS/PSR-family endpoints and uses
+  an explicit aggregation metric allowlist (AC-SINS/HIC/SEC/PSR/SAS/SMAC and
+  related aggregation assays) and uses
   `molecule_group_id` when available. Identical metrics from different studies
   are evaluated separately, with target/specificity context reported but never
   treated as an aggregation label. Trains ONLY on the supervised bucket —

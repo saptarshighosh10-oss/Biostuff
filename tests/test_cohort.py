@@ -37,6 +37,7 @@ class TestCohort(unittest.TestCase):
     def test_head_b_scope_excludes_non_aggregation_endpoints(self) -> None:
         self.assertTrue(is_head_b_aggregation_row({"assay_family": "aggregation", "assay_metric": "SEC"}))
         self.assertTrue(is_head_b_aggregation_row({"assay_family": "expression", "assay_metric": "HIC"}))
+        self.assertFalse(is_head_b_aggregation_row({"assay_family": "aggregation", "assay_metric": "pI"}))
         self.assertFalse(is_head_b_aggregation_row({"assay_family": "thermostability", "assay_metric": "Tm"}))
 
 

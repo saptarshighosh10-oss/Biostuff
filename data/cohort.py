@@ -19,7 +19,8 @@ from data.contract import sha256_hex
 
 
 _HEAD_B_METRIC_TOKENS = (
-    "ac-sins", "ac_sins", "hic", "sec", "psr", "polyreactivity",
+    "ac-sins", "ac_sins", "acsins", "hic", "sec", "psr", "sas", "csi",
+    "cge", "nrcge", "smac", "relrt", "retention", "monomer",
     "aggregation", "self_association", "hydrophobicity",
 )
 
@@ -28,9 +29,10 @@ def is_head_b_aggregation_row(row: dict) -> bool:
     """Return whether a supervised row measures the aggregation target family."""
     family = str(row.get("assay_family", "")).strip().lower()
     metric = str(row.get("assay_metric", "")).strip().lower()
-    return family in {"aggregation", "self_association", "hydrophobicity", "polyreactivity"} or any(
-        token in metric for token in _HEAD_B_METRIC_TOKENS
-    )
+    normalized_metric = metric.replace("-", "_").replace(" ", "_")
+    if any(token in normalized_metric for token in _HEAD_B_METRIC_TOKENS):
+        return True
+    return family in {"self_association", "hydrophobicity"} and bool(metric)
 
 
 def _attach_pairing(rows: list[dict]) -> list[dict]:
