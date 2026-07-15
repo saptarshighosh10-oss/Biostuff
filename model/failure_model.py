@@ -67,7 +67,9 @@ class AggregationFailureModel:
                 f"Currently have {int(y.sum())}. Collect more wet-lab data first."
             )
 
+        from model.features import feature_schema_hash
         self.feature_names = feature_names
+        self.feature_schema_hash = feature_schema_hash(feature_names)
         self.n_failures = int(y.sum())
         self.n_working = int((y == 0).sum())
 
@@ -242,4 +244,14 @@ class AggregationFailureModel:
     @classmethod
     def load(cls, path: str) -> "AggregationFailureModel":
         import joblib
-        return joblib.load(path)
+        from model.features import feature_schema_hash, FEATURE_NAMES
+        model = joblib.load(path)
+        expected = feature_schema_hash(FEATURE_NAMES)
+        actual = getattr(model, "feature_schema_hash", None)
+        if actual is not None and actual != expected:
+            raise ValueError(
+                f"Model feature schema mismatch (artifact={actual}, code={expected}); "
+                f"the saved model was trained on a different feature set — retrain via "
+                f"`python -m model.train ...`."
+            )
+        return model

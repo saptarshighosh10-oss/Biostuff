@@ -51,6 +51,56 @@ FEATURE_NAMES = [
     "proteingym_fitness_score",
 ]
 
+# Head A (general ProteinGym fitness) may only use features that mean the SAME
+# thing for a raw sequence with no mutations and no structure data — otherwise
+# its score is computed on out-of-distribution zeros when applied to antibodies.
+# Excluded: mutation-delta features (mutations=[] at serve), Phase-1 risk /
+# structure features (always absent for ProteinGym rows), and its own output
+# (circular). What remains is computable identically from any bare sequence.
+_HEAD_A_EXCLUDED = {
+    "n_mutations", "mean_hydrophobicity_delta", "total_charge_delta",
+    "max_hydrophobicity_delta", "mutation_hits_hotspot",
+    "hydrophobicity_risk", "charge_risk", "camsol_risk", "combined_risk",
+    "plddt_mean", "plddt_variance", "low_confidence_fraction", "disagreement_score",
+    "proteingym_fitness_score",
+}
+HEAD_A_FEATURE_NAMES = [n for n in FEATURE_NAMES if n not in _HEAD_A_EXCLUDED]
+
+
+def feature_schema_hash(names: list[str] = FEATURE_NAMES) -> str:
+    """Stable hash of a feature-name list, stored on saved models and asserted
+    on load so a schema drift (e.g. the 27→28 column change) can't silently
+    mis-score a stale artifact."""
+    import hashlib
+    return hashlib.sha256("\x00".join(names).encode()).hexdigest()[:16]
+
+
+# Lazily-loaded, cached Head A. Shared by the training path and every serve
+# path (extract_from_sequence) so ``proteingym_fitness_score`` is computed
+# identically in both — the derived feature is never a train-only value.
+_FITNESS_HEAD = None
+_FITNESS_HEAD_TRIED = False
+
+
+def general_fitness_score(sequence: str) -> float:
+    """Score a raw sequence with the separate Head A; 0.0 if the head artifact
+    is absent. No recursion: Head A featurizes over HEAD_A_FEATURE_NAMES via
+    extract_features, which only *reads* proteingym_fitness_score from the dict
+    and never calls back here."""
+    global _FITNESS_HEAD, _FITNESS_HEAD_TRIED
+    if not sequence:
+        return 0.0
+    if not _FITNESS_HEAD_TRIED:
+        _FITNESS_HEAD_TRIED = True
+        try:
+            from model.pretrain_proteingym_fitness import load_general_fitness_model
+            _FITNESS_HEAD = load_general_fitness_model()
+        except Exception:  # ponytail: head is optional; any load failure → 0.0
+            _FITNESS_HEAD = None
+    if _FITNESS_HEAD is None:
+        return 0.0
+    return _FITNESS_HEAD.score_general_fitness(sequence)
+
 
 def extract_features(candidate: dict) -> dict:
     """
@@ -125,19 +175,21 @@ def extract_features(candidate: dict) -> dict:
     }
 
 
-def features_to_vector(feat_dict: dict) -> list[float]:
-    """Return feature values in the canonical FEATURE_NAMES order."""
-    return [feat_dict.get(name, 0.0) for name in FEATURE_NAMES]
+def features_to_vector(feat_dict: dict, names: list[str] = FEATURE_NAMES) -> list[float]:
+    """Return feature values in the given name order (canonical Head-B schema by
+    default; pass HEAD_A_FEATURE_NAMES for the general fitness head)."""
+    return [feat_dict.get(name, 0.0) for name in names]
 
 
 def extract_from_sequence(sequence: str, mutations: list | None = None) -> dict:
     """
     Extract features from a raw sequence with no Phase 1/2 data.
-    Used for fast inference on new sequences. extract_features now computes the
-    multi-predictor signals in-process, so this is a thin wrapper — the training
-    and inference paths share one identical featurization.
+    Used for fast inference on new sequences. Populates proteingym_fitness_score
+    via the shared Head A loader so the serve path featurizes identically to the
+    training path (no train/serve skew — the value is not train-only).
     """
     return extract_features({
         "variant_sequence": sequence,
         "mutations": mutations or [],
+        "proteingym_fitness_score": general_fitness_score(sequence),
     })

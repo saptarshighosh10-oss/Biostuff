@@ -254,13 +254,13 @@ def build_training_data(
 
     # ── Source 9: ProteinGym Head A derived feature ────────────────────
     if use_proteingym:
-        print("\n[9/9] Loading the separate ProteinGym fitness head...")
-        from model.pretrain_proteingym_fitness import load_general_fitness_model
-        fitness_head = load_general_fitness_model()
+        print("\n[9/9] Adding the separate ProteinGym fitness head's derived feature...")
+        # Same scorer the serve path uses (model.features.general_fitness_score)
+        # so this feature is computed identically at train and inference time.
+        from model.features import general_fitness_score
         antibody_entries = all_failures + all_working
         for entry in antibody_entries:
-            sequence = entry.get("variant_sequence", "")
-            entry["proteingym_fitness_score"] = fitness_head.score_general_fitness(sequence) if sequence else 0.0
+            entry["proteingym_fitness_score"] = general_fitness_score(entry.get("variant_sequence", ""))
         print(f"  ProteinGym: derived feature added to {len(antibody_entries)} antibody entries")
     else:
         print("\n[9/9] ProteinGym head skipped (pass --proteingym to add its derived feature)")

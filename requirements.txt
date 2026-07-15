@@ -2,7 +2,17 @@ requests>=2.31.0
 scikit-learn>=1.3.0
 joblib>=1.3.0
 numpy>=1.24.0
-fair-esm>=2.0.0  # optional: ESM-2 guided mutations. install before running with --esm2
-openmm>=8.0.0    # optional: MD simulation in Phase 2 --md flag
 matplotlib>=3.7.0
+
+# ── PLM feature backbone (Phase 2, M4/M5 — see docs/.../2026-07-14-plm-scaleup-design.md) ──
+# Frozen mean-pooled embeddings; run once to fill data/cache/embeddings/ then train.
+torch>=2.2.0          # MPS backend on Apple Silicon
+transformers>=4.40.0  # ESM-2 facebook/esm2_t33_650M_UR50D (general PLM)
+ablang2>=0.1.0        # antibody-specific PLM (VH/VL/CDR context)
+lightgbm>=4.3.0       # per-assay regression head on [PLM | biophysical] features
+
+# ── optional / legacy ──
+fair-esm>=2.0.0  # optional: ESM-2 guided mutations. alt to transformers path
+openmm>=8.0.0    # optional: MD simulation in Phase 2 --md flag
 py3Dmol>=2.0.0   # optional: 3D structure viewer (model/structure_viewer.py)
+# anarci        # optional: IMGT numbering for CDR features — install via bioconda (needs HMMER)

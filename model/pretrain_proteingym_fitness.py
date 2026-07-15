@@ -14,16 +14,28 @@ from pathlib import Path
 
 import numpy as np
 
-from model.features import extract_features, features_to_vector, FEATURE_NAMES
+from model.features import (
+    extract_features,
+    features_to_vector,
+    feature_schema_hash,
+    HEAD_A_FEATURE_NAMES,
+)
 
 
 class ProteinGymFitnessModel:
-    """A small, independently persisted binary mutation-fitness scorer."""
+    """A small, independently persisted binary mutation-fitness scorer.
+
+    Trained and served over HEAD_A_FEATURE_NAMES — the subset of features that
+    is computable identically from any bare sequence (no mutation deltas, no
+    structure/risk fields, not its own output). This keeps the score valid when
+    applied to raw antibody sequences that have none of those fields.
+    """
 
     def __init__(self) -> None:
         self.scaler = None
         self.classifier = None
-        self.feature_names = list(FEATURE_NAMES)
+        self.feature_names = list(HEAD_A_FEATURE_NAMES)
+        self.feature_schema_hash = feature_schema_hash(HEAD_A_FEATURE_NAMES)
         self.trained = False
 
     def train(self, X: list[list[float]], y: list[int]) -> None:
@@ -42,8 +54,11 @@ class ProteinGymFitnessModel:
         return self.classifier.predict_proba(self.scaler.transform(np.asarray(X, dtype=float)))[:, 1]
 
     def score_general_fitness(self, sequence: str) -> float:
+        # mutations are intentionally empty: Head A's vector excludes all
+        # mutation-derived features, so a raw sequence and its mutant form
+        # produce the same Head A inputs — the score is sequence-intrinsic.
         features = extract_features({"variant_sequence": sequence, "mutations": []})
-        return float(self.score_features([features_to_vector(features)])[0])
+        return float(self.score_features([features_to_vector(features, HEAD_A_FEATURE_NAMES)])[0])
 
 
 MODEL_PATH = Path("model/saved/proteingym_fitness.pkl")
@@ -53,7 +68,7 @@ def _load_rows(path: str | Path) -> tuple[list[list[float]], list[int], list[str
     rows = json.loads(Path(path).read_text(encoding="utf-8"))
     X, y, groups = [], [], []
     for row in rows:
-        X.append(features_to_vector(extract_features(row)))
+        X.append(features_to_vector(extract_features(row), HEAD_A_FEATURE_NAMES))
         y.append(1 if row.get("label") == "confirmed_failure" else 0)
         groups.append(str(row.get("protein_group_id") or row.get("group_id", "")))
     return X, y, groups
@@ -80,7 +95,8 @@ def train_head(train_file: str | Path, test_file: str | Path, model_file: str | 
         "test_protein_groups": len(set(test_groups)),
         "roc_auc": float(roc_auc_score(y_test, probabilities)),
         "average_precision": float(average_precision_score(y_test, probabilities)),
-        "feature_names": list(FEATURE_NAMES),
+        "feature_names": list(HEAD_A_FEATURE_NAMES),
+        "feature_schema_hash": feature_schema_hash(HEAD_A_FEATURE_NAMES),
     }
     destination = Path(model_file)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -97,6 +113,13 @@ def load_general_fitness_model(model_file: str | Path = MODEL_PATH) -> ProteinGy
         model = pickle.load(handle)
     if not isinstance(model, ProteinGymFitnessModel):
         raise TypeError(f"Unexpected ProteinGym head artifact: {model_file}")
+    expected = feature_schema_hash(HEAD_A_FEATURE_NAMES)
+    actual = getattr(model, "feature_schema_hash", None)
+    if actual != expected:
+        raise ValueError(
+            f"ProteinGym head feature schema mismatch (artifact={actual}, code={expected}); "
+            f"retrain via `python -m model.pretrain_proteingym_fitness`."
+        )
     return model
 
 

@@ -28,6 +28,7 @@ SOURCE_ROW_HASH_EXCLUDE_KEYS = HASH_EXCLUDE_KEYS | {"source_row_hash"}
 
 SOURCE_ROLES: dict[str, str] = {
     "flab": "supervised",
+    "gdpa": "supervised",  # Ginkgo antibody developability benchmark (GDPa1/2); GDPa3 frozen holdout
     "proteingym": "auxiliary",
     "canya": "auxiliary",
     "figshare_a3d": "auxiliary",
@@ -36,6 +37,8 @@ SOURCE_ROLES: dict[str, str] = {
     "abdev": "background_ood",
     "antiref": "background_ood",
     "sabdab": "background_ood",
+    "oas": "background_ood",           # Observed Antibody Space — natural repertoires
+    "thera_sabdab": "background_ood",  # Thera-SAbDab — clinical-stage therapeutic mAbs
     "anchors": "background_ood",
     "pdb_anchor": "background_ood",
     "unknown": "unlabeled",
@@ -279,6 +282,8 @@ class NormalizedRow:
     source_url: str = ""
     source_row_hash: str = ""
     feature_flags: list[str] = field(default_factory=list)
+    source_version: str = ""
+    assay_conditions: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -402,6 +407,19 @@ def normalize_legacy_row(
         feature_flags = sorted(set(feature_flags) | {"single_chain_only"})
 
     source_url_value = str(source_url or row.get("source_url") or "")
+    source_version = str(row.get("source_version") or "")
+    raw_conditions = row.get("assay_conditions")
+    if isinstance(raw_conditions, dict):
+        assay_conditions = dict(raw_conditions)
+    else:
+        condition_keys = (
+            "concentration", "temperature", "buffer", "ph", "salt", "incubation_time",
+            "replicate_count", "instrument", "formulation",
+        )
+        assay_conditions = {
+            key: row[key] for key in condition_keys
+            if key in row and row[key] not in (None, "")
+        }
     source_row_hash = hash_payload(
         row,
         exclude_keys=SOURCE_ROW_HASH_EXCLUDE_KEYS,
@@ -440,4 +458,6 @@ def normalize_legacy_row(
         source_url=source_url_value,
         source_row_hash=source_row_hash,
         feature_flags=feature_flags,
+        source_version=source_version,
+        assay_conditions=assay_conditions,
     )

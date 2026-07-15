@@ -25,7 +25,10 @@ import hashlib
 import io
 import random
 import re
-import requests
+try:
+    import requests
+except ImportError:  # optional: only the network fetch path needs it; parsing is stdlib
+    requests = None
 
 INDEX_URL = "https://huggingface.co/datasets/OATML-Markslab/ProteinGym_v0.1/resolve/main/ProteinGym_reference_file_substitutions.csv"
 
@@ -51,6 +54,8 @@ PRIORITY_ASSAYS = [
 
 
 def _get_text(url: str, timeout: int = 60) -> str | None:
+    if requests is None:  # optional dep absent → treat as unreachable (graceful)
+        return None
     try:
         r = requests.get(url, timeout=timeout)
         r.raise_for_status()

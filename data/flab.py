@@ -16,8 +16,13 @@ import io
 import hashlib
 import json
 import re
-import requests
 from pathlib import Path
+
+try:
+    import requests
+except ModuleNotFoundError:
+    # Network fallback is optional; the frozen local snapshot path needs only stdlib.
+    requests = None
 
 GITHUB_API_URL  = "https://api.github.com/repos/Graylab/FLAb/contents/data/aggregation"
 GITHUB_RAW_BASE = "https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation"
@@ -208,6 +213,8 @@ def _scores_to_labels(
                 "score": score, "score_col": score_col_name,
                 "assay_metric": score_col_name, "endpoint_value": score,
                 "endpoint_direction": "lower_bad" if low_is_bad else "higher_bad",
+                "endpoint_unit": "native",
+                "label_threshold": low_threshold if low_is_bad else high_threshold,
                 "source": "flab", "dataset": dataset_name,
                 "source_url": f"{GITHUB_RAW_BASE}/{dataset_name}",
             }
@@ -270,6 +277,10 @@ def load_dataset(
     # same study across train/test folds (they often share a parent antibody)
     for entry in failures + working:
         entry["group_id"] = filename
+        entry["assay_id"] = filename
+        entry["campaign_id"] = filename
+        entry["source_version"] = filename
+        entry.setdefault("molecule_id", entry.get("pair_id") or entry["variant_sequence"])
         entry.update(sequence_metadata.get(entry["variant_sequence"], {}))
     print(f"    {filename}: {len(failures)} failures, {len(working)} working "
           f"(seq={seq_col}, score={score_col})")
@@ -316,3 +327,86 @@ def load_all_flab_data(
     print(f"\nFLAb total: {len(all_failures)} unique failures, "
           f"{len(all_working)} unique working sequences")
     return all_failures, all_working
+
+
+# ── Full-tree developability loader ──────────────────────────────────────────
+
+def _study_and_metric(filename: str) -> tuple[str, str]:
+    """Split a FLAb filename into (study_id, assay_metric).
+
+    Filenames follow "<study>_<...>_<METRIC>.csv" (e.g. jain2017biophysical_ACSINS,
+    shanehsazzadeh2023unlocking_SEC), so the prefix before the first underscore is
+    the study and the segment after the last underscore is the assay metric.
+    """
+    stem = filename[:-4] if filename.lower().endswith(".csv") else filename
+    study = stem.split("_", 1)[0]
+    metric = stem.rsplit("_", 1)[1] if "_" in stem else stem
+    return study, metric
+
+
+def load_all_developability_data(
+    local_dir: str | Path = "data/external/flab",
+    percentile: float = 0.25,
+    max_per_dataset: int = 500,
+) -> list[dict]:
+    """
+    Walk every FLAb assay subdir (aggregation, thermostability, polyreactivity,
+    pharmacokinetics, expression, binding, immunogenicity, ...) and return a flat
+    list of labeled row dicts — one endpoint per assay CSV, tagged with its assay
+    family/metric/direction and continuous value. Reads local CSVs only.
+
+    Each row carries: variant_sequence, label (percentile-thresholded), source,
+    assay_family (subdir), assay_metric (from filename), endpoint_direction,
+    endpoint_value (float), study_id, group_id (== study_id).
+
+    CSVs with no detectable sequence/score column are skipped, not fatal.
+    """
+    root = Path(local_dir)
+    rows: list[dict] = []
+    # sorted() keeps output deterministic across filesystems
+    for csv_path in sorted(root.glob("*/*.csv")):
+        assay_family = csv_path.parent.name
+        filename = csv_path.name
+        text = csv_path.read_text(encoding="utf-8")
+
+        reader = csv.DictReader(io.StringIO(text))
+        csv_rows = [row for row in reader]
+        if not csv_rows:
+            continue
+
+        header = list(csv_rows[0].keys())
+        heavy_col, light_col = _detect_sequence_cols(header, csv_rows)
+        seq_col = heavy_col or light_col
+        score_col = _detect_score_col(header, csv_rows, seq_col or "") if seq_col else None
+        if not seq_col or not score_col:
+            continue  # skip files we can't interpret rather than crash
+
+        sequences, scores = [], []
+        for row in csv_rows[:max_per_dataset]:
+            heavy = row.get(heavy_col, "").strip().upper() if heavy_col else ""
+            light = row.get(light_col, "").strip().upper() if light_col else ""
+            seq = heavy + light if heavy and light else heavy or light
+            try:
+                score = float(row[score_col])
+            except (ValueError, TypeError, KeyError):
+                continue
+            if AA_PATTERN.match(seq):
+                sequences.append(seq)
+                scores.append(score)
+
+        # reuse the aggregation thresholding + low_is_bad heuristic
+        failures, working = _scores_to_labels(sequences, scores, percentile, score_col, filename)
+        study_id, assay_metric = _study_and_metric(filename)
+        for entry in failures + working:
+            entry["assay_family"] = assay_family
+            entry["assay_metric"] = assay_metric
+            entry["study_id"] = study_id
+            entry["group_id"] = study_id
+            entry["assay_id"] = filename
+            entry["campaign_id"] = study_id
+            entry["endpoint_unit"] = "native"
+            entry["source_version"] = filename
+            entry.setdefault("molecule_id", entry["variant_sequence"])
+            rows.append(entry)
+
+    return rows
