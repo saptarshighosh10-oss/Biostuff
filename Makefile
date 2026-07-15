@@ -4,8 +4,9 @@
 
 PY ?= python3
 PROGRESS_EVERY ?= 0
+PROFILE ?= igg
 
-.PHONY: help install test test-fast cohort head-a head-b head-b-plm embeddings ledgers gdpa3 clean
+.PHONY: help install test test-fast cohort head-a head-a-eval head-b head-b-plm autonomous-lab embeddings calibrate active-learning ledgers gdpa3 clean
 
 help:
 	@echo "Targets:"
@@ -14,8 +15,12 @@ help:
 	@echo "  make cohort        assemble + summarize the antibody cohort (dry run)"
 	@echo "  make embeddings SEQS=seqs.txt   precompute ESM-2 + AbLang2 embedding cache"
 	@echo "  make head-a        train the general ProteinGym fitness head (Head A)"
+	@echo "  make head-a-eval   evaluate frozen Head A on the ProteinGym test split"
 	@echo "  make head-b        Head B grouped-CV eval, biophysical features only"
 	@echo "  make head-b-plm    Head B grouped-CV eval, PLM + biophysical features"
+	@echo "  make autonomous-lab compare Head B candidates and promote a champion"
+	@echo "  make calibrate     build diagnostic per-assay calibration report"
+	@echo "  make active-learning CANDIDATES=... rank next lab candidates"
 	@echo "  make ledgers       emit conflicts.tsv / exclusions.tsv"
 	@echo "  make gdpa3 FILE=... HASH=...   single-shot GDPa3 external eval (frozen)"
 
@@ -37,13 +42,26 @@ embeddings:
 	$(PY) -m features.plm --precompute $(SEQS) --model both
 
 head-a:
-	$(PY) -m model.pretrain_proteingym_fitness
+	$(PY) -m model.pretrain_proteingym_fitness --progress-file results/head_a_progress.json --progress-every $(PROGRESS_EVERY)
+
+head-a-eval:
+	$(PY) -m model.evaluate_head_a --progress-file results/head_a_progress.json --progress-every $(PROGRESS_EVERY)
 
 head-b:
-	$(PY) -m model.head_b_gbm --ledgers --progress-every $(PROGRESS_EVERY) --out results/head_b_report.json
+	$(PY) -m model.head_b_gbm --ledgers --progress-every $(PROGRESS_EVERY) --progress-file results/head_b_progress.json --out results/head_b_report.json
 
 head-b-plm:
-	$(PY) -m model.head_b_gbm --use-plm --ledgers --progress-every $(PROGRESS_EVERY) --out results/head_b_report.json
+	$(PY) -m model.head_b_gbm --use-plm --ledgers --progress-every $(PROGRESS_EVERY) --progress-file results/head_b_progress.json --artifact model/saved/head_b_aggregation.pkl --out results/head_b_report.json
+
+autonomous-lab:
+	$(PY) -m model.autonomous_lab
+
+calibrate:
+	$(PY) -m model.head_b_calibration --reports results/autonomous_lab/igg_plm.json results/autonomous_lab/gdp4_mab_plm.json results/autonomous_lab/gdp4_bispecific_biophysical.json --out results/head_b_calibration.json
+
+active-learning:
+	@test -n "$(CANDIDATES)" || (echo "usage: make active-learning CANDIDATES=path/to/candidates.json" && exit 1)
+	$(PY) -m model.head_b_active_learning --candidates $(CANDIDATES) --profile $(PROFILE) --out results/active_learning_candidates.json
 
 ledgers:
 	$(PY) -c "from data.cohort import build_antibody_cohort, emit_ledgers; emit_ledgers(build_antibody_cohort())"

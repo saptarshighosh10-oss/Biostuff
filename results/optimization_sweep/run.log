@@ -1,0 +1,49 @@
+  cohort: +2643 rows from gdpa1
+  cohort: +343 rows from gdpa2
+  cohort: +2736 rows from gdpa4.1
+  cohort: +1450 rows from public aggregation snapshots
+  cohort: 5297 total rows (2134 paired, 3163 single-chain)
+{
+  "gdp4_bispecific": {
+    "regularized": {
+      "active_assays": 8,
+      "artifact": "results/optimization_sweep/gdp4_bispecific_regularized.pkl",
+      "mean_active_spearman": 0.26034999999999997,
+      "report": "results/optimization_sweep/gdp4_bispecific_regularized.json"
+    },
+    "smooth": {
+      "active_assays": 8,
+      "artifact": "results/optimization_sweep/gdp4_bispecific_smooth.pkl",
+      "mean_active_spearman": 0.2655,
+      "report": "results/optimization_sweep/gdp4_bispecific_smooth.json"
+    }
+  },
+  "gdp4_mab": {
+    "regularized": {
+      "active_assays": 7,
+      "artifact": "results/optimization_sweep/gdp4_mab_regularized.pkl",
+      "mean_active_spearman": 0.15307142857142855,
+      "report": "results/optimization_sweep/gdp4_mab_regularized.json"
+    },
+    "smooth": {
+      "active_assays": 6,
+      "artifact": "results/optimization_sweep/gdp4_mab_smooth.pkl",
+      "mean_active_spearman": 0.17761666666666667,
+      "report": "results/optimization_sweep/gdp4_mab_smooth.json"
+    }
+  },
+  "igg": {
+    "regularized": {
+      "active_assays": 13,
+      "artifact": "results/optimization_sweep/igg_regularized.pkl",
+      "mean_active_spearman": 0.28634615384615386,
+      "report": "results/optimization_sweep/igg_regularized.json"
+    },
+    "smooth": {
+      "active_assays": 13,
+      "artifact": "results/optimization_sweep/igg_smooth.pkl",
+      "mean_active_spearman": 0.29631538461538465,
+      "report": "results/optimization_sweep/igg_smooth.json"
+    }
+  }
+}

@@ -1,0 +1,1342 @@
+{
+  "artifact": "results/autonomous_lab/vhh_biophysical.pkl",
+  "assays": {
+    "acsins_dLmax_pH6.0_Avg": {
+      "assay_family": "self_association",
+      "assay_id": "gdpa2:acsins_dLmax_pH6.0_Avg",
+      "assay_metric": "acsins_dLmax_pH6.0_Avg",
+      "endpoint_direction": "higher_bad",
+      "endpoint_unit": "native",
+      "enrichment_top10pct": 0.0,
+      "features": "biophysical_only",
+      "mae": 14.9056,
+      "molecule_groups": 16,
+      "n": 27,
+      "n_folds": 5,
+      "n_groups": 16,
+      "oof_predictions": [
+        {
+          "endpoint_value": 1.875,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 2
+        },
+        {
+          "endpoint_value": 1.875,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 10
+        },
+        {
+          "endpoint_value": 1.625,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 11
+        },
+        {
+          "endpoint_value": 2.375,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 12
+        },
+        {
+          "endpoint_value": 2.875,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 13
+        },
+        {
+          "endpoint_value": 2.375,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 21
+        },
+        {
+          "endpoint_value": 1.625,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 13.725,
+          "risk_score": 13.725,
+          "row_index": 22
+        },
+        {
+          "endpoint_value": 0.875,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 5.7272727272727275,
+          "risk_score": 5.7272727272727275,
+          "row_index": 4
+        },
+        {
+          "endpoint_value": 39.625,
+          "failure_label": 1,
+          "group": "molecule:Nb V565",
+          "prediction": 5.7272727272727275,
+          "risk_score": 5.7272727272727275,
+          "row_index": 15
+        },
+        {
+          "endpoint_value": 42.625,
+          "failure_label": 1,
+          "group": "molecule:Nb V565",
+          "prediction": 5.7272727272727275,
+          "risk_score": 5.7272727272727275,
+          "row_index": 16
+        },
+        {
+          "endpoint_value": 40.375,
+          "failure_label": 1,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 5.7272727272727275,
+          "risk_score": 5.7272727272727275,
+          "row_index": 25
+        },
+        {
+          "endpoint_value": 39.625,
+          "failure_label": 1,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 5.7272727272727275,
+          "risk_score": 5.7272727272727275,
+          "row_index": 26
+        },
+        {
+          "endpoint_value": 1.625,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 9.409090909090908,
+          "risk_score": 9.409090909090908,
+          "row_index": 0
+        },
+        {
+          "endpoint_value": 0.875,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 9.409090909090908,
+          "risk_score": 9.409090909090908,
+          "row_index": 1
+        },
+        {
+          "endpoint_value": 2.625,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 9.409090909090908,
+          "risk_score": 9.409090909090908,
+          "row_index": 14
+        },
+        {
+          "endpoint_value": 38.625,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 9.409090909090908,
+          "risk_score": 9.409090909090908,
+          "row_index": 17
+        },
+        {
+          "endpoint_value": 38.375,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 9.409090909090908,
+          "risk_score": 9.409090909090908,
+          "row_index": 18
+        },
+        {
+          "endpoint_value": 1.875,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 12.556818181818182,
+          "risk_score": 12.556818181818182,
+          "row_index": 5
+        },
+        {
+          "endpoint_value": 3.625,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 12.556818181818182,
+          "risk_score": 12.556818181818182,
+          "row_index": 6
+        },
+        {
+          "endpoint_value": 3.875,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 12.556818181818182,
+          "risk_score": 12.556818181818182,
+          "row_index": 7
+        },
+        {
+          "endpoint_value": 1.625,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 12.556818181818182,
+          "risk_score": 12.556818181818182,
+          "row_index": 19
+        },
+        {
+          "endpoint_value": 1.875,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 12.556818181818182,
+          "risk_score": 12.556818181818182,
+          "row_index": 20
+        },
+        {
+          "endpoint_value": 1.875,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 12.397727272727273,
+          "risk_score": 12.397727272727273,
+          "row_index": 3
+        },
+        {
+          "endpoint_value": 1.125,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 12.397727272727273,
+          "risk_score": 12.397727272727273,
+          "row_index": 8
+        },
+        {
+          "endpoint_value": 0.875,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 12.397727272727273,
+          "risk_score": 12.397727272727273,
+          "row_index": 9
+        },
+        {
+          "endpoint_value": 6.125,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 12.397727272727273,
+          "risk_score": 12.397727272727273,
+          "row_index": 23
+        },
+        {
+          "endpoint_value": 6.375,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 12.397727272727273,
+          "risk_score": 12.397727272727273,
+          "row_index": 24
+        }
+      ],
+      "paired_rows": 0,
+      "serving_status": "quarantined_negative_grouped_cv",
+      "source": "gdpa",
+      "spearman": -0.343,
+      "spearman_ci95": [
+        -0.8137,
+        0.3236
+      ],
+      "specificity_context_rows": 0,
+      "study_id": "gdpa2"
+    },
+    "acsins_dLmax_pH7.4_Avg": {
+      "assay_family": "self_association",
+      "assay_id": "gdpa2:acsins_dLmax_pH7.4_Avg",
+      "assay_metric": "acsins_dLmax_pH7.4_Avg",
+      "endpoint_direction": "higher_bad",
+      "endpoint_unit": "native",
+      "enrichment_top10pct": 0.0,
+      "features": "biophysical_only",
+      "mae": 14.0833,
+      "molecule_groups": 16,
+      "n": 32,
+      "n_folds": 5,
+      "n_groups": 16,
+      "oof_predictions": [
+        {
+          "endpoint_value": 10.25,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 8
+        },
+        {
+          "endpoint_value": 8.5,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 9
+        },
+        {
+          "endpoint_value": 5.5,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 14
+        },
+        {
+          "endpoint_value": 4.25,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 15
+        },
+        {
+          "endpoint_value": 31.75,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 16
+        },
+        {
+          "endpoint_value": 27.25,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 17
+        },
+        {
+          "endpoint_value": 16.25,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 28
+        },
+        {
+          "endpoint_value": 23.25,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 16.322916666666668,
+          "risk_score": 16.322916666666668,
+          "row_index": 29
+        },
+        {
+          "endpoint_value": 5.25,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 4
+        },
+        {
+          "endpoint_value": 4.75,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 5
+        },
+        {
+          "endpoint_value": 21.25,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 26
+        },
+        {
+          "endpoint_value": 2.0,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 27
+        },
+        {
+          "endpoint_value": 42.25,
+          "failure_label": 1,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 30
+        },
+        {
+          "endpoint_value": 40.5,
+          "failure_label": 1,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 15.490384615384615,
+          "risk_score": 15.490384615384615,
+          "row_index": 31
+        },
+        {
+          "endpoint_value": 1.25,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 6
+        },
+        {
+          "endpoint_value": 0.75,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 7
+        },
+        {
+          "endpoint_value": 31.25,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 10
+        },
+        {
+          "endpoint_value": 29.75,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 11
+        },
+        {
+          "endpoint_value": 44.75,
+          "failure_label": 1,
+          "group": "molecule:Nb V565",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 20
+        },
+        {
+          "endpoint_value": 44.25,
+          "failure_label": 1,
+          "group": "molecule:Nb V565",
+          "prediction": 14.10576923076923,
+          "risk_score": 14.10576923076923,
+          "row_index": 21
+        },
+        {
+          "endpoint_value": 10.0,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 0
+        },
+        {
+          "endpoint_value": 9.25,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 1
+        },
+        {
+          "endpoint_value": 2.5,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 12
+        },
+        {
+          "endpoint_value": 2.0,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 13
+        },
+        {
+          "endpoint_value": 38.25,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 22
+        },
+        {
+          "endpoint_value": 35.0,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 16.221153846153847,
+          "risk_score": 16.221153846153847,
+          "row_index": 23
+        },
+        {
+          "endpoint_value": 5.75,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 2
+        },
+        {
+          "endpoint_value": 5.5,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 3
+        },
+        {
+          "endpoint_value": 7.0,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 18
+        },
+        {
+          "endpoint_value": 5.25,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 19
+        },
+        {
+          "endpoint_value": 1.5,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 24
+        },
+        {
+          "endpoint_value": 1.75,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 18.923076923076923,
+          "risk_score": 18.923076923076923,
+          "row_index": 25
+        }
+      ],
+      "paired_rows": 0,
+      "serving_status": "quarantined_negative_grouped_cv",
+      "source": "gdpa",
+      "spearman": -0.2571,
+      "spearman_ci95": [
+        -0.7226,
+        0.2938
+      ],
+      "specificity_context_rows": 0,
+      "study_id": "gdpa2"
+    },
+    "hic_rt_Avg": {
+      "assay_family": "hydrophobicity",
+      "assay_id": "gdpa2:hic_rt_Avg",
+      "assay_metric": "hic_rt_Avg",
+      "endpoint_direction": "higher_bad",
+      "endpoint_unit": "native",
+      "enrichment_top10pct": 3.84,
+      "features": "biophysical_only",
+      "mae": 0.3332,
+      "molecule_groups": 16,
+      "n": 48,
+      "n_folds": 5,
+      "n_groups": 16,
+      "oof_predictions": [
+        {
+          "endpoint_value": 2.79499999999998,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 12
+        },
+        {
+          "endpoint_value": 2.79395833333332,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 13
+        },
+        {
+          "endpoint_value": 2.23208333333335,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 14
+        },
+        {
+          "endpoint_value": 2.60562499999999,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 21
+        },
+        {
+          "endpoint_value": 2.60479166666666,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 22
+        },
+        {
+          "endpoint_value": 1.83770833333335,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 23
+        },
+        {
+          "endpoint_value": 2.74333333333332,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 24
+        },
+        {
+          "endpoint_value": 2.74520833333332,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 25
+        },
+        {
+          "endpoint_value": 2.18500000000002,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 26
+        },
+        {
+          "endpoint_value": 2.91249999999998,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 42
+        },
+        {
+          "endpoint_value": 2.91187499999998,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 43
+        },
+        {
+          "endpoint_value": 2.36291666666667,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 2.618258105383979,
+          "risk_score": 2.618258105383979,
+          "row_index": 44
+        },
+        {
+          "endpoint_value": 2.83562499999998,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 6
+        },
+        {
+          "endpoint_value": 2.83333333333331,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 7
+        },
+        {
+          "endpoint_value": 2.35291666666668,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 8
+        },
+        {
+          "endpoint_value": 2.85645833333331,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 39
+        },
+        {
+          "endpoint_value": 2.85999999999998,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 40
+        },
+        {
+          "endpoint_value": 2.35020833333334,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 41
+        },
+        {
+          "endpoint_value": 2.88520833333331,
+          "failure_label": 0,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 45
+        },
+        {
+          "endpoint_value": 2.88937499999998,
+          "failure_label": 0,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 46
+        },
+        {
+          "endpoint_value": 2.37583333333334,
+          "failure_label": 0,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 2.5832906044446506,
+          "risk_score": 2.5832906044446506,
+          "row_index": 47
+        },
+        {
+          "endpoint_value": 3.21333333333329,
+          "failure_label": 1,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 9
+        },
+        {
+          "endpoint_value": 3.21354166666663,
+          "failure_label": 1,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 10
+        },
+        {
+          "endpoint_value": 2.83854166666665,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 11
+        },
+        {
+          "endpoint_value": 2.52458333333333,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 15
+        },
+        {
+          "endpoint_value": 2.52208333333333,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 16
+        },
+        {
+          "endpoint_value": 1.57187500000001,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 17
+        },
+        {
+          "endpoint_value": 2.54208333333333,
+          "failure_label": 0,
+          "group": "molecule:Nb V565",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 30
+        },
+        {
+          "endpoint_value": 2.53958333333333,
+          "failure_label": 0,
+          "group": "molecule:Nb V565",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 31
+        },
+        {
+          "endpoint_value": 0.682500000000001,
+          "failure_label": 0,
+          "group": "molecule:Nb V565",
+          "prediction": 2.6497222185134888,
+          "risk_score": 2.6497222185134888,
+          "row_index": 32
+        },
+        {
+          "endpoint_value": 2.72937499999999,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 0
+        },
+        {
+          "endpoint_value": 2.73270833333332,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 1
+        },
+        {
+          "endpoint_value": 2.11166666666669,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 2
+        },
+        {
+          "endpoint_value": 2.66791666666666,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 18
+        },
+        {
+          "endpoint_value": 2.66541666666666,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 19
+        },
+        {
+          "endpoint_value": 1.89833333333335,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 20
+        },
+        {
+          "endpoint_value": 2.63874999999999,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 33
+        },
+        {
+          "endpoint_value": 2.63458333333333,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 34
+        },
+        {
+          "endpoint_value": 2.01250000000002,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 2.6383600448950744,
+          "risk_score": 2.6383600448950744,
+          "row_index": 35
+        },
+        {
+          "endpoint_value": 3.15854166666663,
+          "failure_label": 1,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 3
+        },
+        {
+          "endpoint_value": 3.16187499999996,
+          "failure_label": 1,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 4
+        },
+        {
+          "endpoint_value": 2.76020833333332,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 5
+        },
+        {
+          "endpoint_value": 3.11416666666663,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 27
+        },
+        {
+          "endpoint_value": 3.11541666666663,
+          "failure_label": 1,
+          "group": "molecule:Gontivimab",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 28
+        },
+        {
+          "endpoint_value": 2.65312499999999,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 29
+        },
+        {
+          "endpoint_value": 2.92145833333331,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 36
+        },
+        {
+          "endpoint_value": 2.92208333333331,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 37
+        },
+        {
+          "endpoint_value": 2.47208333333334,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 2.530982900888492,
+          "risk_score": 2.530982900888492,
+          "row_index": 38
+        }
+      ],
+      "paired_rows": 0,
+      "serving_status": "quarantined_negative_grouped_cv",
+      "source": "gdpa",
+      "spearman": -0.3857,
+      "spearman_ci95": [
+        -0.6906,
+        0.0423
+      ],
+      "specificity_context_rows": 0,
+      "study_id": "gdpa2"
+    },
+    "sec_%monomer_Avg": {
+      "assay_family": "aggregation",
+      "assay_id": "gdpa2:sec_%monomer_Avg",
+      "assay_metric": "sec_%monomer_Avg",
+      "endpoint_direction": "lower_bad",
+      "endpoint_unit": "native",
+      "enrichment_top10pct": 0.0,
+      "features": "biophysical_only",
+      "mae": 1.0798,
+      "molecule_groups": 16,
+      "n": 44,
+      "n_folds": 5,
+      "n_groups": 16,
+      "oof_predictions": [
+        {
+          "endpoint_value": 99.638700375706,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 0
+        },
+        {
+          "endpoint_value": 99.1057528606233,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 1
+        },
+        {
+          "endpoint_value": 99.5959074721439,
+          "failure_label": 0,
+          "group": "molecule:anti-CD276",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 2
+        },
+        {
+          "endpoint_value": 99.2796692877684,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 17
+        },
+        {
+          "endpoint_value": 98.8477598280529,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 18
+        },
+        {
+          "endpoint_value": 99.3772455760366,
+          "failure_label": 0,
+          "group": "molecule:Ciltacabtagene autoleucel",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 19
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 20
+        },
+        {
+          "endpoint_value": 99.1087864538752,
+          "failure_label": 0,
+          "group": "molecule:Envafolimab",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 21
+        },
+        {
+          "endpoint_value": 99.7018378373868,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 22
+        },
+        {
+          "endpoint_value": 99.3380745222908,
+          "failure_label": 0,
+          "group": "molecule:Gefurulimab",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 23
+        },
+        {
+          "endpoint_value": 92.5249955655519,
+          "failure_label": 1,
+          "group": "molecule:Gefurulimab",
+          "prediction": 98.70489710027522,
+          "risk_score": -98.70489710027522,
+          "row_index": 24
+        },
+        {
+          "endpoint_value": 99.2837455446655,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 3
+        },
+        {
+          "endpoint_value": 99.0235230112838,
+          "failure_label": 0,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 4
+        },
+        {
+          "endpoint_value": 93.2677039058408,
+          "failure_label": 1,
+          "group": "molecule:anti-CLD18A2",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 5
+        },
+        {
+          "endpoint_value": 99.1989297894053,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 25
+        },
+        {
+          "endpoint_value": 98.8020788449327,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 26
+        },
+        {
+          "endpoint_value": 99.6256406237552,
+          "failure_label": 0,
+          "group": "molecule:Gontivimab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 27
+        },
+        {
+          "endpoint_value": 98.2356810785312,
+          "failure_label": 0,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 41
+        },
+        {
+          "endpoint_value": 98.1506712748037,
+          "failure_label": 0,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 42
+        },
+        {
+          "endpoint_value": 97.9430658544671,
+          "failure_label": 1,
+          "group": "molecule:Vobarilizumab",
+          "prediction": 98.86426565987723,
+          "risk_score": -98.86426565987723,
+          "row_index": 43
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 9
+        },
+        {
+          "endpoint_value": 99.6349861419552,
+          "failure_label": 0,
+          "group": "molecule:cAb-Lys3",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 10
+        },
+        {
+          "endpoint_value": 99.2405159522694,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 11
+        },
+        {
+          "endpoint_value": 98.9628630074152,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 12
+        },
+        {
+          "endpoint_value": 98.620240653989,
+          "failure_label": 0,
+          "group": "molecule:cAb-RN05",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 13
+        },
+        {
+          "endpoint_value": 98.5636479395753,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 30
+        },
+        {
+          "endpoint_value": 98.7611547178247,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 31
+        },
+        {
+          "endpoint_value": 98.469779332422,
+          "failure_label": 0,
+          "group": "molecule:Ozoralizumab",
+          "prediction": 98.65353202819824,
+          "risk_score": -98.65353202819824,
+          "row_index": 32
+        },
+        {
+          "endpoint_value": 99.6298617821003,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 6
+        },
+        {
+          "endpoint_value": 99.3179252873018,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 7
+        },
+        {
+          "endpoint_value": 99.7709005451267,
+          "failure_label": 0,
+          "group": "molecule:cAb-GFP",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 8
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 33
+        },
+        {
+          "endpoint_value": 99.4414424595196,
+          "failure_label": 0,
+          "group": "molecule:Produvofusp",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 34
+        },
+        {
+          "endpoint_value": 93.8207022243138,
+          "failure_label": 1,
+          "group": "molecule:Sonelokimab",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 38
+        },
+        {
+          "endpoint_value": 97.985970799132,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 39
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Sonelokimab",
+          "prediction": 98.717042711046,
+          "risk_score": -98.717042711046,
+          "row_index": 40
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 14
+        },
+        {
+          "endpoint_value": 99.3946527525626,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 15
+        },
+        {
+          "endpoint_value": 98.9280187835756,
+          "failure_label": 0,
+          "group": "molecule:Caplacizumab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 16
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Nb V565",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 28
+        },
+        {
+          "endpoint_value": 99.4853849559954,
+          "failure_label": 0,
+          "group": "molecule:Nb V565",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 29
+        },
+        {
+          "endpoint_value": 100.0,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 35
+        },
+        {
+          "endpoint_value": 98.802788901234,
+          "failure_label": 0,
+          "group": "molecule:Rimteravimab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 36
+        },
+        {
+          "endpoint_value": 94.8997510229448,
+          "failure_label": 1,
+          "group": "molecule:Rimteravimab",
+          "prediction": 98.67415957980685,
+          "risk_score": -98.67415957980685,
+          "row_index": 37
+        }
+      ],
+      "paired_rows": 0,
+      "serving_status": "quarantined_negative_grouped_cv",
+      "source": "gdpa",
+      "spearman": -0.1277,
+      "spearman_ci95": [
+        -0.4941,
+        0.2911
+      ],
+      "specificity_context_rows": 0,
+      "study_id": "gdpa2"
+    }
+  },
+  "excluded_non_target_rows": 0,
+  "fitted_assays": 0,
+  "head": "antibody_aggregation",
+  "n_rows": 151,
+  "provenance": {
+    "feature_schema_hash": "5ee0266650fdcf70",
+    "features": "biophysical_only",
+    "generated_utc": "2026-07-15T06:07:44+00:00",
+    "n_splits": 5,
+    "seed": 42,
+    "sources": [
+      "gdpa"
+    ]
+  },
+  "quarantined_assays": [
+    "acsins_dLmax_pH6.0_Avg",
+    "acsins_dLmax_pH7.4_Avg",
+    "hic_rt_Avg",
+    "sec_%monomer_Avg"
+  ],
+  "specificity_context": {
+    "note": "Target/specificity metadata is reported only; it is not used as an aggregation label.",
+    "rows_with_target_context": 0
+  },
+  "target_scope": "aggregation_endpoints_only"
+}

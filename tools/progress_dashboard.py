@@ -11,17 +11,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
-HTML = """<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Biostuff progress</title><style>
-body{font:16px -apple-system,BlinkMacSystemFont,sans-serif;background:#101418;color:#f4f7f9;margin:0;padding:28px}
-main{max-width:620px;margin:auto;background:#182027;border:1px solid #34414a;border-radius:18px;padding:26px;box-shadow:0 18px 60px #0008}
-h1{margin:0 0 22px;font-size:22px}.big{font-size:46px;font-weight:700;margin:10px 0}progress{width:100%;height:22px;accent-color:#62d2a2}
-dl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}dt{color:#9eabb3;font-size:12px;text-transform:uppercase}dd{margin:3px 0 0;font-size:18px}.muted{color:#9eabb3;font-size:13px;margin-top:24px}
-</style><main><h1>Biostuff scoring</h1><div id="pct" class="big">Loading...</div><progress id="bar" max="1" value="0"></progress>
-<dl><div><dt>Completed</dt><dd id="done">-</dd></div><div><dt>Total</dt><dd id="total">-</dd></div><div><dt>Elapsed observed</dt><dd id="elapsed">-</dd></div></dl><p id="updated" class="muted">Waiting for progress file...</p></main>
-<script>
-const fmt=s=>{s=Math.max(0,Math.round(s));let h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+'h ':'')+(m?m+'m ':'')+x+'s'};let samples=[];
-async function tick(){try{let p=await(await fetch('/progress?x='+Date.now())).json(),now=Date.now()/1000;if(!samples.length||samples[samples.length-1].done!==p.completed)samples.push({done:p.completed,time:now});samples=samples.slice(-6);let first=samples[0],elapsed=now-first.time;pct.textContent=((p.fraction||0)*100).toFixed(2)+'%';bar.value=p.fraction||0;done.textContent=p.completed.toLocaleString();total.textContent=p.total.toLocaleString();document.querySelector('#elapsed').textContent=fmt(elapsed);updated.textContent='Updated '+new Date(now*1000).toLocaleTimeString()}catch(e){updated.textContent='Waiting for progress file...'}}tick();setInterval(tick,2000);
+HTML = """<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>Biostuff live run</title><style>
+body{font:15px -apple-system,BlinkMacSystemFont,sans-serif;background:#101418;color:#f4f7f9;margin:0;padding:28px}main{max-width:760px;margin:auto;background:#182027;border:1px solid #34414a;border-radius:18px;padding:26px;box-shadow:0 18px 60px #0008}h1{margin:0 0 6px;font-size:24px}.sub,.muted{color:#9eabb3}.big{font-size:46px;font-weight:700;margin:18px 0 10px}progress{width:100%;height:22px;accent-color:#62d2a2}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}.card{background:#202b33;border-radius:12px;padding:14px}dt{color:#9eabb3;font-size:11px;text-transform:uppercase}dd{margin:5px 0 0;font-size:18px;overflow-wrap:anywhere}.events{margin-top:24px;background:#11191f;border-radius:12px;padding:14px;max-height:240px;overflow:auto;line-height:1.65}.ok{color:#62d2a2}.warn{color:#ffd166}@media(max-width:600px){.grid{grid-template-columns:1fr 1fr}}
+</style><main><h1 id="title">Biostuff</h1><div class="sub">Live local model run</div><div id="pct" class="big">Waiting...</div><progress id="bar" max="1" value="0"></progress><div class="grid"><div class="card"><dt>Rows complete</dt><dd id="done">-</dd></div><div class="card"><dt>Total rows</dt><dd id="total">-</dd></div><div class="card"><dt>Stage</dt><dd id="stage">-</dd></div><div class="card"><dt>Current assay</dt><dd id="assay">-</dd></div><div class="card"><dt>Current operation</dt><dd id="operation">-</dd></div><div class="card"><dt>Assay progress</dt><dd id="assayProgress">-</dd></div></div><section class="events"><strong>Recent events</strong><div id="events" class="muted">Waiting for run...</div></section><p id="updated" class="muted">Waiting for progress file...</p></main><script>
+async function tick(){try{let p=await(await fetch('/progress?x='+Date.now())).json();title.textContent=p.title||'Biostuff';let f=p.fraction||0;pct.textContent=(f*100).toFixed(2)+'%';bar.value=f;done.textContent=(p.completed||0).toLocaleString();total.textContent=(p.total||0).toLocaleString();stage.textContent=p.stage||'-';assay.textContent=p.current_assay||'-';operation.textContent=p.operation||'-';assayProgress.textContent=(p.current_assay_completed||0)+' / '+(p.current_assay_total||0);events.innerHTML=(p.events||[]).slice().reverse().map(x=>'<div>'+x.replaceAll('&','&amp;').replaceAll('<','&lt;')+'</div>').join('')||'Waiting for run...';updated.textContent='Updated '+new Date().toLocaleTimeString()}catch(e){updated.textContent='Waiting for progress file...'}}tick();setInterval(tick,1000);
 </script>"""
 
 
@@ -52,7 +45,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--progress", default="results/proteingym_train_progress.json")
+    parser.add_argument("--progress", default="results/head_b_progress.json")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--open", action="store_true")
     args = parser.parse_args()

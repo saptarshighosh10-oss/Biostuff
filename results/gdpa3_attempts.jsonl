@@ -1,0 +1,2 @@
+{"expected_data_hash": "06daa55cb609278574d008c5509d90a63f9a8f1aa3949f34fc50a2e654b008f7", "manifest": {"artifact": "results/autonomous_lab/igg_biophysical.pkl", "artifact_features": "biophysical_only", "endpoint_policy": "equivalent average endpoints only; unsupported endpoints abstain", "profile": "igg_biophysical"}, "state": "started", "ts": "2026-07-15T03:49:43+00:00"}
+{"data_hash": "06daa55cb609278574d008c5509d90a63f9a8f1aa3949f34fc50a2e654b008f7", "n_rows": 1218, "out": "results/gdpa3_report.json", "state": "completed", "ts": "2026-07-15T03:49:44+00:00"}

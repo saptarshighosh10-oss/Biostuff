@@ -1,0 +1,120 @@
+  cohort: +2643 rows from gdpa1
+  cohort: +325 rows from gdpa2
+  cohort: +2736 rows from gdpa4.1
+  cohort: +1450 rows from public aggregation snapshots
+  cohort: 5284 total rows (2134 paired, 3150 single-chain)
+{
+  "head": "antibody_aggregation",
+  "holdout": "GDPa3 excluded from all development profiles",
+  "profiles": {
+    "gdp4_bispecific": {
+      "candidates": {
+        "biophysical": {
+          "artifact": "results/autonomous_lab/gdp4_bispecific_biophysical.pkl",
+          "report": "results/autonomous_lab/gdp4_bispecific_biophysical.json",
+          "score": [
+            0.21905,
+            8
+          ]
+        },
+        "plm": {
+          "artifact": "results/autonomous_lab/gdp4_bispecific_plm.pkl",
+          "report": "results/autonomous_lab/gdp4_bispecific_plm.json",
+          "score": [
+            0.256175,
+            8
+          ]
+        }
+      },
+      "promoted_to": "model/saved/gdp4_bispecific_head_b_aggregation.pkl",
+      "rows": 1345,
+      "winner": "plm",
+      "winner_score": {
+        "fitted_assays": 8,
+        "mean_spearman": 0.256175
+      }
+    },
+    "gdp4_mab": {
+      "candidates": {
+        "biophysical": {
+          "artifact": "results/autonomous_lab/gdp4_mab_biophysical.pkl",
+          "report": "results/autonomous_lab/gdp4_mab_biophysical.json",
+          "score": [
+            0.05565,
+            10
+          ]
+        },
+        "plm": {
+          "artifact": "results/autonomous_lab/gdp4_mab_plm.pkl",
+          "report": "results/autonomous_lab/gdp4_mab_plm.json",
+          "score": [
+            0.15564285714285714,
+            7
+          ]
+        }
+      },
+      "promoted_to": "model/saved/gdp4_mab_head_b_aggregation.pkl",
+      "rows": 832,
+      "winner": "plm",
+      "winner_score": {
+        "fitted_assays": 7,
+        "mean_spearman": 0.15564285714285714
+      }
+    },
+    "igg": {
+      "candidates": {
+        "biophysical": {
+          "artifact": "results/autonomous_lab/igg_biophysical.pkl",
+          "report": "results/autonomous_lab/igg_biophysical.json",
+          "score": [
+            0.24818333333333334,
+            12
+          ]
+        },
+        "plm": {
+          "artifact": "results/autonomous_lab/igg_plm.pkl",
+          "report": "results/autonomous_lab/igg_plm.json",
+          "score": [
+            0.2813461538461538,
+            13
+          ]
+        }
+      },
+      "promoted_to": "model/saved/champion_head_b_aggregation.pkl",
+      "rows": 2380,
+      "winner": "plm",
+      "winner_score": {
+        "fitted_assays": 13,
+        "mean_spearman": 0.2813461538461538
+      }
+    },
+    "vhh": {
+      "candidates": {
+        "biophysical": {
+          "artifact": "results/autonomous_lab/vhh_biophysical.pkl",
+          "report": "results/autonomous_lab/vhh_biophysical.json",
+          "score": [
+            -Infinity,
+            0
+          ]
+        },
+        "plm": {
+          "artifact": "results/autonomous_lab/vhh_plm.pkl",
+          "report": "results/autonomous_lab/vhh_plm.json",
+          "score": [
+            -Infinity,
+            0
+          ]
+        }
+      },
+      "reason": "winner mean Spearman <= 0; not promoted for serving",
+      "rows": 151,
+      "status": "quarantined",
+      "winner": "plm",
+      "winner_score": {
+        "fitted_assays": 0,
+        "mean_spearman": -Infinity
+      }
+    }
+  }
+}

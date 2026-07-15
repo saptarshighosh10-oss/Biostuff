@@ -1,0 +1,884 @@
+  cohort: +2643 rows from gdpa1
+  cohort: +343 rows from gdpa2
+  cohort: +2736 rows from gdpa4.1
+  cohort: +1450 rows from public aggregation snapshots
+  cohort: 5297 total rows (2134 paired, 3163 single-chain)
+{
+  "label_quality": {
+    "conflicting_groups": 378,
+    "unique_sequence_metric_groups": 4404
+  },
+  "profiles": {
+    "gdp4_bispecific": {
+      "active_both_count": 8,
+      "assays": {
+        "acsins_Lmax_1X PBS_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.195397,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": 0.1954,
+          "plm_spearman": 0.1844,
+          "weights": {
+            "0.0": 0.195397,
+            "0.1": 0.190316,
+            "0.2": 0.19284,
+            "0.3": 0.194249,
+            "0.4": 0.190332,
+            "0.5": 0.188381,
+            "0.6": 0.187434,
+            "0.7": 0.182201,
+            "0.8": 0.18024,
+            "0.9": 0.179461,
+            "1.0": 0.184382
+          }
+        },
+        "acsins_Lmax_1X PBS_std": {
+          "active_both": false,
+          "best_blend_spearman": -0.059483,
+          "best_blend_weight_plm": 0.4,
+          "biophysical_spearman": -0.0625,
+          "plm_spearman": -0.0678,
+          "weights": {
+            "0.0": -0.062514,
+            "0.1": -0.066468,
+            "0.2": -0.06234,
+            "0.3": -0.070503,
+            "0.4": -0.059483,
+            "0.5": -0.065746,
+            "0.6": -0.073306,
+            "0.7": -0.08076,
+            "0.8": -0.076097,
+            "0.9": -0.079208,
+            "1.0": -0.06782
+          }
+        },
+        "acsins_Lmax_His/Arg, pH 6_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.288808,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.2087,
+          "plm_spearman": 0.2888,
+          "weights": {
+            "0.0": 0.208676,
+            "0.1": 0.22192,
+            "0.2": 0.223938,
+            "0.3": 0.228111,
+            "0.4": 0.22722,
+            "0.5": 0.233692,
+            "0.6": 0.243928,
+            "0.7": 0.245046,
+            "0.8": 0.258473,
+            "0.9": 0.264909,
+            "1.0": 0.288808
+          }
+        },
+        "acsins_Lmax_His/Arg, pH 6_std": {
+          "active_both": false,
+          "best_blend_spearman": -0.253038,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.253,
+          "plm_spearman": -0.4475,
+          "weights": {
+            "0.0": -0.253038,
+            "0.1": -0.303181,
+            "0.2": -0.346099,
+            "0.3": -0.371172,
+            "0.4": -0.394012,
+            "0.5": -0.417336,
+            "0.6": -0.42549,
+            "0.7": -0.42313,
+            "0.8": -0.421128,
+            "0.9": -0.428102,
+            "1.0": -0.447486
+          }
+        },
+        "acsins_Lmax_His/NaCl, pH 6_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.364319,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.3385,
+          "plm_spearman": 0.3643,
+          "weights": {
+            "0.0": 0.338482,
+            "0.1": 0.338658,
+            "0.2": 0.342721,
+            "0.3": 0.343435,
+            "0.4": 0.34592,
+            "0.5": 0.351801,
+            "0.6": 0.353657,
+            "0.7": 0.355882,
+            "0.8": 0.358596,
+            "0.9": 0.357666,
+            "1.0": 0.364319
+          }
+        },
+        "acsins_Lmax_His/NaCl, pH 6_std": {
+          "active_both": true,
+          "best_blend_spearman": 0.096243,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.0494,
+          "plm_spearman": 0.0962,
+          "weights": {
+            "0.0": 0.049449,
+            "0.1": 0.055865,
+            "0.2": 0.062965,
+            "0.3": 0.066451,
+            "0.4": 0.070801,
+            "0.5": 0.080096,
+            "0.6": 0.083798,
+            "0.7": 0.082552,
+            "0.8": 0.083836,
+            "0.9": 0.088005,
+            "1.0": 0.096243
+          }
+        },
+        "acsins_deltaLmax_1X PBS_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.25526,
+          "best_blend_weight_plm": 0.1,
+          "biophysical_spearman": 0.2543,
+          "plm_spearman": 0.2303,
+          "weights": {
+            "0.0": 0.254263,
+            "0.1": 0.25526,
+            "0.2": 0.252397,
+            "0.3": 0.252109,
+            "0.4": 0.246981,
+            "0.5": 0.243971,
+            "0.6": 0.241011,
+            "0.7": 0.235211,
+            "0.8": 0.235229,
+            "0.9": 0.236617,
+            "1.0": 0.230318
+          }
+        },
+        "acsins_deltaLmax_1X PBS_std": {
+          "active_both": false,
+          "best_blend_spearman": -0.078992,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.079,
+          "plm_spearman": -0.0951,
+          "weights": {
+            "0.0": -0.078992,
+            "0.1": -0.084694,
+            "0.2": -0.082206,
+            "0.3": -0.091627,
+            "0.4": -0.082475,
+            "0.5": -0.089933,
+            "0.6": -0.098856,
+            "0.7": -0.107611,
+            "0.8": -0.103207,
+            "0.9": -0.106031,
+            "1.0": -0.095124
+          }
+        },
+        "acsins_deltaLmax_His/Arg, pH 6_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.288808,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.2087,
+          "plm_spearman": 0.2888,
+          "weights": {
+            "0.0": 0.208676,
+            "0.1": 0.22192,
+            "0.2": 0.223938,
+            "0.3": 0.228111,
+            "0.4": 0.22722,
+            "0.5": 0.233692,
+            "0.6": 0.243928,
+            "0.7": 0.245046,
+            "0.8": 0.258473,
+            "0.9": 0.264909,
+            "1.0": 0.288808
+          }
+        },
+        "acsins_deltaLmax_His/Arg, pH 6_std": {
+          "active_both": false,
+          "best_blend_spearman": -0.255668,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.2557,
+          "plm_spearman": -0.4439,
+          "weights": {
+            "0.0": -0.255668,
+            "0.1": -0.304471,
+            "0.2": -0.348407,
+            "0.3": -0.373922,
+            "0.4": -0.394736,
+            "0.5": -0.417053,
+            "0.6": -0.425248,
+            "0.7": -0.422305,
+            "0.8": -0.420357,
+            "0.9": -0.428784,
+            "1.0": -0.443923
+          }
+        },
+        "acsins_deltaLmax_His/NaCl, pH 6_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.492214,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.4433,
+          "plm_spearman": 0.4922,
+          "weights": {
+            "0.0": 0.443297,
+            "0.1": 0.444805,
+            "0.2": 0.453638,
+            "0.3": 0.457003,
+            "0.4": 0.463088,
+            "0.5": 0.469801,
+            "0.6": 0.474183,
+            "0.7": 0.477542,
+            "0.8": 0.480036,
+            "0.9": 0.486364,
+            "1.0": 0.492214
+          }
+        },
+        "acsins_deltaLmax_His/NaCl, pH 6_std": {
+          "active_both": true,
+          "best_blend_spearman": 0.10437,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.0541,
+          "plm_spearman": 0.1044,
+          "weights": {
+            "0.0": 0.054086,
+            "0.1": 0.060451,
+            "0.2": 0.067973,
+            "0.3": 0.071727,
+            "0.4": 0.076387,
+            "0.5": 0.086537,
+            "0.6": 0.090688,
+            "0.7": 0.089852,
+            "0.8": 0.09151,
+            "0.9": 0.095885,
+            "1.0": 0.10437
+          }
+        }
+      },
+      "mean_best_blend": 0.260677,
+      "mean_biophysical": 0.21905,
+      "mean_plm": 0.256175,
+      "warning": "blend weights are selected on OOF predictions and require nested validation before promotion"
+    },
+    "gdp4_mab": {
+      "active_both_count": 5,
+      "assays": {
+        "acsins_Lmax_1X PBS_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.26046,
+          "best_blend_weight_plm": 0.7,
+          "biophysical_spearman": 0.1308,
+          "plm_spearman": 0.257,
+          "weights": {
+            "0.0": 0.130769,
+            "0.1": 0.1536,
+            "0.2": 0.180408,
+            "0.3": 0.190973,
+            "0.4": 0.227856,
+            "0.5": 0.249794,
+            "0.6": 0.248211,
+            "0.7": 0.26046,
+            "0.8": 0.256484,
+            "0.9": 0.24784,
+            "1.0": 0.257023
+          }
+        },
+        "acsins_Lmax_1X PBS_std": {
+          "active_both": true,
+          "best_blend_spearman": 0.035722,
+          "best_blend_weight_plm": 0.1,
+          "biophysical_spearman": 0.0316,
+          "plm_spearman": 0.0157,
+          "weights": {
+            "0.0": 0.031638,
+            "0.1": 0.035722,
+            "0.2": 0.025976,
+            "0.3": -0.009956,
+            "0.4": -0.031322,
+            "0.5": -0.046589,
+            "0.6": -0.021875,
+            "0.7": -0.023943,
+            "0.8": -0.012112,
+            "0.9": 0.004522,
+            "1.0": 0.01574
+          }
+        },
+        "acsins_Lmax_His/Arg, pH 6_median": {
+          "active_both": false,
+          "best_blend_spearman": 0.078208,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": -0.1356,
+          "plm_spearman": 0.0782,
+          "weights": {
+            "0.0": -0.135589,
+            "0.1": -0.131756,
+            "0.2": -0.111508,
+            "0.3": -0.061428,
+            "0.4": -0.033671,
+            "0.5": -0.01932,
+            "0.6": 0.004895,
+            "0.7": 0.021601,
+            "0.8": 0.047967,
+            "0.9": 0.056774,
+            "1.0": 0.078208
+          }
+        },
+        "acsins_Lmax_His/Arg, pH 6_std": {
+          "active_both": true,
+          "best_blend_spearman": 0.22737,
+          "best_blend_weight_plm": 0.8,
+          "biophysical_spearman": 0.0309,
+          "plm_spearman": 0.2017,
+          "weights": {
+            "0.0": 0.030887,
+            "0.1": 0.060742,
+            "0.2": 0.092952,
+            "0.3": 0.12005,
+            "0.4": 0.170002,
+            "0.5": 0.174468,
+            "0.6": 0.207183,
+            "0.7": 0.220418,
+            "0.8": 0.22737,
+            "0.9": 0.222661,
+            "1.0": 0.201727
+          }
+        },
+        "acsins_Lmax_His/NaCl, pH 6_median": {
+          "active_both": false,
+          "best_blend_spearman": 0.020059,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": 0.0201,
+          "plm_spearman": -0.1077,
+          "weights": {
+            "0.0": 0.020059,
+            "0.1": -0.008168,
+            "0.2": -0.012852,
+            "0.3": -0.039697,
+            "0.4": -0.071827,
+            "0.5": -0.091285,
+            "0.6": -0.098052,
+            "0.7": -0.108542,
+            "0.8": -0.126398,
+            "0.9": -0.113306,
+            "1.0": -0.107721
+          }
+        },
+        "acsins_Lmax_His/NaCl, pH 6_std": {
+          "active_both": false,
+          "best_blend_spearman": 0.066644,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": 0.0666,
+          "plm_spearman": -0.0489,
+          "weights": {
+            "0.0": 0.066644,
+            "0.1": 0.058527,
+            "0.2": 0.029504,
+            "0.3": 0.01187,
+            "0.4": -0.018555,
+            "0.5": -0.036029,
+            "0.6": -0.063891,
+            "0.7": -0.06269,
+            "0.8": -0.062891,
+            "0.9": -0.058087,
+            "1.0": -0.048859
+          }
+        },
+        "acsins_deltaLmax_1X PBS_median": {
+          "active_both": true,
+          "best_blend_spearman": 0.26046,
+          "best_blend_weight_plm": 0.7,
+          "biophysical_spearman": 0.1308,
+          "plm_spearman": 0.257,
+          "weights": {
+            "0.0": 0.130769,
+            "0.1": 0.1536,
+            "0.2": 0.180408,
+            "0.3": 0.190973,
+            "0.4": 0.227856,
+            "0.5": 0.249794,
+            "0.6": 0.248211,
+            "0.7": 0.26046,
+            "0.8": 0.256484,
+            "0.9": 0.24784,
+            "1.0": 0.257023
+          }
+        },
+        "acsins_deltaLmax_1X PBS_std": {
+          "active_both": false,
+          "best_blend_spearman": 0.044288,
+          "best_blend_weight_plm": 0.1,
+          "biophysical_spearman": 0.0416,
+          "plm_spearman": -0.0028,
+          "weights": {
+            "0.0": 0.041551,
+            "0.1": 0.044288,
+            "0.2": 0.029777,
+            "0.3": -0.010826,
+            "0.4": -0.042042,
+            "0.5": -0.06373,
+            "0.6": -0.038831,
+            "0.7": -0.04113,
+            "0.8": -0.031198,
+            "0.9": -0.013265,
+            "1.0": -0.002808
+          }
+        },
+        "acsins_deltaLmax_His/Arg, pH 6_median": {
+          "active_both": false,
+          "best_blend_spearman": 0.078208,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": -0.1356,
+          "plm_spearman": 0.0782,
+          "weights": {
+            "0.0": -0.135589,
+            "0.1": -0.131756,
+            "0.2": -0.111508,
+            "0.3": -0.061428,
+            "0.4": -0.033671,
+            "0.5": -0.01932,
+            "0.6": 0.004895,
+            "0.7": 0.021601,
+            "0.8": 0.047967,
+            "0.9": 0.056774,
+            "1.0": 0.078208
+          }
+        },
+        "acsins_deltaLmax_His/Arg, pH 6_std": {
+          "active_both": true,
+          "best_blend_spearman": 0.222271,
+          "best_blend_weight_plm": 0.8,
+          "biophysical_spearman": 0.0098,
+          "plm_spearman": 0.2017,
+          "weights": {
+            "0.0": 0.009823,
+            "0.1": 0.039331,
+            "0.2": 0.073339,
+            "0.3": 0.100988,
+            "0.4": 0.153808,
+            "0.5": 0.158724,
+            "0.6": 0.194398,
+            "0.7": 0.211301,
+            "0.8": 0.222271,
+            "0.9": 0.220646,
+            "1.0": 0.201651
+          }
+        },
+        "acsins_deltaLmax_His/NaCl, pH 6_median": {
+          "active_both": false,
+          "best_blend_spearman": 0.020059,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": 0.0201,
+          "plm_spearman": -0.1077,
+          "weights": {
+            "0.0": 0.020059,
+            "0.1": -0.008168,
+            "0.2": -0.012852,
+            "0.3": -0.039697,
+            "0.4": -0.071827,
+            "0.5": -0.091285,
+            "0.6": -0.098052,
+            "0.7": -0.108542,
+            "0.8": -0.126398,
+            "0.9": -0.113306,
+            "1.0": -0.107721
+          }
+        },
+        "acsins_deltaLmax_His/NaCl, pH 6_std": {
+          "active_both": false,
+          "best_blend_spearman": 0.074209,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": 0.0742,
+          "plm_spearman": -0.0826,
+          "weights": {
+            "0.0": 0.074209,
+            "0.1": 0.06111,
+            "0.2": 0.031511,
+            "0.3": 0.009323,
+            "0.4": -0.028874,
+            "0.5": -0.053519,
+            "0.6": -0.085615,
+            "0.7": -0.086239,
+            "0.8": -0.088071,
+            "0.9": -0.087688,
+            "1.0": -0.082635
+          }
+        }
+      },
+      "mean_best_blend": 0.201257,
+      "mean_biophysical": 0.06678,
+      "mean_plm": 0.18662,
+      "warning": "blend weights are selected on OOF predictions and require nested validation before promotion"
+    },
+    "igg": {
+      "active_both_count": 12,
+      "assays": {
+        "AC-SINS_pH6.0": {
+          "active_both": true,
+          "best_blend_spearman": 0.170609,
+          "best_blend_weight_plm": 0.5,
+          "biophysical_spearman": 0.1161,
+          "plm_spearman": 0.1069,
+          "weights": {
+            "0.0": 0.116061,
+            "0.1": 0.132465,
+            "0.2": 0.147424,
+            "0.3": 0.157267,
+            "0.4": 0.16704,
+            "0.5": 0.170609,
+            "0.6": 0.164583,
+            "0.7": 0.153909,
+            "0.8": 0.136298,
+            "0.9": 0.120771,
+            "1.0": 0.10688
+          }
+        },
+        "AC-SINS_pH7.4": {
+          "active_both": true,
+          "best_blend_spearman": 0.495657,
+          "best_blend_weight_plm": 0.7,
+          "biophysical_spearman": 0.381,
+          "plm_spearman": 0.4453,
+          "weights": {
+            "0.0": 0.380966,
+            "0.1": 0.407687,
+            "0.2": 0.435969,
+            "0.3": 0.46148,
+            "0.4": 0.480683,
+            "0.5": 0.49191,
+            "0.6": 0.494239,
+            "0.7": 0.495657,
+            "0.8": 0.486259,
+            "0.9": 0.466845,
+            "1.0": 0.445288
+          }
+        },
+        "CSIBLI": {
+          "active_both": true,
+          "best_blend_spearman": 0.138417,
+          "best_blend_weight_plm": 0.1,
+          "biophysical_spearman": 0.1293,
+          "plm_spearman": 0.0712,
+          "weights": {
+            "0.0": 0.129303,
+            "0.1": 0.138417,
+            "0.2": 0.1328,
+            "0.3": 0.130391,
+            "0.4": 0.131042,
+            "0.5": 0.13279,
+            "0.6": 0.125496,
+            "0.7": 0.109365,
+            "0.8": 0.100128,
+            "0.9": 0.086228,
+            "1.0": 0.071228
+          }
+        },
+        "HICRT": {
+          "active_both": true,
+          "best_blend_spearman": 0.231318,
+          "best_blend_weight_plm": 0.6,
+          "biophysical_spearman": 0.1879,
+          "plm_spearman": 0.1703,
+          "weights": {
+            "0.0": 0.187885,
+            "0.1": 0.202825,
+            "0.2": 0.215003,
+            "0.3": 0.223636,
+            "0.4": 0.229688,
+            "0.5": 0.231038,
+            "0.6": 0.231318,
+            "0.7": 0.229219,
+            "0.8": 0.217023,
+            "0.9": 0.191757,
+            "1.0": 0.170288
+          }
+        },
+        "SAS": {
+          "active_both": false,
+          "best_blend_spearman": 0.042646,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": -0.0586,
+          "plm_spearman": 0.0426,
+          "weights": {
+            "0.0": -0.058621,
+            "0.1": -0.052387,
+            "0.2": -0.044206,
+            "0.3": -0.034247,
+            "0.4": -0.030025,
+            "0.5": -0.022841,
+            "0.6": -0.007255,
+            "0.7": 0.013871,
+            "0.8": 0.023448,
+            "0.9": 0.034957,
+            "1.0": 0.042646
+          }
+        },
+        "SEC_%Monomer": {
+          "active_both": true,
+          "best_blend_spearman": 0.094685,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.0331,
+          "plm_spearman": 0.0947,
+          "weights": {
+            "0.0": 0.033058,
+            "0.1": 0.039098,
+            "0.2": 0.046419,
+            "0.3": 0.05013,
+            "0.4": 0.053603,
+            "0.5": 0.063444,
+            "0.6": 0.070265,
+            "0.7": 0.075705,
+            "0.8": 0.085941,
+            "0.9": 0.090074,
+            "1.0": 0.094685
+          }
+        },
+        "SGACSINS": {
+          "active_both": true,
+          "best_blend_spearman": 0.329248,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.0236,
+          "plm_spearman": 0.3292,
+          "weights": {
+            "0.0": 0.023611,
+            "0.1": 0.056528,
+            "0.2": 0.084606,
+            "0.3": 0.116322,
+            "0.4": 0.158521,
+            "0.5": 0.197846,
+            "0.6": 0.24272,
+            "0.7": 0.276001,
+            "0.8": 0.3065,
+            "0.9": 0.322582,
+            "1.0": 0.329248
+          }
+        },
+        "SMAC": {
+          "active_both": true,
+          "best_blend_spearman": 0.235066,
+          "best_blend_weight_plm": 0.7,
+          "biophysical_spearman": 0.1537,
+          "plm_spearman": 0.2068,
+          "weights": {
+            "0.0": 0.153736,
+            "0.1": 0.175987,
+            "0.2": 0.191039,
+            "0.3": 0.207271,
+            "0.4": 0.216922,
+            "0.5": 0.224349,
+            "0.6": 0.229636,
+            "0.7": 0.235066,
+            "0.8": 0.228505,
+            "0.9": 0.222739,
+            "1.0": 0.206775
+          }
+        },
+        "SMACRT": {
+          "active_both": true,
+          "best_blend_spearman": 0.498407,
+          "best_blend_weight_plm": 0.4,
+          "biophysical_spearman": 0.4743,
+          "plm_spearman": 0.3695,
+          "weights": {
+            "0.0": 0.474263,
+            "0.1": 0.491513,
+            "0.2": 0.494541,
+            "0.3": 0.495544,
+            "0.4": 0.498407,
+            "0.5": 0.486923,
+            "0.6": 0.479826,
+            "0.7": 0.44763,
+            "0.8": 0.428307,
+            "0.9": 0.39399,
+            "1.0": 0.369459
+          }
+        },
+        "gdpa1/gdpa1:HIC/HIC": {
+          "active_both": true,
+          "best_blend_spearman": 0.388626,
+          "best_blend_weight_plm": 0.6,
+          "biophysical_spearman": 0.3096,
+          "plm_spearman": 0.3379,
+          "weights": {
+            "0.0": 0.309609,
+            "0.1": 0.327554,
+            "0.2": 0.346902,
+            "0.3": 0.360085,
+            "0.4": 0.373384,
+            "0.5": 0.381214,
+            "0.6": 0.388626,
+            "0.7": 0.386709,
+            "0.8": 0.373295,
+            "0.9": 0.361599,
+            "1.0": 0.337885
+          }
+        },
+        "jain2017biophysical/jain2017biophysical_ACSINS.csv/ACSINS": {
+          "active_both": true,
+          "best_blend_spearman": 0.334682,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.091,
+          "plm_spearman": 0.3347,
+          "weights": {
+            "0.0": 0.091017,
+            "0.1": 0.115875,
+            "0.2": 0.15653,
+            "0.3": 0.19386,
+            "0.4": 0.233315,
+            "0.5": 0.269022,
+            "0.6": 0.297628,
+            "0.7": 0.311786,
+            "0.8": 0.329162,
+            "0.9": 0.334005,
+            "1.0": 0.334682
+          }
+        },
+        "jain2017biophysical/jain2017biophysical_PSR.csv/PSR": {
+          "active_both": true,
+          "best_blend_spearman": 0.445758,
+          "best_blend_weight_plm": 0.5,
+          "biophysical_spearman": 0.352,
+          "plm_spearman": 0.3951,
+          "weights": {
+            "0.0": 0.352027,
+            "0.1": 0.380625,
+            "0.2": 0.402748,
+            "0.3": 0.415583,
+            "0.4": 0.427287,
+            "0.5": 0.445758,
+            "0.6": 0.441534,
+            "0.7": 0.434696,
+            "0.8": 0.42051,
+            "0.9": 0.403577,
+            "1.0": 0.395141
+          }
+        },
+        "jain2024assessment/jain2024assessment_ACSINS.csv/ACSINS": {
+          "active_both": false,
+          "best_blend_spearman": -0.248409,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.2484,
+          "plm_spearman": -0.2484,
+          "weights": {
+            "0.0": -0.248409,
+            "0.1": -0.248409,
+            "0.2": -0.248409,
+            "0.3": -0.248409,
+            "0.4": -0.248409,
+            "0.5": -0.248409,
+            "0.6": -0.248409,
+            "0.7": -0.248409,
+            "0.8": -0.248409,
+            "0.9": -0.248409,
+            "1.0": -0.248409
+          }
+        },
+        "jain2024assessment/jain2024assessment_HIC.csv/HIC": {
+          "active_both": false,
+          "best_blend_spearman": -0.168453,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.1685,
+          "plm_spearman": -0.1685,
+          "weights": {
+            "0.0": -0.168453,
+            "0.1": -0.168453,
+            "0.2": -0.168453,
+            "0.3": -0.168453,
+            "0.4": -0.168453,
+            "0.5": -0.168453,
+            "0.6": -0.168453,
+            "0.7": -0.168453,
+            "0.8": -0.168453,
+            "0.9": -0.168453,
+            "1.0": -0.168453
+          }
+        },
+        "jain2024assessment/jain2024assessment_PSR.csv/PSR": {
+          "active_both": false,
+          "best_blend_spearman": -0.272384,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.2724,
+          "plm_spearman": -0.2724,
+          "weights": {
+            "0.0": -0.272384,
+            "0.1": -0.272384,
+            "0.2": -0.272384,
+            "0.3": -0.272384,
+            "0.4": -0.272384,
+            "0.5": -0.272384,
+            "0.6": -0.272384,
+            "0.7": -0.272384,
+            "0.8": -0.272384,
+            "0.9": -0.272384,
+            "1.0": -0.272384
+          }
+        },
+        "jain2024assessment/jain2024assessment_SEC.csv/SEC": {
+          "active_both": false,
+          "best_blend_spearman": -0.456984,
+          "best_blend_weight_plm": 0.0,
+          "biophysical_spearman": -0.457,
+          "plm_spearman": -0.457,
+          "weights": {
+            "0.0": -0.456984,
+            "0.1": -0.456984,
+            "0.2": -0.456984,
+            "0.3": -0.456984,
+            "0.4": -0.456984,
+            "0.5": -0.456984,
+            "0.6": -0.456984,
+            "0.7": -0.456984,
+            "0.8": -0.456984,
+            "0.9": -0.456984,
+            "1.0": -0.456984
+          }
+        },
+        "relrt": {
+          "active_both": true,
+          "best_blend_spearman": 0.753329,
+          "best_blend_weight_plm": 1.0,
+          "biophysical_spearman": 0.7266,
+          "plm_spearman": 0.7533,
+          "weights": {
+            "0.0": 0.72659,
+            "0.1": 0.735106,
+            "0.2": 0.737971,
+            "0.3": 0.743589,
+            "0.4": 0.748177,
+            "0.5": 0.750801,
+            "0.6": 0.750544,
+            "0.7": 0.75122,
+            "0.8": 0.749498,
+            "0.9": 0.750109,
+            "1.0": 0.753329
+          }
+        }
+      },
+      "mean_best_blend": 0.342984,
+      "mean_biophysical": 0.248183,
+      "mean_plm": 0.301242,
+      "warning": "blend weights are selected on OOF predictions and require nested validation before promotion"
+    }
+  },
+  "source_quality": {
+    "gdp4_bispecific": {
+      "gdpa": {
+        "active_assays": 8,
+        "mean_spearman": 0.256175
+      }
+    },
+    "gdp4_mab": {
+      "gdpa": {
+        "active_assays": 7,
+        "mean_spearman": 0.155643
+      }
+    },
+    "igg": {
+      "flab": {
+        "active_assays": 8,
+        "mean_spearman": 0.308237
+      },
+      "gdpa": {
+        "active_assays": 5,
+        "mean_spearman": 0.23832
+      }
+    }
+  }
+}

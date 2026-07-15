@@ -5,10 +5,39 @@ _Last updated: 2026-07-14. Branch: `codex/antibody-perfection`._
 ## TL;DR
 The pipeline was rebuilt from a 28-feature logistic-regression toy into a
 PLM-backed, leakage-controlled, multi-source antibody developability model with
-a clean two-head split. **173 tests pass (stdlib-only, no training run needed to
-verify).** Nothing is trained yet — the environment has **zero third-party
-packages**. Everything below is code-complete and test-verified; the remaining
-work is provisioning + real data + the actual training runs.
+a clean two-head split. The current Head B artifact has been retrained after
+data-integrity and feature-shape fixes; GDPa3 remains frozen.
+
+## Latest integrated run — 2026-07-14
+Public aggregation snapshots are now wired into Head B. After canonical
+sequence/assay dedupe, the antibody cohort contains 1,828 aggregation rows
+before GDPa profile additions, including 597 DOTAD rows and 939 paired
+observations. All 624 canonical sequences now have complete ESM2 + AbLang2
+embeddings. The autonomous lab promoted the PLM-backed IgG champion to
+`model/saved/champion_head_b_aggregation.pkl`.
+
+- IgG: mean Spearman `0.147718` across 17 evaluated assays; 13 serving assays after four negative assays were quarantined.
+- GDPa4 mAb: mean Spearman `0.06165` across 12 evaluated assays; 7 serving assays after five negative assays were quarantined.
+- GDPa4 bispecific: mean Spearman `0.082925` across 12 evaluated assays; 8 serving assays after four negative assays were quarantined.
+- VHH: mean Spearman `-0.278375`; quarantined and not promoted for serving.
+- GDPa3 remained frozen and excluded from development.
+
+Refinements in this run: public FLAb rows now use the canonical VH+VL
+sequence and existing assay IDs, molecule groups use SHA-256 identities, SEC
+direction metadata is corrected, FcRn endpoints are excluded from aggregation,
+all PLM embeddings are precomputed, and negative grouped-CV assays remain in
+reports but are removed from serving artifacts.
+
+Run artifacts are under `results/autonomous_lab/`; the aggregate report is
+`results/autonomous_lab_report.json`.
+
+The improvement loop is also populated: `results/head_b_calibration.json`
+contains 28 cross-fit empirical-tail calibration diagnostics, and
+`results/active_learning_candidates.json` contains the top 25 candidates from a
+606-sequence pool ranked by PLM/biophysical disagreement plus modeled risk.
+Calibration ECE remains high, so these scores are diagnostic and must not be
+reported as physical failure probabilities. GDPa3 remains the locked external
+validation gate and must not be rerun.
 
 Design doc: [docs/superpowers/specs/2026-07-14-plm-scaleup-design.md](docs/superpowers/specs/2026-07-14-plm-scaleup-design.md).
 Architecture gate that started this: the 2026-07-14 review at commit `5dc5c4b`.
@@ -40,7 +69,8 @@ Architecture gate that started this: the 2026-07-14 review at commit `5dc5c4b`.
 
 **Data layer**
 - `data/sources_registry.py` — central source catalog with roles; add a source = one `SourceSpec`.
-- `data/cohort.py` — `build_antibody_cohort` (FLAb+GDPa), `build_full_cohort` (all buckets), `emit_ledgers`.
+- `data/cohort.py` — `build_antibody_cohort` (FLAb+public aggregation+GDPa), `build_full_cohort` (all buckets), `emit_ledgers`.
+- `data/public_aggregation.py` — dependency-free loaders for staged public FLAb aggregation CSVs and measured DOTAD XLSX endpoints; exact observation dedupe.
 - `data/contract.py` — preserves `source_version` and structured `assay_conditions` through normalization and ledgers.
 - `data/flab.py` — `load_all_developability_data` (ALL FLAb assay subdirs, continuous endpoints).
 - `data/gdpa.py` — GDPa1/2 loader (real verified schema); `load_gdpa3` = frozen tripwire.
@@ -53,6 +83,8 @@ Architecture gate that started this: the 2026-07-14 review at commit `5dc5c4b`.
 | Source | Role | State |
 |---|---|---|
 | FLAb (all assays; Head B filters to aggregation family) | supervised | ✅ local, 9,202 rows loading |
+| Public FLAb aggregation snapshot | supervised | ✅ 853 sequence-linked measured rows |
+| DOTAD measured aggregation endpoints | supervised | ✅ 597 sequence-linked measured rows; predicted/negated columns excluded |
 | GDPa1 / GDPa2 | supervised | loader ready — **drop CSV in `data/external/gdpa/`** |
 | OAS | background_ood | loader ready — drop units in `data/external/oas/` |
 | Thera-SAbDab | background_ood | loader ready — drop CSV in `data/external/thera_sabdab/` |
@@ -82,7 +114,7 @@ make gdpa3 FILE=data/external/gdpa/GDPa3.csv HASH=<sha256>
 ```
 
 ## Known limitations / must-do before any real-world claim
-1. **Nothing trained** — env has no torch/sklearn/lightgbm. `make install` first.
+1. **Training dependencies remain environment-specific** — run the autonomous lab; use `make install` first if PLM/GBM packages are absent.
 2. **`classify_chain` in `data/pairs.py` is a heuristic** (FR4 motif). Swap for ANARCI/HMMER before a production gate; misclassifies truncated/VHH/engineered chains.
 3. **GDPa2 columns assumed** (no public CSV to verify); GDPa1 verified real. Reconcile headers when the real file lands.
 4. **`normalize` injects `endpoint_unit='unknown'`** stub — replace with real assay units when loaders provide them.
@@ -98,7 +130,7 @@ make gdpa3 FILE=data/external/gdpa/GDPa3.csv HASH=<sha256>
 - No universal failure probability — assay-contextual risk only.
 
 ## Next steps (priority order)
-1. `make install`; drop GDPa1 CSV; `make head-b` (biophysical baseline) → first real numbers.
+1. `make autonomous-lab` (or `make install` first if dependencies are absent) → profile-specific Head B candidates with the public aggregation rows.
 2. `make embeddings` + `make head-b-plm` → the PLM lift over baseline.
 3. Fit per-assay calibrators; wire into `risk.py`.
 4. Swap `classify_chain` for ANARCI; verify GDPa2 headers.

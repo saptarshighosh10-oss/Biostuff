@@ -10,8 +10,17 @@ model/saved/
 data/cache/
 results/*.tsv
 results/*.txt
+results/*_progress.json
 
 # Rebuildable ProteinGym partitions are intentionally kept out of Git.
 data/external/proteingym/train.json
 data/external/proteingym/test.json
 data/external/proteingym/quarantine.json
+
+# Local environment, caches, and downloaded data (never commit)
+.venv/
+.cache/
+.playwright-cli/
+data/external/gdpa/
+data/external/structures/
+data/external/public_sources/

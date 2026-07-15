@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -57,28 +58,72 @@ class ProteinGymFitnessModel:
         # mutations are intentionally empty: Head A's vector excludes all
         # mutation-derived features, so a raw sequence and its mutant form
         # produce the same Head A inputs — the score is sequence-intrinsic.
-        features = extract_features({"variant_sequence": sequence, "mutations": []})
+        features = extract_features({"variant_sequence": sequence, "mutations": []}, compute_optional=False)
         return float(self.score_features([features_to_vector(features, HEAD_A_FEATURE_NAMES)])[0])
 
 
 MODEL_PATH = Path("model/saved/proteingym_fitness.pkl")
 
 
-def _load_rows(path: str | Path) -> tuple[list[list[float]], list[int], list[str]]:
+def _write_progress(progress_file: str | Path | None, *, stage: str,
+                    completed: int, total: int, events: list[str]) -> None:
+    if not progress_file:
+        return
+    target = Path(progress_file)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps({
+        "title": "Biostuff Head A",
+        "completed": completed,
+        "total": total,
+        "fraction": completed / total if total else 0.0,
+        "stage": stage,
+        "operation": "building general ProteinGym fitness features",
+        "current_assay": "ProteinGym",
+        "current_assay_completed": completed,
+        "current_assay_total": total,
+        "events": events[-12:],
+    }, indent=2), encoding="utf-8")
+
+
+def _load_rows(path: str | Path, *, progress_file: str | Path | None = None,
+               stage: str = "featurizing", progress_every: int = 1000,
+               progress_total: int | None = None, progress_offset: int = 0
+               ) -> tuple[list[list[float]], list[int], list[str]]:
     rows = json.loads(Path(path).read_text(encoding="utf-8"))
     X, y, groups = [], [], []
-    for row in rows:
-        X.append(features_to_vector(extract_features(row), HEAD_A_FEATURE_NAMES))
+    total = len(rows)
+    display_total = progress_total or total
+    events = [f"Loaded {total:,} rows from {Path(path).name}"]
+    _write_progress(progress_file, stage=stage, completed=progress_offset,
+                    total=display_total, events=events)
+    for index, row in enumerate(rows, start=1):
+        X.append(features_to_vector(extract_features(row, compute_optional=False), HEAD_A_FEATURE_NAMES))
         y.append(1 if row.get("label") == "confirmed_failure" else 0)
         groups.append(str(row.get("protein_group_id") or row.get("group_id", "")))
+        if progress_every > 0 and (index % progress_every == 0 or index == total):
+            events.append(f"{stage}: {index:,}/{total:,} rows featurized")
+            _write_progress(progress_file, stage=stage, completed=progress_offset + index,
+                            total=display_total, events=events)
     return X, y, groups
 
 
-def train_head(train_file: str | Path, test_file: str | Path, model_file: str | Path = MODEL_PATH) -> dict:
+def train_head(train_file: str | Path, test_file: str | Path,
+               model_file: str | Path = MODEL_PATH,
+               progress_file: str | Path | None = None,
+               progress_every: int = 1000) -> dict:
     from sklearn.metrics import average_precision_score, roc_auc_score
 
-    X_train, y_train, train_groups = _load_rows(train_file)
-    X_test, y_test, test_groups = _load_rows(test_file)
+    train_total = len(json.loads(Path(train_file).read_text(encoding="utf-8")))
+    test_total = len(json.loads(Path(test_file).read_text(encoding="utf-8")))
+    overall_total = train_total + test_total
+    X_train, y_train, train_groups = _load_rows(
+        train_file, progress_file=progress_file, stage="train_features",
+        progress_every=progress_every, progress_total=overall_total,
+        progress_offset=0)
+    X_test, y_test, test_groups = _load_rows(
+        test_file, progress_file=progress_file, stage="test_features",
+        progress_every=progress_every, progress_total=overall_total,
+        progress_offset=train_total)
     overlap = set(train_groups) & set(test_groups)
     if overlap:
         raise ValueError(f"ProteinGym split is not protein-disjoint: {len(overlap)} overlapping groups")
@@ -104,11 +149,19 @@ def train_head(train_file: str | Path, test_file: str | Path, model_file: str | 
         pickle.dump(model, handle)
     report_path = destination.with_name("proteingym_fitness_report.json")
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_progress(progress_file, stage="complete", completed=1, total=1,
+                    events=["ProteinGym fitness model trained and saved"])
     print(json.dumps(report, indent=2, sort_keys=True))
     return report
 
 
 def load_general_fitness_model(model_file: str | Path = MODEL_PATH) -> ProteinGymFitnessModel:
+    # Older artifacts were created while this file was executed with
+    # ``python -m`` and therefore recorded the class as ``__main__``.
+    # Register the current class under that legacy name before unpickling.
+    legacy_main = sys.modules.get("__main__")
+    if legacy_main is not None:
+        setattr(legacy_main, "ProteinGymFitnessModel", ProteinGymFitnessModel)
     with Path(model_file).open("rb") as handle:
         model = pickle.load(handle)
     if not isinstance(model, ProteinGymFitnessModel):
@@ -128,5 +181,7 @@ if __name__ == "__main__":
     parser.add_argument("--train", default="data/external/proteingym/train.json")
     parser.add_argument("--test", default="data/external/proteingym/test.json")
     parser.add_argument("--model", default=str(MODEL_PATH))
+    parser.add_argument("--progress-file", default="results/head_a_progress.json")
+    parser.add_argument("--progress-every", type=int, default=1000)
     args = parser.parse_args()
-    train_head(args.train, args.test, args.model)
+    train_head(args.train, args.test, args.model, args.progress_file, args.progress_every)

@@ -30,6 +30,8 @@ def is_head_b_aggregation_row(row: dict) -> bool:
     family = str(row.get("assay_family", "")).strip().lower()
     metric = str(row.get("assay_metric", "")).strip().lower()
     normalized_metric = metric.replace("-", "_").replace(" ", "_")
+    if "fcrn" in normalized_metric:
+        return False
     if any(token in normalized_metric for token in _HEAD_B_METRIC_TOKENS):
         return True
     return family in {"self_association", "hydrophobicity"} and bool(metric)
@@ -56,25 +58,38 @@ def _attach_pairing(rows: list[dict]) -> list[dict]:
     return rows
 
 
-def build_antibody_cohort(include_gdpa: bool = True, gdpa_dir: str = "data/external/gdpa") -> list[dict]:
+def build_antibody_cohort(
+    include_gdpa: bool = True,
+    gdpa_dir: str = "data/external/gdpa",
+    include_public: bool = True,
+    public_dir: str = "data/external/public_sources",
+) -> list[dict]:
     """Assemble the full antibody developability cohort as head_b_gbm-ready rows.
 
     FLAb is always loaded (local snapshot). GDPa1/GDPa2 are added when their CSVs
-    exist under `gdpa_dir`; a missing GDPa file is skipped (logged), never fatal —
-    so this runs before benchmark access is granted."""
+    exist under `gdpa_dir`; staged public FLAb aggregation and DOTAD measurements
+    are added when present. Missing files are skipped, never fatal."""
     from data.flab import load_all_developability_data
+    from data.public_aggregation import dedupe_aggregation_rows, load_public_aggregation_rows
 
     rows: list[dict] = list(load_all_developability_data())
 
     if include_gdpa:
         from data.gdpa import load_gdpa
-        for dataset in ("gdpa1", "gdpa2"):
+        for dataset in ("gdpa1", "gdpa2", "gdpa4.1"):
             try:
                 gdpa_rows = load_gdpa(dataset, local_dir=gdpa_dir)
                 rows.extend(gdpa_rows)
                 print(f"  cohort: +{len(gdpa_rows)} rows from {dataset}")
             except FileNotFoundError as e:
                 print(f"  cohort: {dataset} skipped ({e})")
+
+    if include_public:
+        public_rows = load_public_aggregation_rows(public_dir)
+        rows.extend(public_rows)
+        print(f"  cohort: +{len(public_rows)} rows from public aggregation snapshots")
+
+    rows = dedupe_aggregation_rows(rows)
 
     _attach_pairing(rows)
     rows = [r for r in rows if is_head_b_aggregation_row(r)]

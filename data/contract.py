@@ -29,6 +29,7 @@ SOURCE_ROW_HASH_EXCLUDE_KEYS = HASH_EXCLUDE_KEYS | {"source_row_hash"}
 SOURCE_ROLES: dict[str, str] = {
     "flab": "supervised",
     "gdpa": "supervised",  # Ginkgo antibody developability benchmark (GDPa1/2); GDPa3 frozen holdout
+    "dotad": "supervised",  # DOTAD sequence-linked measured aggregation endpoints
     "proteingym": "auxiliary",
     "canya": "auxiliary",
     "figshare_a3d": "auxiliary",

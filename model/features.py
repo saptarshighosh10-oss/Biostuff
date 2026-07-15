@@ -102,7 +102,7 @@ def general_fitness_score(sequence: str) -> float:
     return _FITNESS_HEAD.score_general_fitness(sequence)
 
 
-def extract_features(candidate: dict) -> dict:
+def extract_features(candidate: dict, compute_optional: bool = True) -> dict:
     """
     Extract named features from a candidate dict (Phase 1 or Phase 2 output).
     Any missing field is filled with 0.
@@ -117,7 +117,7 @@ def extract_features(candidate: dict) -> dict:
     # and inference featurize identically (no train/serve skew). These are the
     # TANGO/AGGRESCAN/Zyggregator aggregation signals — the most domain-relevant
     # features, previously zeroed for every training sample.
-    if not mp and seq:
+    if compute_optional and not mp and seq:
         from predictors.multi_predictor import run_all_predictors
         mp = run_all_predictors(seq)
 
