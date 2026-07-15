@@ -110,6 +110,7 @@ def evaluate_assay(
     n_splits: int = 5,
     seed: int = 42,
     failure_percentile: float = 0.90,
+    progress_every: int = 0,
 ) -> dict:
     """Grouped-CV evaluate one assay's rows. Returns a report dict or an
     ``{"abstain": True, "reason": ...}`` when the data can't support honest CV."""
@@ -123,7 +124,11 @@ def evaluate_assay(
         return {"abstain": True, "reason": "mixed endpoint directions in one assay"}
     direction = directions.pop()
 
-    X = [build_feature_vector(r, use_plm) for r in rows]
+    X = []
+    for index, row in enumerate(rows, start=1):
+        X.append(build_feature_vector(row, use_plm))
+        if progress_every > 0 and index % progress_every == 0:
+            print(f"  progress {index}/{len(rows)} rows ({row.get('assay_metric', 'assay')})", flush=True)
     y = [float(r["endpoint_value"]) for r in rows]
     group_keys = [_group_key(r) for r in rows]
     labels = _failure_labels(y, direction, failure_percentile)
@@ -171,6 +176,7 @@ def train_head_b(
     regressor_factory: Callable[[], object] | None = None,
     n_splits: int = 5,
     seed: int = 42,
+    progress_every: int = 0,
 ) -> dict:
     """Per-assay grouped-CV report for the antibody aggregation model. Rows are
     grouped by ``assay_metric`` so each endpoint is evaluated on its own scale —
@@ -203,7 +209,7 @@ def train_head_b(
         report_key = metric if metric_counts[metric] == 1 else f"{study}/{assay_id}/{metric}"
         result = evaluate_assay(
             bucket, use_plm=use_plm, regressor_factory=regressor_factory,
-            n_splits=n_splits, seed=seed,
+            n_splits=n_splits, seed=seed, progress_every=progress_every,
         )
         result.update({
             "source": source,
@@ -244,12 +250,14 @@ if __name__ == "__main__":
     parser.add_argument("--no-gdpa", action="store_true", help="FLAb only; skip GDPa CSVs")
     parser.add_argument("--ledgers", action="store_true", help="also emit conflicts.tsv/exclusions.tsv")
     parser.add_argument("--out", default="results/head_b_report.json")
+    parser.add_argument("--progress-every", type=int, default=0,
+                        help="print feature progress every N rows; use 1 or 2 for live updates")
     args = parser.parse_args()
 
     rows = build_antibody_cohort(include_gdpa=not args.no_gdpa)
     if args.ledgers:
         emit_ledgers(rows)
-    report = train_head_b(rows, use_plm=args.use_plm)
+    report = train_head_b(rows, use_plm=args.use_plm, progress_every=args.progress_every)
     from pathlib import Path
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

@@ -75,6 +75,7 @@ make cohort                               # dry-run: see source composition
 make embeddings SEQS=<seqs.txt>           # fill PLM cache (ESM-2 + AbLang2), one-time
 make head-b-plm                           # per-assay grouped-CV eval, PLM features
 #   or: make head-b                       # biophysical-only (runs without PLM cache)
+#   add PROGRESS_EVERY=1 or 2 for row-level live progress output
 
 # External holdout (once, after model frozen):
 make gdpa3 FILE=data/external/gdpa/GDPa3.csv HASH=<sha256>

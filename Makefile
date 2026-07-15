@@ -3,6 +3,7 @@
 # and the handoff in HANDOFF_NEXT.md.
 
 PY ?= python3
+PROGRESS_EVERY ?= 0
 
 .PHONY: help install test test-fast cohort head-a head-b head-b-plm embeddings ledgers gdpa3 clean
 
@@ -39,10 +40,10 @@ head-a:
 	$(PY) -m model.pretrain_proteingym_fitness
 
 head-b:
-	$(PY) -m model.head_b_gbm --ledgers --out results/head_b_report.json
+	$(PY) -m model.head_b_gbm --ledgers --progress-every $(PROGRESS_EVERY) --out results/head_b_report.json
 
 head-b-plm:
-	$(PY) -m model.head_b_gbm --use-plm --ledgers --out results/head_b_report.json
+	$(PY) -m model.head_b_gbm --use-plm --ledgers --progress-every $(PROGRESS_EVERY) --out results/head_b_report.json
 
 ledgers:
 	$(PY) -c "from data.cohort import build_antibody_cohort, emit_ledgers; emit_ledgers(build_antibody_cohort())"
