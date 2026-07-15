@@ -64,6 +64,16 @@ def _group_key(row: dict) -> str:
     return composite_group_key(row)
 
 
+def _assay_key(row: dict) -> tuple[str, str, str, str]:
+    """Keep identical metric names separate when they come from different assays."""
+    return (
+        str(row.get("source") or "unknown"),
+        str(row.get("assay_id") or row.get("assay_metric") or "unknown"),
+        str(row.get("assay_metric") or "unknown"),
+        "",
+    )
+
+
 def _failure_labels(values: list[float], direction: str, percentile: float) -> list[int]:
     """1 = developability failure. `higher_bad` → top tail fails; else bottom tail."""
     if not values:
@@ -166,10 +176,13 @@ def train_head_b(
     grouped by ``assay_metric`` so each endpoint is evaluated on its own scale —
     no pooling of incommensurate assays."""
     target_rows = [r for r in rows if is_head_b_aggregation_row(r)]
-    by_assay: dict[str, list[dict]] = defaultdict(list)
+    by_assay: dict[tuple[str, str, str, str], list[dict]] = defaultdict(list)
     for r in target_rows:
-        metric = r.get("assay_metric") or r.get("assay_family") or "unknown"
-        by_assay[metric].append(r)
+        by_assay[_assay_key(r)].append(r)
+
+    metric_counts: dict[str, int] = defaultdict(int)
+    for _, _, metric, _ in by_assay:
+        metric_counts[metric] += 1
 
     import datetime
     from model.features import feature_schema_hash, FEATURE_NAMES
@@ -184,11 +197,33 @@ def train_head_b(
     report = {"head": "antibody_aggregation", "target_scope": "aggregation_endpoints_only",
               "n_rows": len(target_rows), "excluded_non_target_rows": len(rows) - len(target_rows),
               "provenance": provenance, "assays": {}}
-    for assay in sorted(by_assay):
-        report["assays"][assay] = evaluate_assay(
-            by_assay[assay], use_plm=use_plm, regressor_factory=regressor_factory,
+    for source, assay_id, metric, _ in sorted(by_assay):
+        bucket = by_assay[(source, assay_id, metric, _)]
+        study = str(bucket[0].get("study_id") or bucket[0].get("dataset") or "unknown")
+        report_key = metric if metric_counts[metric] == 1 else f"{study}/{assay_id}/{metric}"
+        result = evaluate_assay(
+            bucket, use_plm=use_plm, regressor_factory=regressor_factory,
             n_splits=n_splits, seed=seed,
         )
+        result.update({
+            "source": source,
+            "study_id": study,
+            "assay_id": assay_id,
+            "assay_metric": metric,
+            "assay_family": str(bucket[0].get("assay_family") or "unknown"),
+            "endpoint_unit": str(bucket[0].get("endpoint_unit") or "native"),
+            "paired_rows": sum(1 for row in bucket if row.get("pair_id")),
+            "molecule_groups": len({str(row.get("molecule_group_id") or _group_key(row)) for row in bucket}),
+            "specificity_context_rows": sum(
+                1 for row in bucket
+                if any(row.get(key) for key in ("antigen_id", "target_id", "specificity_assay", "binding_context"))
+            ),
+        })
+        report["assays"][report_key] = result
+    report["specificity_context"] = {
+        "rows_with_target_context": sum(item["specificity_context_rows"] for item in report["assays"].values()),
+        "note": "Target/specificity metadata is reported only; it is not used as an aggregation label.",
+    }
     return report
 
 

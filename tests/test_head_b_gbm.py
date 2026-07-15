@@ -73,6 +73,17 @@ class TestHeadBDriver(unittest.TestCase):
         self.assertEqual(report["n_rows"], 30)
         self.assertEqual(report["excluded_non_target_rows"], 1)
 
+    def test_same_metric_from_different_assays_stays_separate(self) -> None:
+        first = _mk_rows("HIC", n=30, groups=6)
+        second = _mk_rows("HIC", n=30, groups=6)
+        for row in first:
+            row.update({"source": "flab", "study_id": "study_a", "assay_id": "a"})
+        for row in second:
+            row.update({"source": "gdpa", "study_id": "study_b", "assay_id": "b"})
+        report = train_head_b(first + second, regressor_factory=lambda: SumRegressor(), n_splits=3)
+        self.assertEqual(len(report["assays"]), 2)
+        self.assertEqual({item["study_id"] for item in report["assays"].values()}, {"study_a", "study_b"})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@ _Last updated: 2026-07-14. Branch: `codex/antibody-perfection`._
 ## TL;DR
 The pipeline was rebuilt from a 28-feature logistic-regression toy into a
 PLM-backed, leakage-controlled, multi-source antibody developability model with
-a clean two-head split. **172 tests pass (stdlib-only, no training run needed to
+a clean two-head split. **173 tests pass (stdlib-only, no training run needed to
 verify).** Nothing is trained yet — the environment has **zero third-party
 packages**. Everything below is code-complete and test-verified; the remaining
 work is provisioning + real data + the actual training runs.
@@ -21,7 +21,9 @@ Architecture gate that started this: the 2026-07-14 review at commit `5dc5c4b`.
   `[ PLM(ESM-2 + AbLang2) | biophysical(28) ]`, leave-homology-cluster-out grouped CV,
   per-assay Spearman/MAE/enrichment + group-bootstrap CIs. It accepts only
   aggregation/self-association/HIC/SEC/AC-SINS/PSR-family endpoints and uses
-  `molecule_group_id` when available. Trains ONLY on the supervised bucket —
+  `molecule_group_id` when available. Identical metrics from different studies
+  are evaluated separately, with target/specificity context reported but never
+  treated as an aggregation label. Trains ONLY on the supervised bucket —
   background/auxiliary never contaminate the target.
 
 ## File map (what each piece does)
@@ -61,7 +63,7 @@ Supervised = trains Head B. background_ood = OOD/abstention reference. auxiliary
 ## How to get to a trained model
 ```bash
 make install                              # torch, transformers, ablang2, lightgbm, sklearn, numpy, requests
- make test                                 # confirm 172+ green after install
+ make test                                 # confirm 173+ green after install
 
 # Head A (optional derived feature):
 python -m data.build_proteingym_partition # build protein-disjoint cohort (needs network)
