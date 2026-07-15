@@ -7,6 +7,9 @@ results/*.json
 results/viz/
 results/experiment_log.jsonl
 model/saved/
+data/cache/
+results/*.tsv
+results/*.txt
 
 # Rebuildable ProteinGym partitions are intentionally kept out of Git.
 data/external/proteingym/train.json
