@@ -15,6 +15,9 @@ that source is skipped rather than fatal, so a FLAb-only cohort runs today.
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from data.contract import sha256_hex
 
 
@@ -23,6 +26,8 @@ _HEAD_B_METRIC_TOKENS = (
     "cge", "nrcge", "smac", "relrt", "retention", "monomer",
     "aggregation", "self_association", "hydrophobicity",
 )
+
+_AGGREGATION_METRIC_TOKEN_RE = re.compile(r"[^a-z0-9]+")
 
 
 def is_head_b_aggregation_row(row: dict) -> bool:
@@ -35,6 +40,14 @@ def is_head_b_aggregation_row(row: dict) -> bool:
     if any(token in normalized_metric for token in _HEAD_B_METRIC_TOKENS):
         return True
     return family in {"self_association", "hydrophobicity"} and bool(metric)
+
+
+def _aggregation_signature(row: dict) -> tuple[str, str, str, str]:
+    vh = (row.get("vh_sequence") or row.get("variant_sequence") or "").strip().upper()
+    vl = (row.get("vl_sequence") or "").strip().upper()
+    metric = _AGGREGATION_METRIC_TOKEN_RE.sub("_", str(row.get("assay_metric", "")).strip().lower()).strip("_")
+    direction = str(row.get("endpoint_direction") or "").strip().lower()
+    return (vh, vl, metric, direction)
 
 
 def _attach_pairing(rows: list[dict]) -> list[dict]:
@@ -63,6 +76,7 @@ def build_antibody_cohort(
     gdpa_dir: str = "data/external/gdpa",
     include_public: bool = True,
     public_dir: str = "data/external/public_sources",
+    extra_acsins_csv: str | Path = "~/Downloads/antibody_sources/extra_acsins_dataset.csv",
 ) -> list[dict]:
     """Assemble the full antibody developability cohort as head_b_gbm-ready rows.
 
@@ -85,9 +99,16 @@ def build_antibody_cohort(
                 print(f"  cohort: {dataset} skipped ({e})")
 
     if include_public:
-        public_rows = load_public_aggregation_rows(public_dir)
-        rows.extend(public_rows)
-        print(f"  cohort: +{len(public_rows)} rows from public aggregation snapshots")
+        public_rows = load_public_aggregation_rows(public_dir, extra_acsins_csv=extra_acsins_csv)
+        existing_observations = {_aggregation_signature(r) for r in rows}
+        added_public = 0
+        for row in public_rows:
+            if row.get("source") == "extra_acsins" and _aggregation_signature(row) in existing_observations:
+                continue
+            rows.append(row)
+            existing_observations.add(_aggregation_signature(row))
+            added_public += 1
+        print(f"  cohort: +{added_public} rows from public aggregation snapshots")
 
     rows = dedupe_aggregation_rows(rows)
 

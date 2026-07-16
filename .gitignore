@@ -24,3 +24,12 @@ data/external/proteingym/quarantine.json
 data/external/gdpa/
 data/external/structures/
 data/external/public_sources/
+
+# environment + large local data / artifacts (not source)
+.venv/
+.cache/
+.playwright-cli/
+data/external/gdpa/
+data/external/structures/
+data/external/public_sources/
+data/cache/

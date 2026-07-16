@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "topic": "Antibody Developability Panel",
+  "slug": "antibody-developability-panel",
+  "created": "2026-07-15",
+  "domains": [
+    {
+      "name": "Assay Semantics",
+      "slug": "assay-semantics",
+      "concepts": [
+        {"name": "Endpoint Direction", "slug": "endpoint-direction", "status": "in_progress", "confidence": 0.7, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["higher_bad", "lower_bad", "per-assay scales"]},
+        {"name": "Tm and Tonset", "slug": "tm-and-tonset", "status": "in_progress", "confidence": 0.65, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["thermal stability", "assay-specific interpretation"]},
+        {"name": "HIC and SEC", "slug": "hic-and-sec", "status": "in_progress", "confidence": 0.65, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["hydrophobicity", "monomer fraction"]},
+        {"name": "Polyreactivity", "slug": "polyreactivity", "status": "in_progress", "confidence": 0.7, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["PR_CHO", "PR_Ova"]},
+        {"name": "Expression Measurements", "slug": "expression-measurements", "status": "in_progress", "confidence": 0.6, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["titer", "production amount"]}
+      ]
+    },
+    {
+      "name": "Data Integrity",
+      "slug": "data-integrity",
+      "concepts": [
+        {"name": "GDPa1 CSV Schema", "slug": "gdpa1-csv-schema", "status": "mastered", "confidence": 0.9, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["paired VH/VL", "native endpoints"]},
+        {"name": "GDPa2 Spreadsheet Schema", "slug": "gdpa2-spreadsheet-schema", "status": "in_progress", "confidence": 0.7, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["average assay sheet", "single sequence"]},
+        {"name": "GDPa4 Spreadsheet Schema", "slug": "gdpa4-spreadsheet-schema", "status": "mastered", "confidence": 0.85, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["mAb VH/VL sequences", "median endpoints"]},
+        {"name": "Sequence Pairing", "slug": "sequence-pairing", "status": "mastered", "confidence": 0.85, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["VH required", "VL optional"]},
+        {"name": "Frozen External Validation", "slug": "frozen-external-validation", "status": "unexplored", "confidence": 0, "practice_count": 0, "explain_count": 0, "last_explained": null, "last_practiced": null, "details": ["GDPa3 tripwire", "single-shot evaluation"]}
+      ]
+    },
+    {
+      "name": "Model Evaluation",
+      "slug": "model-evaluation",
+      "concepts": [
+        {"name": "Grouped Cross-Validation", "slug": "grouped-cross-validation", "status": "mastered", "confidence": 0.85, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["molecule grouping", "leakage prevention"]},
+        {"name": "Spearman Rank Correlation", "slug": "spearman-rank-correlation", "status": "in_progress", "confidence": 0.7, "practice_count": 0, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": null, "details": ["out-of-fold ranking", "assay-local scale"]},
+        {"name": "Serving Gate", "slug": "serving-gate", "status": "mastered", "confidence": 0.85, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["Spearman >= 0.20", "quarantine weak endpoints"]},
+        {"name": "PLM Embeddings", "slug": "plm-embeddings", "status": "mastered", "confidence": 0.85, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["300 of 300 GDPa VH sequences cached", "15 evidence-gated active assays"]},
+        {"name": "Calibration and Thresholds", "slug": "calibration-and-thresholds", "status": "unexplored", "confidence": 0, "practice_count": 0, "explain_count": 0, "last_explained": null, "last_practiced": null, "details": ["decision thresholds", "prospective use"]}
+      ]
+    },
+    {
+      "name": "Iteration Plan",
+      "slug": "iteration-plan",
+      "concepts": [
+        {"name": "Prioritize Strong Assays", "slug": "prioritize-strong-assays", "status": "mastered", "confidence": 0.9, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["Tm2", "HIC", "PR", "production amount"]},
+        {"name": "Improve Weak Tm and SEC", "slug": "improve-weak-tm-and-sec", "status": "in_progress", "confidence": 0.55, "practice_count": 1, "explain_count": 1, "last_explained": "2026-07-15", "last_practiced": "2026-07-15", "details": ["PLM rescued selected Tm and SEC assays", "other SEC endpoints remain quarantined"]},
+        {"name": "External Validation", "slug": "external-validation", "status": "unexplored", "confidence": 0, "practice_count": 0, "explain_count": 0, "last_explained": null, "last_practiced": null, "details": ["GDPa3 last", "holdout discipline"]},
+        {"name": "Viscosity Dataset Integration", "slug": "viscosity-dataset-integration", "status": "unexplored", "confidence": 0, "practice_count": 0, "explain_count": 0, "last_explained": null, "last_practiced": null, "details": ["separate local datasets", "schema inspection"]}
+      ]
+    }
+  ]
+}

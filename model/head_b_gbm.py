@@ -19,6 +19,7 @@ first pass runs before any weights are downloaded.
 from __future__ import annotations
 
 from collections import defaultdict
+import math
 import json
 import pickle
 from pathlib import Path
@@ -38,8 +39,6 @@ _BENCHMARK_FOLD_FIELDS = (
 )
 MIN_ROWS_PER_ASSAY = 20
 _PLM_FEATURE_WIDTH: int | None = None
-
-
 def _plm_feature_width() -> int:
     """Return the cached combined PLM width, or zero when no complete cache exists."""
     global _PLM_FEATURE_WIDTH
@@ -66,11 +65,10 @@ def build_feature_vector(row: dict, use_plm: bool = True) -> list[float]:
     biophysical = features_to_vector(extract_from_sequence(seq, row.get("mutations", [])))
     if not use_plm:
         return biophysical
-    from features.plm import embed_combined  # cache read is stdlib; guarded for clarity
+    from features.plm import embed_combined
     try:
         return list(embed_combined(seq)) + biophysical
     except RuntimeError:
-        # no cached embedding for this sequence — zero-fill the PLM block.
         return [0.0] * _plm_feature_width() + biophysical
 
 

@@ -131,7 +131,7 @@ def _embed_with_cache(sequences, model_tag, runner, device):
             results[i] = cached
 
     if misses:
-        uniq = list(dict.fromkeys(misses))  # compute each distinct sequence once
+        uniq = list(dict.fromkeys(misses))
         vmap = dict(zip(uniq, runner(uniq, device)))
         for s, v in vmap.items():
             save_cached(model_tag, s, v)

@@ -4,6 +4,7 @@ folds → stub regressor → per-assay metrics with no group leakage, stdlib-onl
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from model.head_b_gbm import build_feature_vector, train_head_b, evaluate_assay
 
@@ -65,6 +66,27 @@ class TestHeadBDriver(unittest.TestCase):
         vec = build_feature_vector(row, use_plm=True)
         self.assertTrue(all(isinstance(x, (int, float)) for x in vec))
         self.assertGreater(len(vec), 0)
+
+    def test_build_feature_vector_with_paired_ablang_appends_block_and_flag(self) -> None:
+        row = {"variant_sequence": BASE, "vh_sequence": "VH", "vl_sequence": "VL", "mutations": []}
+        with patch("model.head_b_gbm.plm.embed_combined", return_value=[1.0, 2.0, 3.0]), \
+             patch("model.head_b_gbm.plm.embed_ablang2_pairs", return_value=[[4.0, 5.0, 6.0]]):
+            with_ablang = build_feature_vector(row, use_plm=True, add_paired_ablang=True)
+
+        with_bio = build_feature_vector({"variant_sequence": BASE, "mutations": []}, use_plm=False)
+        self.assertEqual(with_ablang[:3], [1.0, 2.0, 3.0])
+        self.assertEqual(with_ablang[3:6], [4.0, 5.0, 6.0])
+        self.assertEqual(with_ablang[len(with_ablang) - len(with_bio) - 1], 1.0)
+
+    def test_build_feature_vector_single_chain_keeps_zero_paired_block(self) -> None:
+        row = {"variant_sequence": BASE, "mutations": []}
+        with patch("model.head_b_gbm.plm.embed_combined", return_value=[1.0]):
+            with_ablang = build_feature_vector(row, use_plm=True, add_paired_ablang=True)
+
+        with_bio = build_feature_vector({"variant_sequence": BASE, "mutations": []}, use_plm=False)
+        flag_index = len(with_ablang) - len(with_bio) - 1
+        self.assertEqual(with_ablang[flag_index], 0.0)
+        self.assertTrue(all(v == 0.0 for v in with_ablang[1:flag_index]))
 
     def test_non_target_rows_are_excluded_from_head_b(self) -> None:
         rows = _mk_rows("HIC", n=30, groups=6)

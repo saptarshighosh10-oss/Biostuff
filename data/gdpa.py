@@ -31,6 +31,7 @@ def _norm(col: str) -> str:
 
 # Minor header variants → canonical field. Keys are _norm()-ed.
 _ID_ALIASES = {"antibody_name", "antibody_id", "antibody", "name", "id"}
+_XLSX_ID_ALIASES = ("antibody_id", "antibody_name", "antibody", "name", "id")
 _VH_ALIASES = {"vh_protein_sequence", "vh_sequence", "vh", "heavy", "heavy_chain", "hc_protein_sequence"}
 _VL_ALIASES = {"vl_protein_sequence", "vl_sequence", "vl", "light", "light_chain", "lc_protein_sequence"}
 
@@ -105,7 +106,7 @@ def _xlsx_assay_spec(header: str) -> tuple[str, str, str] | None:
     key = _norm(header).replace("_avg", "").replace("_mean", "").replace("_median", "")
     if key.endswith(("_stddev", "_std", "_count", "_raw")):
         return None
-    if "acsins" in key:
+    if "ac_sins" in key or "acsins" in key:
         return "self_association", header, "higher_bad"
     if key.startswith("hic") or key.startswith("hihplc"):
         return "hydrophobicity", header, "higher_bad"
@@ -228,7 +229,7 @@ def _load_gdpa_xlsx(dataset: str, path: str | Path) -> list[dict]:
     assay_rows = sheets[assay_name]
     assay_headers = [str(x).strip() for x in assay_rows[0]]
     assay_map = {_norm(h): i for i, h in enumerate(assay_headers) if h}
-    id_index = next((assay_map[k] for k in _ID_ALIASES if k in assay_map), None)
+    id_index = next((assay_map[k] for k in _XLSX_ID_ALIASES if k in assay_map), None)
     if id_index is None:
         raise ValueError(f"{path} has no antibody identifier column")
     sequences: dict[str, tuple[str, str, str]] = {}
@@ -236,7 +237,7 @@ def _load_gdpa_xlsx(dataset: str, path: str | Path) -> list[dict]:
         sequence_rows = sheets[sequence_name]
         seq_headers = [str(x).strip() for x in sequence_rows[0]]
         seq_map = {_norm(h): i for i, h in enumerate(seq_headers) if h}
-        seq_id_index = next((seq_map[k] for k in _ID_ALIASES if k in seq_map), None)
+        seq_id_index = next((seq_map[k] for k in _XLSX_ID_ALIASES if k in seq_map), None)
         vh_index = next((seq_map[k] for k in _VH_ALIASES if k in seq_map), None)
         vl_index = next((seq_map[k] for k in _VL_ALIASES if k in seq_map), None)
         seq_index = next((seq_map[k] for k in ("protein_sequence", "sequence") if k in seq_map), None)

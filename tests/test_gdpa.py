@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from data.gdpa import load_gdpa, load_gdpa3
 
@@ -21,6 +22,32 @@ def _write_gdpa1_csv(tmp: Path) -> None:
 
 
 class TestGdpa(unittest.TestCase):
+    def test_gdpa_xlsx_prefers_antibody_id_when_antibody_name_diverges(self) -> None:
+        def mocked_rows(_path):
+            return [
+                ("sequence", [
+                    ["antibody_name", "antibody_id", "vh_protein_sequence", "vl_protein_sequence"],
+                    ["name_in_sequence_sheet_only", "ab-join", VH, VL],
+                ]),
+                ("average_assay", [
+                    ["antibody_name", "antibody_id", "AC-SINS_pH7.4"],
+                    ["name_in_assay_sheet_only", "ab-join", "0.77"],
+                ]),
+            ]
+
+        with tempfile.TemporaryDirectory() as d:
+            tmp = Path(d)
+            (tmp / "gdpa1_alias_priority.xlsx").touch()
+            with patch("data.gdpa._ID_ALIASES", ["antibody_name", "antibody_id", "antibody", "name", "id"]):
+                with patch("data.gdpa._xlsx_rows", side_effect=mocked_rows):
+                    rows = load_gdpa("gdpa1", local_dir=tmp)
+
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["molecule_id"], "ab-join")
+        self.assertEqual(row["assay_metric"], "AC-SINS_pH7.4")
+        self.assertEqual(row["endpoint_value"], 0.77)
+
     def test_vh_vl_and_one_row_per_assay(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             tmp = Path(d)

@@ -15,12 +15,21 @@ from pathlib import Path
 from data.contract import sha256_hex
 
 
+_EXTRA_ACSINS_CSV = Path.home() / "Downloads" / "antibody_sources" / "extra_acsins_dataset.csv"
+
+
 _SEQ_RE = re.compile(r"[^A-Za-z]")
 _AGGREGATION_TOKENS = ("hic", "acsins", "smac", "csi", "agg", "sas", "sec", "sgac")
+_AA_RE = re.compile(r"^[ACDEFGHIKLMNPQRSTVWY]+$", re.IGNORECASE)
 
 
 def _sequence(value: object) -> str:
     return _SEQ_RE.sub("", str(value or "")).upper()
+
+
+def _clean_amino_acid_sequence(value: object) -> str:
+    seq = _sequence(value)
+    return seq if _AA_RE.fullmatch(seq or "") else ""
 
 
 def _slug(value: object) -> str:
@@ -40,6 +49,22 @@ def _direction(metric: str) -> str:
     if "sec" in lower or "monomer" in lower or "purity" in lower or "main" in lower:
         return "lower_bad"
     return "higher_bad"
+
+
+def _map_acsins_metric(metric: object, ph: object) -> str:
+    base_metric = str(metric or "AC-SINS").strip()
+    norm_metric = re.sub(r"\s+", "", base_metric.lower().replace("_", "-"))
+    if norm_metric not in {"ac-sins", "acsins"}:
+        return "AC-SINS"
+    try:
+        ph_value = float(str(ph).strip())
+    except (TypeError, ValueError):
+        return "AC-SINS"
+    if abs(ph_value - 6.0) < 1e-9:
+        return "AC-SINS_pH6.0"
+    if abs(ph_value - 7.4) < 1e-9:
+        return "AC-SINS_pH7.4"
+    return "AC-SINS"
 
 
 def _flab_rows(root: Path) -> list[dict]:
@@ -81,6 +106,53 @@ def _flab_rows(root: Path) -> list[dict]:
                     "molecule_group_id": f"flab_pair:{sha256_hex(pair_key.upper())[:24]}",
                     "source_row": index,
                 })
+    return rows
+
+
+def _extra_acsins_rows(path: str | Path) -> list[dict]:
+    csv_path = Path(path).expanduser()
+    if not csv_path.exists():
+        return []
+
+    rows: list[dict] = []
+    with csv_path.open(newline="", encoding="utf-8-sig") as handle:
+        for idx, raw in enumerate(csv.DictReader(handle), start=2):
+            vh = _clean_amino_acid_sequence(raw.get("vh"))
+            vl = _clean_amino_acid_sequence(raw.get("vl"))
+            if not vh or not vl:
+                continue
+
+            value = _number(raw.get("value"))
+            if value is None:
+                continue
+
+            study = str(raw.get("source") or "extra_acsins").strip() or "extra_acsins"
+            antibody_id = str(raw.get("antibody_id") or f"row_{idx}").strip()
+            assay_metric = _map_acsins_metric(raw.get("assay_metric"), raw.get("ph"))
+            direction = str(raw.get("direction") or "higher_bad").strip().lower()
+            if direction not in {"higher_bad", "lower_bad"}:
+                direction = "higher_bad"
+
+            molecule_id = f"extra_acsins:{study}:{antibody_id}"
+            rows.append({
+                "variant_sequence": vh,
+                "vh_sequence": vh,
+                "vl_sequence": vl,
+                "assay_family": "aggregation",
+                "assay_metric": assay_metric,
+                "endpoint_direction": direction,
+                "endpoint_value": value,
+                "endpoint_unit": "native",
+                "source": "extra_acsins",
+                "source_version": str(csv_path),
+                "study_id": study,
+                "campaign_id": study,
+                "group_id": study,
+                "assay_id": f"extra_acsins:{study}:{antibody_id}:{assay_metric}",
+                "molecule_id": molecule_id,
+                "molecule_group_id": molecule_id,
+                "source_row": idx,
+            })
     return rows
 
 
@@ -152,7 +224,10 @@ def _dotad_rows(root: Path) -> list[dict]:
     return output
 
 
-def load_public_aggregation_rows(public_dir: str = "data/external/public_sources") -> list[dict]:
+def load_public_aggregation_rows(
+    public_dir: str = "data/external/public_sources",
+    extra_acsins_csv: str | Path = _EXTRA_ACSINS_CSV,
+) -> list[dict]:
     """Load staged public aggregation snapshots; missing snapshots are non-fatal."""
     root = Path(public_dir)
     rows: list[dict] = []
@@ -162,6 +237,7 @@ def load_public_aggregation_rows(public_dir: str = "data/external/public_sources
         rows.extend(_flab_rows(flab_root))
     if (dotad_root / "sequence.xlsx").is_file() and (dotad_root / "experimental_data.xlsx").is_file():
         rows.extend(_dotad_rows(dotad_root))
+    rows.extend(_extra_acsins_rows(extra_acsins_csv))
     return rows
 
 

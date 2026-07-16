@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+import re
 from pathlib import Path
 from statistics import mean
 
@@ -63,9 +64,25 @@ def _ensemble_predict(Xtr, ytr, Xte) -> list[float]:
     return [mean(p[i] for p in preds) for i in range(n)]
 
 
+def assay_context_features(row: dict) -> list[float]:
+    """Return 6 assay-context flags from assay_metric/assay_id text."""
+    raw = f"{row.get('assay_metric', '')} {row.get('assay_id', '')}".lower().replace("Δ", "delta")
+    text = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9./+\- ]", " ", raw))
+    text = text.strip()
+
+    ph6 = bool(re.search(r"\bph\s*6(?:\.0+)?\b", text))
+    ph74 = bool(re.search(r"\bph\s*7(?:\s*\.?\s*4)\b", text))
+    pbs = bool(re.search(r"\bpbs\b", text))
+    his_arg = bool(re.search(r"\bhis\s*[/\-]?\s*arg(?:inine)?\b", text))
+    his_nacl = bool(re.search(r"\bhis\s*[/\-]?\s*na\s*cl\b", text))
+    delta_lmax = bool(re.search(r"\bdelta\s*[-_ ]?\s*lmax\b", text) or re.search(r"\bdeltalmax\b", text))
+    return [float(ph6), float(ph74), float(pbs), float(his_arg), float(his_nacl), float(delta_lmax)]
+
+
 def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = BAD_FRACTION,
                  add_charge: bool = False, add_struct: bool = False,
-                 struct_path: str = "data/external/structures/structure_features_v2.csv") -> dict:
+                 struct_path: str = "data/external/structures/structure_features_v2.csv",
+                 add_assay_context: bool = False) -> dict:
     rows = _acsins_rows(include_gdpa)
     if add_charge:
         from model.head_b_acsins_charge import charge_features
@@ -86,12 +103,19 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
 
     base_cache: dict[str, list[float]] = {}
     charge_cache: dict[int, list[float]] = {}
+    assay_context_cache: dict[int, list[float]] = {}
     n_struct = len(struct_cols) if struct_cols else 0
 
     def feat(i: int) -> list[float]:
         r = rows[i]
         seq = r.get("variant_sequence") or r.get("vh_sequence") or r.get("sequence", "")
-        ck = f"{seq}|{use_plm}"
+        cache_key = {
+            "seq": seq,
+            "use_plm": use_plm,
+            "vh": r.get("vh_sequence") or "",
+            "vl": r.get("vl_sequence") or "",
+        }
+        ck = json.dumps(cache_key, sort_keys=True)
         v = base_cache.get(ck)
         if v is None:
             v = build_feature_vector(r, use_plm)
@@ -101,6 +125,10 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
             if i not in charge_cache:
                 charge_cache[i] = charge_features(r)
             v = v + charge_cache[i]
+        if add_assay_context:
+            if i not in assay_context_cache:
+                assay_context_cache[i] = assay_context_features(r)
+            v = v + assay_context_cache[i]
         if add_struct:
             v = v + struct.get(_sid(r.get("variant_sequence") or r.get("sequence") or ""), [0.0] * n_struct)
         return v
@@ -133,9 +161,12 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
 
     def avg(f): return round(mean([a[f] for a in per_assay]), 3) if per_assay else None
     solid = [a for a in per_assay if a["n"] >= 100]
+    features = "plm+biophysical" if use_plm else "biophysical_only"
+    if add_assay_context:
+        features += "+assay_context"
     return {
         "head": "acsins_ensemble_self_association",
-        "features": "plm+biophysical" if use_plm else "biophysical_only",
+        "features": features,
         "model": "rank-avg ensemble (tuned LGBM + HistGBR + Ridge), strict leakage-free",
         "n_evals": len(per_assay),
         "mean_auc": avg("auc"),
@@ -166,6 +197,10 @@ if __name__ == "__main__":
                    help="run BOTH without and with charge features in one process (clean A/B)")
     p.add_argument("--ab-full", action="store_true",
                    help="A/B baseline vs charge + structure(v2) features together")
+    p.add_argument("--ab-context", action="store_true",
+                  help="A/B baseline vs assay-context metadata flags in one process")
+    p.add_argument("--assay-context", action="store_true",
+                  help="run with assay-context metadata flags")
     p.add_argument("--out", default="results/head_b_acsins_ensemble.json")
     args = p.parse_args()
 
@@ -183,8 +218,20 @@ if __name__ == "__main__":
         print(f"  (all-eval: {base['mean_auc']} -> {combo['mean_auc']})")
         report = {"baseline": base, "with_features": combo, "features": label,
                   "solid_delta": round(d, 4)}
+    elif args.ab_context:
+        base = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa, add_assay_context=False)
+        combo = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa, add_assay_context=True)
+        print("ENSEMBLE + assay_context A/B (leakage-free, same process)")
+        print(f"  ensemble BASELINE                 solid AUC : {base['mean_auc_solid_studies']}")
+        print(f"  ensemble + assay_context         solid AUC : {combo['mean_auc_solid_studies']}")
+        d = (combo['mean_auc_solid_studies'] or 0) - (base['mean_auc_solid_studies'] or 0)
+        print(f"  >>> delta on ensemble                  : {d:+.4f}")
+        print(f"  (all-eval: {base['mean_auc']} -> {combo['mean_auc']})")
+        report = {"baseline": base, "with_features": combo, "features": "assay_context",
+                  "solid_delta": round(d, 4)}
     else:
-        report = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa)
+        report = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa,
+                              add_assay_context=args.assay_context)
         _print(report)
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -1,10 +1,12 @@
 """Stdlib-only tests for the features.plm disk-cache layer + missing-lib guard."""
 
 import importlib.util
+from pathlib import Path
+from types import SimpleNamespace
 import shutil
 import tempfile
 import unittest
-from pathlib import Path
+from unittest.mock import patch
 
 from features import plm
 
@@ -36,6 +38,17 @@ class PlmCacheTest(unittest.TestCase):
         self.assertNotEqual(p, plm.cache_path(plm.MODEL_TAG_ABLANG2, "ABC"))
         self.assertNotEqual(p, plm.cache_path(plm.MODEL_TAG_ESM2, "XYZ"))
 
+    def test_ablang2_pair_cache_key_is_unambiguous(self):
+        self.assertNotEqual(
+            plm.ablang2_pair_cache_key("AB", "CDE"),
+            plm.ablang2_pair_cache_key("ABC", "DE"),
+        )
+
+    def test_ablang2_pair_cache_key_and_tag_is_distinct_from_single_chain_cache(self):
+        p = plm.cache_path(plm.MODEL_TAG_ABLANG2_PAIRED, plm.ablang2_pair_cache_key("AB", "CDE"))
+        q = plm.cache_path(plm.MODEL_TAG_ABLANG2, "AB_CDE")
+        self.assertNotEqual(p, q)
+
     def test_embed_combined_concatenates_and_guards(self):
         seq = "SEQ"
         esm = [1.0, 2.0, 3.0]
@@ -62,6 +75,25 @@ class PlmCacheTest(unittest.TestCase):
         with self.assertRaises(RuntimeError) as ctx:
             plm.embed_ablang2(["MISSSEQ"])
         self.assertIn("ablang2", str(ctx.exception))
+
+    def test_embed_ablang2_pairs_hits_batch_runner_with_pair_input(self):
+        calls: list[tuple[list[list[str]], str]] = []
+
+        class FakeModel:
+            def freeze(self):
+                return None
+
+            def __call__(self, pairs, mode):
+                calls.append((pairs, mode))
+                return [[0.25, 0.5], [1.0, 1.5]]
+
+        fake = SimpleNamespace(pretrained=lambda device: FakeModel())
+
+        with patch.dict("sys.modules", {"ablang2": fake}):
+            vecs = plm.embed_ablang2_pairs([("VH", "VL"), ("HH", "LL")], device="cpu")
+
+        self.assertEqual(vecs, [[0.25, 0.5], [1.0, 1.5]])
+        self.assertEqual(calls, [([["VH", "VL"], ["HH", "LL"]], "seqcoding")])
 
 
 if __name__ == "__main__":
