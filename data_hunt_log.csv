@@ -1,0 +1,8 @@
+date,source_name,url,assays_found,has_sequences,approx_n_antibodies,usable,notes
+2026-07-15,Chen et al. 2024 (Nat/PMC),https://pmc.ncbi.nlm.nih.gov/articles/PMC11564698/,polyreactivity,likely_yes,>300000 variants (2 naive human Abs),PROMISING,"Large self-consistent sequence/polyreactivity datasets. Mutant-library style (2 parent Abs) but huge. TOP LEAD for polyreactivity head. Verify data-availability/download + format."
+2026-07-15,AbSci unlocking-de-novo-antibody-design,https://github.com/AbSciBio/unlocking-de-novo-antibody-design,"binding, developability, cross-reactivity",yes,unknown,PROMISING,"GitHub repo with sequences + developability/cross-reactivity data. Check which assays + counts."
+2026-07-15,ANDD (Zenodo),https://zenodo.org/records/16894086,design/structural,yes,48800,MAYBE,"48.8k Ab/nanobody sequences + structures; unclear if it has developability ASSAY VALUES. Verify."
+2026-07-15,Borowska et al. 2023 (Cell Reports),https://www.sciencedirect.com/science/article/pii/S2211124723012020,polyreactivity,unknown,unknown,MAYBE,"Natural polyreactive antibody characterization. Check supplementary for sequences+values."
+2026-07-15,AlphaSeq Antibody Dataset (MIT-LL),https://github.com/mit-ll/AlphaSeq_Antibody_Dataset,binding_affinity_only,yes,large,SKIP,"Binding scores vs SARS-CoV-2, not developability. Not our target."
+2026-07-15,SNAC-DB (Sanofi),https://github.com/Sanofi-Public/SNAC-DB,structural_complexes,yes,-,SKIP,"Structures, no developability assay values."
+2026-07-15,Hummer et al. 2025 (Nat Comp Sci),https://www.nature.com/articles/s43588-025-00823-8,none(commentary),-,-,SKIP,"Confirms field-wide data scarcity for ddG prediction — useful context, not a dataset."
