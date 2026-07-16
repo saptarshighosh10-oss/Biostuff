@@ -108,14 +108,14 @@ def run():
     for source, rows in tests.items():
         report["baseline"][source] = _score(baseline_rows, rows, None, cache)
         report["h3"][source] = _score(baseline_rows, rows, "h3", cache)
+        if report["heavy_all"] is None:
+            report["heavy_all"] = {}
+        report["heavy_all"][source] = _score(baseline_rows, rows, "heavy_all", cache)
     report["baseline_mean_auc"] = _mean(report["baseline"])
     report["h3_mean_auc"] = _mean(report["h3"])
     report["h3_passed"] = report["h3_mean_auc"] >= report["baseline_mean_auc"] - 0.005
-    if report["h3_passed"]:
-        report["heavy_all"] = {source: _score(baseline_rows, rows, "heavy_all", cache)
-                               for source, rows in tests.items()}
-        report["heavy_all_mean_auc"] = _mean(report["heavy_all"])
-        report["heavy_all_passed"] = report["heavy_all_mean_auc"] >= report["baseline_mean_auc"] - 0.005
+    report["heavy_all_mean_auc"] = _mean(report["heavy_all"])
+    report["heavy_all_passed"] = report["heavy_all_mean_auc"] >= report["baseline_mean_auc"] - 0.005
     return report
 
 
@@ -127,10 +127,11 @@ def _print(report):
         b, h = report["baseline"][source], report["h3"][source]
         print(f"  {source:<15} n={b['test_n']:<4} baseline={b['auc']:.3f} h3={h['auc']:.3f} "
               f"H3-parse={h['parse_rate']['h3']:.1%}")
-    if report["heavy_all"] is not None:
-        print(f"  H1+H2+H3 mean AUC: {report['heavy_all_mean_auc']:.3f} "
-              f"({'PASS' if report['heavy_all_passed'] else 'QUARANTINE'})")
-        print("  H1/H2 without supplied columns are zero-filled and flagged by their 0% parse rate.")
+    print(f"  H1+H2+H3 mean AUC: {report['heavy_all_mean_auc']:.3f} "
+          f"({'PASS' if report['heavy_all_passed'] else 'QUARANTINE'})")
+    for source in TESTS:
+        rates = report["heavy_all"][source]["parse_rate"]
+        print(f"  {source:<15} H1/H2/H3-parse={rates['h1']:.1%}/{rates['h2']:.1%}/{rates['h3']:.1%}")
     print("  Note: aims_flu has n=97; its AUC is intrinsically noisy.")
 
 

@@ -27,6 +27,7 @@ from model.head_b_gbm import _assay_key, build_feature_vector
 from model.head_b_pooled import _percentile_targets
 from model.head_b_catch_rate import _study, _is_acsins, _bad_labels, _metrics, BAD_FRACTION
 from model.head_b_acsins_unified import _acsins_rows, _seqkey
+from model.cdr_features import cdr_feature_vector
 
 
 def _rank01(vals: list[float]) -> list[float]:
@@ -47,7 +48,8 @@ def _ensemble_predict(Xtr, ytr, Xte) -> list[float]:
     preds = []
     lgb = LGBMRegressor(n_estimators=600, num_leaves=63, learning_rate=0.03,
                         min_child_samples=30, reg_lambda=1.0, subsample=0.8,
-                        subsample_freq=1, colsample_bytree=0.8, random_state=42, verbose=-1)
+                        subsample_freq=1, colsample_bytree=0.8, random_state=42, verbose=-1,
+                        n_jobs=1)
     lgb.fit(Xtr, ytr)
     preds.append(_rank01(list(lgb.predict(Xte))))
 
@@ -82,7 +84,7 @@ def assay_context_features(row: dict) -> list[float]:
 def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = BAD_FRACTION,
                  add_charge: bool = False, add_struct: bool = False,
                  struct_path: str = "data/external/structures/structure_features_v2.csv",
-                 add_assay_context: bool = False) -> dict:
+                 add_assay_context: bool = False, add_cdr_h3: bool = False) -> dict:
     rows = _acsins_rows(include_gdpa)
     if add_charge:
         from model.head_b_acsins_charge import charge_features
@@ -131,6 +133,8 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
             v = v + assay_context_cache[i]
         if add_struct:
             v = v + struct.get(_sid(r.get("variant_sequence") or r.get("sequence") or ""), [0.0] * n_struct)
+        if add_cdr_h3:
+            v = v + cdr_feature_vector(r, "h3")
         return v
 
     studies = sorted({_study(r) for r in rows})
@@ -164,6 +168,8 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
     features = "plm+biophysical" if use_plm else "biophysical_only"
     if add_assay_context:
         features += "+assay_context"
+    if add_cdr_h3:
+        features += "+cdr_h3"
     return {
         "head": "acsins_ensemble_self_association",
         "features": features,
@@ -199,12 +205,25 @@ if __name__ == "__main__":
                    help="A/B baseline vs charge + structure(v2) features together")
     p.add_argument("--ab-context", action="store_true",
                   help="A/B baseline vs assay-context metadata flags in one process")
+    p.add_argument("--ab-cdr-h3", action="store_true",
+                   help="A/B baseline vs dependency-free CDR-H3 descriptors in one process")
     p.add_argument("--assay-context", action="store_true",
                   help="run with assay-context metadata flags")
     p.add_argument("--out", default="results/head_b_acsins_ensemble.json")
     args = p.parse_args()
 
-    if args.ab_charge or args.ab_full:
+    if args.ab_cdr_h3:
+        base = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa)
+        combo = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa, add_cdr_h3=True)
+        print("ENSEMBLE + CDR-H3 A/B (leakage-free, same process)")
+        print(f"  ensemble BASELINE         solid AUC : {base['mean_auc_solid_studies']}")
+        print(f"  ensemble + CDR-H3         solid AUC : {combo['mean_auc_solid_studies']}")
+        d = (combo['mean_auc_solid_studies'] or 0) - (base['mean_auc_solid_studies'] or 0)
+        print(f"  >>> delta on ensemble               : {d:+.4f}")
+        print(f"  (all-eval: {base['mean_auc']} -> {combo['mean_auc']})")
+        report = {"baseline": base, "with_features": combo, "features": "cdr_h3",
+                  "solid_delta": round(d, 4)}
+    elif args.ab_charge or args.ab_full:
         add_struct = bool(args.ab_full)
         base = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa, add_charge=False)
         combo = run_ensemble(use_plm=args.use_plm, include_gdpa=not args.no_gdpa,
