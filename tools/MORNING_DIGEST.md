@@ -32,6 +32,7 @@
   - Anti-MSLN ADC CDR variants 2021 — open-access article says Supplementary Table S1 contains scFv CDR-variant sequences and numerical data, with HIC on selected IgG variants. The direct Springer workbook returned HTTP 403 to curl; exact link is in the human queue.
   - Armstrong et al. 2024 anti-IL8 mutants — open article reports AC-SINS on a ~25-variant panel, but its PMC page was reCAPTCHA-gated before the supplementary sequence/value pairing could be checked.
   - Assessment of in-vitro PK correlates 2024 — high-priority: the paper describes a diverse 334-IgG1 panel with Fv sequences plus PSR, HIC, and AC-SINS. Download its supplement in a browser and place it under `~/Downloads/antibody_sources/`; its DOI is in the human queue.
+  - Bailly et al. 2020 early-stage developability — the article reports HIC and AC-SINS on 152 diverse human/humanized mAbs. Its 731.7-KB ZIP is browser-gated; the article itself does not confirm that paired sequences are included, so download it only for an honest sequence/value inspection.
 
 ## Other checked lead
 
