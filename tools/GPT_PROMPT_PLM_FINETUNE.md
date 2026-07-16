@@ -13,8 +13,9 @@ Upload ~/Downloads/antibody_sources/polyreactivity_dataset.csv
 (columns: source, vh, vl, label, label_type). Sources:
 - TRAIN on the LIBRARY sources: emi, igg, iso, tessier_lib1, tessier_lib2 (~370k rows).
 - HELD-OUT TEST (never train on these): aims_mouse, aims_flu, shehata2019 (the diverse sets).
-Binarize labels: library labels are already 0/1; for shehata2019 (continuous PSR) use "bad" =
-top 15% highest PSR = 1, else 0. STRICT: drop any training VH that also appears in a holdout.
+Binarize labels: library and aims_mouse labels are already 0/1; aims_flu is ordinal (0–6), so use
+strictly above its within-source median as 1; for shehata2019 (continuous PSR) use "bad" = top 15%
+highest PSR = 1, else 0. STRICT: drop any training VH that also appears in a holdout.
 
 ## Steps (paste each Colab cell)
 # CELL 1 — GPU runtime (Runtime > Change runtime type > T4 GPU), then:
@@ -46,7 +47,10 @@ for s,rs in by_src.items():
     vals=[lab(r) for r in rs]
     if s=="shehata2019":
         thr=np.quantile([v for v in vals if v is not None],0.85)
-        for r,v in zip(rs,vals): Y[id(r)]=int(v>=thr) if v is not None else None
+        for r,v in zip(rs,vals): Y[id(r)]=int(v>thr) if v is not None else None
+    elif s=="aims_flu":
+        thr=np.median([v for v in vals if v is not None])
+        for r,v in zip(rs,vals): Y[id(r)]=int(v>thr) if v is not None else None
     else:
         for r,v in zip(rs,vals): Y[id(r)]=int(v) if v in (0.0,1.0) else None
 hold_vh={(r["vh"] or "").strip().upper() for s in HOLD for r in by_src.get(s,[])}
