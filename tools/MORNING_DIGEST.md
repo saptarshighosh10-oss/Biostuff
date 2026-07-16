@@ -38,6 +38,7 @@
 
 - The already-downloaded supplement for *Reduction of therapeutic antibody self-association using yeast-display selections and machine learning* was unusable: the machine-readable tables only contain donor characteristics and the AC-SINS results are figures.
 - **CrossAbSense** was checked and quarantined: it is a code/model repository that downloads the already-known GDPa1 benchmark, not a new measured dataset.
+- **ABGen’s 137-row clinical HIC table** was also checked directly: it has paired sequences and values, but every strict VH already occurs in the local Jain-2017/Roche HIC data. It is a rounded duplicate, not a new panel.
 - **Makowski et al. 2024 CS-SINS/PSP** was checked and quarantined: its public tables have 80 antibody names and measurements but no amino-acid sequences, so joining names to an outside sequence source would violate the ingestion rule.
 - **Chen et al. 2024 / Zenodo 14735846** was verified as the exact origin of the already-ingested 373,457 Tessier rows, so it was correctly skipped as a duplicate. **Makowski et al. 2022** is likewise the existing 4,000-row `emi` source. Biogen's much larger PSR/HIC/AC-SINS panel is proprietary and cannot be ingested.
 - The locally downloaded `mmc5.xlsx` is not a new HIC panel: its 18 numeric clone names all occur in the already-ingested Shehata `mmc2.xlsx` data. Seventeen HIC values match exactly; ADI-47166 differs (`9.833` vs `10.09`). It also contains only VH fragments through CDR3 and no VL, so it was not used to duplicate or amend the existing data.
