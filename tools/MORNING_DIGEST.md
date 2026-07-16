@@ -13,6 +13,7 @@
   - **Boughter et al. 2020 ELISA polyreactivity** — the public 914-row export really has binary labels and full VH sequences, but 516 of its 835 unique strict-AA VHs overlap the frozen AIMS mouse/flu holdouts from that same study. It was not ingested: even after molecule filtering, treating the remainder as independent training data would undermine source-held-out evaluation.
   - **FLAb Jain 2024 clinical HIC** — all 43 valid paired rows were retained (HIC `8.4–16.0` min), but the Shehata-holdout AUC declined `0.681`→`0.675` (−`0.006`), just beyond tolerance.
   - **FLAb Jain 2017 clinical PSR** — 136 valid paired rows (one duplicate skipped; PSR `0.0–0.81`) reduced the source-balanced AIMS mean `0.574`→`0.561` (−`0.013`), so it is excluded from training.
+  - **FLAb Jain 2024 clinical AC-SINS** — 43 exact paired rows were verified, but not ingested after the source-normalized AC-SINS AUC on a separate 137-antibody Jain-2017 clinical holdout fell `0.623`→`0.591` (−`0.032`).
 
 ## Current platform artifact
 

@@ -10,3 +10,4 @@ date,source,url,property,download_link,status
 2026-07-16,FLAb Jain 2024 clinical HIC,https://github.com/Graylab/FLAb,hydrophobicity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation/jain2024assessment_HIC.csv,quarantined
 2026-07-16,FLAb Jain 2017 clinical PSR,https://github.com/Graylab/FLAb,polyreactivity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/polyreactivity/jain2017biophysical_PSR.csv,quarantined
 2026-07-16,FLAb Jain 2024 clinical PSR,https://github.com/Graylab/FLAb,polyreactivity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/polyreactivity/jain2024assessment_PSR.csv,ingested
+2026-07-16,FLAb Jain 2024 clinical AC-SINS,https://github.com/Graylab/FLAb,aggregation_acsins,https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation/jain2024assessment_ACSINS.csv,quarantined
