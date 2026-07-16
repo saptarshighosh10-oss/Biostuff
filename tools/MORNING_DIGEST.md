@@ -26,7 +26,6 @@
 
 - **Auto queue:** Roche-34, Jain-2017 HIC, and Jain-2024 PSR are `ingested`; Harvey VHH, Boughter, Jain-2024 HIC, and Jain-2017 PSR are `quarantined`; no remaining row is `new` or `downloaded`.
 - **Human queue:**
-  - Borowska et al. 2023 — Cell Reports supplementary for polyreactivity.
   - SEC developability models (bioRxiv 2025) — supplementary URL returned HTTP 403 to curl; exact URL is in `tools/human_queue.csv`.
   - Teixeira 2021 drug-like antibodies — free PMC article describes clone-level ELISA polyspecificity and AC-SINS, but its supplement is behind PMC's proof-of-work download page; the advertised OA-package URL also returned HTTP 404.
   - NB0268 integrin-alpha11 HIC variants — the article explicitly says its workbook has full sequences and HIC retention times for 97 variants. PMC returned a proof-of-work page instead of the XLSX and the Taylor & Francis mirror returned HTTP 403. The direct workbook URL is in `tools/human_queue.csv`.
@@ -40,6 +39,7 @@
 
 - The already-downloaded supplement for *Reduction of therapeutic antibody self-association using yeast-display selections and machine learning* was unusable: the machine-readable tables only contain donor characteristics and the AC-SINS results are figures.
 - **CrossAbSense** was checked and quarantined: it is a code/model repository that downloads the already-known GDPa1 benchmark, not a new measured dataset.
+- **Borowska et al. 2023 natural polyreactivity** was resolved from its direct Cell Reports assets: the available files are PDFs with plotted ELISA and alanine-scan results, not a machine-readable per-antibody VH/VL/value table. It was removed from the manual-download queue; no figure values were transcribed.
 - **ABGen’s 137-row clinical HIC table** was also checked directly: it has paired sequences and values, but every strict VH already occurs in the local Jain-2017/Roche HIC data. It is a rounded duplicate, not a new panel.
 - **Hie et al. 2023 language-model antibody evolution** supplied raw PSR flow-cytometry measurements for 32 named designs through Zenodo, but no explicit paired sequence for each design. Parent-related files and aliases are not enough to reconstruct those rows, so it was rejected.
 - **Jain et al. 2017 delayed-HIC prediction** was recovered from its Oxford supplement. The public portion has 112 paired clinical sequences with delta-HIC values (`0.00–5.34` min), but all 112 VHs are already present in Jain-2017/Roche HIC rows; the paper’s 5,089-sequence panel was not released.
