@@ -32,6 +32,13 @@ generalization stayed 0.617.)
 3. NEVER train on a holdout source. NEVER delete data. Only ADD files; do not modify
    model/head_*.py or model/head_platform.py.
 
+## Self-fix, don't stop
+If a source fails for a MECHANICAL reason (shell/glob bug, wrong URL format, missing package,
+parser mismatch, a baseline you can build), FIX IT and continue — don't quarantine something
+that was just a fixable bug. All changes that improve the pipeline/model are welcome; commit
+them. This never lets you fabricate data, weaken the gate, train on a holdout, or touch GDPa3 —
+fix the tooling, never the science.
+
 ## When to train
 Only when a source PASSES the gate. Accepting = retrain that head + refresh platform.pkl.
 Quarantined sources never trigger a retrain.

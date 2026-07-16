@@ -25,6 +25,17 @@ These are mistakes we already made or traps we already hit. Do not repeat them.
 10. **Additive only.** Do not modify existing model/*.py files. Append to the dataset CSV and
     add new files. Never delete data — quarantine instead.
 
+## Self-fix fixable problems — don't stop on superficial issues
+If a failure is MECHANICAL (shell-quoting/glob bug, wrong URL/API format, missing dependency —
+pip install it, a parser that needs adapting to the real layout, a rate-limit — retry, a
+missing baseline/holdout you can build honestly): FIX IT YOURSELF and keep going. Do NOT stop
+or quarantine for something that was fixable in the first place. **All changes that genuinely
+improve the pipeline or the model are welcome** — make them, commit them, note them.
+
+This never overrides the hard rules above. "Fixable" = the CODE/TOOLING, never the SCIENCE.
+Never fix something by fabricating data, weakening the gate, training on a holdout, or touching
+GDPa3. Fix the plumbing freely; never fudge the result.
+
 ## Output discipline
 - Report REAL counts and REAL numbers. If something is missing or ambiguous, say so plainly.
 - If a source turns out unusable, that is a valid, useful result — log it, don't pad.
