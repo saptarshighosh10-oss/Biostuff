@@ -20,11 +20,14 @@
   - SEC developability models (bioRxiv 2025) — supplementary URL returned HTTP 403 to curl; exact URL is in `tools/human_queue.csv`.
   - Teixeira 2021 drug-like antibodies — free PMC article describes clone-level ELISA polyspecificity and AC-SINS, but its supplement is behind PMC's proof-of-work download page; the advertised OA-package URL also returned HTTP 404.
   - NB0268 integrin-alpha11 HIC variants — the article explicitly says its workbook has full sequences and HIC retention times for 97 variants. PMC returned a proof-of-work page instead of the XLSX and the Taylor & Francis mirror returned HTTP 403. The direct workbook URL is in `tools/human_queue.csv`.
+  - Hierarchical-clustering mAb developability 2025 — open PMC article reports 65 affinity-matured or immunization mAbs with HIC, PSR, AC-SINS and SEC measurements across four XLSX supplements. Direct PMC links returned proof-of-work HTML, so sequence availability still needs confirmation after a browser download.
+  - Anti-MSLN ADC CDR variants 2021 — open-access article says Supplementary Table S1 contains scFv CDR-variant sequences and numerical data, with HIC on selected IgG variants. The direct Springer workbook returned HTTP 403 to curl; exact link is in the human queue.
 
 ## Other checked lead
 
 - The already-downloaded supplement for *Reduction of therapeutic antibody self-association using yeast-display selections and machine learning* was unusable: the machine-readable tables only contain donor characteristics and the AC-SINS results are figures.
 - **CrossAbSense** was checked and quarantined: it is a code/model repository that downloads the already-known GDPa1 benchmark, not a new measured dataset.
 - **Makowski et al. 2024 CS-SINS/PSP** was checked and quarantined: its public tables have 80 antibody names and measurements but no amino-acid sequences, so joining names to an outside sequence source would violate the ingestion rule.
+- **Chen et al. 2024 / Zenodo 14735846** was verified as the exact origin of the already-ingested 373,457 Tessier rows, so it was correctly skipped as a duplicate. **Makowski et al. 2022** is likewise the existing 4,000-row `emi` source. Biogen's much larger PSR/HIC/AC-SINS panel is proprietary and cannot be ingested.
 
 **Biggest real gain of the night:** a verified, gate-passing 17-row Roche HIC dataset, with a modest but real +0.010 Shehata-holdout AUC improvement. The gate estimate is based on 49 top-15%-HIC holdout positives, so it should not be overstated.
