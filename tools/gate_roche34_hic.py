@@ -9,6 +9,7 @@ worse" label before the cross-study comparison.
 from __future__ import annotations
 
 import csv
+import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -86,17 +87,22 @@ def score(train: list[dict], test: list[dict]) -> dict:
             "auc": float(roc_auc_score([row["bad"] for row in test], predictions))}
 
 
-def run() -> dict:
+def run(candidate_source: str = "roche34_2022") -> dict:
     baseline = mark_top_fraction(baseline_rows())
     shehata = mark_top_fraction(source_rows("shehata2019"))
-    roche = mark_top_fraction(source_rows("roche34_2022"))
+    candidate = mark_top_fraction(source_rows(candidate_source))
     without = score(baseline, shehata)
-    with_roche = score(baseline + roche, shehata)
-    return {"baseline": without, "trial": with_roche,
-            "accepted": with_roche["auc"] >= without["auc"] - 0.005,
-            "roche_n": len(roche), "holdout": "shehata2019"}
+    with_candidate = score(baseline + candidate, shehata)
+    return {"baseline": without, "trial": with_candidate,
+            "accepted": with_candidate["auc"] >= without["auc"] - 0.005,
+            "candidate": candidate_source, "candidate_n": len(candidate),
+            "holdout": "shehata2019"}
 
 
 if __name__ == "__main__":
-    report = run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--candidate", default="roche34_2022",
+                        help="HIC source from hydrophobicity_dataset.csv to trial.")
+    args = parser.parse_args()
+    report = run(args.candidate)
     print(json.dumps(report, indent=2, sort_keys=True))

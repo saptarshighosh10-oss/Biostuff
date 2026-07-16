@@ -32,6 +32,20 @@ SOURCES = (
         "label_type": "hic_retention_min",
     },
     {
+        "path": "data/aggregation/jetha2019homology_RT.csv",
+        "destination": "hydrophobicity_dataset.csv",
+        "source": "jetha2019_hic",
+        "label_column": "HIC RT (min)",
+        "label_type": "hic_retention_min",
+    },
+    {
+        "path": "data/aggregation/shanehsazzadeh2023unlocking_HICRRT.csv",
+        "destination": "hydrophobicity_dataset.csv",
+        "source": "shanehsazzadeh2023_hic",
+        "label_column": "HIC - RRT",
+        "label_type": "hic_relative_retention",
+    },
+    {
         "path": "data/polyreactivity/jain2017biophysical_PSR.csv",
         "destination": "polyreactivity_dataset.csv",
         "source": "jain2017_psr",

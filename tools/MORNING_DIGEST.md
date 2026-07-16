@@ -5,6 +5,8 @@
 - **ACCEPTED:**
   - **Roche-34 relative HIC** — 17 paired, standard-AA VH/VL rows were retained from the 34-row workbook (relative-HIC range `-0.050` to `0.550`; higher = more hydrophobic). Against the never-trained-on 328-antibody Shehata holdout, the top-15%-HIC-risk AUC increased from `0.671` with GDPa HIC data alone to `0.681` after adding Roche (+`0.010`). It clears the `baseline - 0.005` gate.
   - **FLAb Jain 2017 clinical HIC** — 134 paired rows (3 cross-dataset VH duplicates skipped; HIC `8.5–25.0` min) improved the fixed Shehata top-15%-risk AUC from `0.681` to `0.697` (+`0.016`). The HIC platform head was refreshed.
+  - **FLAb Jetha 2019 homology HIC** — 90 paired rows were retained from 97 downloaded HIC measurements (7 existing VH duplicates skipped; `21.27–30.00` min). Against the separate 328-antibody Shehata holdout, the GDPa baseline was `0.671` and the Jetha trial was `0.677` (+`0.006`).
+  - **FLAb Shanehsazzadeh 2023 HIC-RRT** — 12 paired rows were retained from 13 relative-HIC measurements (1 existing VH duplicate; `1.05–1.56`). The same fixed Shehata gate increased from `0.671` to `0.689` (+`0.018`).
   - **FLAb Jain 2024 clinical PSR** — 43 paired rows (PSR `0.0–0.92`) produced a strict, source-balanced AIMS mean of `0.571` versus `0.574` baseline (−`0.003`), within the predeclared −`0.005` tolerance. A new additive `PSR_high_risk_top15pct` serving tower was added; legacy assay-specific PR regressors remain unchanged.
 - **QUARANTINED:**
   - **AbSci unlocking-de-novo** — the mechanical shell-quoting issue was corrected and the CSV was inspected. It has numeric AC-SINS, polyspecificity, and HIC endpoints but only HCDR3 strings, not full VH/VL sequences, so it is unusable.
@@ -18,7 +20,7 @@
 
 ## Current platform artifact
 
-`model/saved/platform.pkl` now has a source-normalized `HIC_high_risk_top15pct` classifier trained on 866 rows: GDPa1 240, GDPa2 34, GDPa4.1 113, Shehata 328, Roche 17, and accepted Jain-2017 HIC 134. It also has the new additive `PSR_high_risk_top15pct` classifier trained on 893 per-assay/source-normalized observations (including accepted Jain-2024 PSR 43). Both new heads have feature width `1795` and were smoke-tested. The historical GDPa-only scorecard remains aggregation AUC `0.72`, hydrophobicity AUC `0.70`, polyreactivity AUC `0.70`; it is not a re-estimate of these external-data gates.
+`model/saved/platform.pkl` now has a source-normalized `HIC_high_risk_top15pct` classifier trained on 968 rows: GDPa1 240, GDPa2 34, GDPa4.1 113, Shehata 328, Roche 17, accepted Jain-2017 HIC 134, accepted Jetha HIC 90, and accepted Shanehsazzadeh HIC-RRT 12. It also has the new additive `PSR_high_risk_top15pct` classifier trained on 893 per-assay/source-normalized observations (including accepted Jain-2024 PSR 43). Both new heads have feature width `1795` and were smoke-tested. The historical GDPa-only scorecard remains aggregation AUC `0.72`, hydrophobicity AUC `0.70`, polyreactivity AUC `0.70`; it is not a re-estimate of these external-data gates.
 
 ## Queues
 
@@ -51,4 +53,4 @@
 - **PSERM Project 1** has numeric OVA/antigen binding values but only 8-residue mutation strings, not full VH/VL sequences. **Xu et al. 2024** has PSR MFI values keyed to design names and only parent sequences/mutation tables, not exact per-row paired sequences. Both were rejected rather than reconstructed by assumption.
 - A pre-specified sparse 3–5-mer sequence diagnostic (logistic regression; the same deterministic capped library training set and strict VH removal) scored `0.583` on AIMS-mouse and `0.321` on the 38-VH AIMS-flu holdout. It is below the current biophysical-plus-charge baseline and has not been promoted to a serving tower.
 
-**Biggest real gain of the night:** the gate-passing 134-row Jain-2017 clinical HIC panel, improving Shehata-holdout AUC by `+0.016` (`0.681`→`0.697`). The holdout has 49 top-15%-HIC positives, so the gain is promising but must not be overstated.
+**Biggest real gain of the night:** the gate-passing 134-row Jain-2017 clinical HIC panel, improving Shehata-holdout AUC by `+0.016` (`0.681`→`0.697`). The latest 12-row Shanehsazzadeh HIC trial also scored `+0.018` on the GDPa-only reference, but its very small size means it should not be overstated. The holdout has 49 top-15%-HIC positives.

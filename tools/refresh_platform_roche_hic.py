@@ -28,7 +28,7 @@ from model.head_developability_honest import _load_rows
 
 DATA = Path.home() / "Downloads/antibody_sources/hydrophobicity_dataset.csv"
 ARTIFACT = Path("model/saved/platform.pkl")
-BACKUP = Path("model/saved/platform.before_jain2017_hic.pkl")
+BACKUP = Path("model/saved/platform.before_jetha2019_hic.pkl")
 REPORT = Path("results/hic_platform_refresh.json")
 FRACTION = 0.15
 
@@ -40,7 +40,10 @@ def _external_rows() -> list[dict]:
     with DATA.open(newline="", encoding="utf-8") as handle:
         for record in csv.DictReader(handle):
             source = record.get("source", "")
-            if source not in {"shehata2019", "roche34_2022", "jain2017_hic"}:
+            if source not in {
+                "shehata2019", "roche34_2022", "jain2017_hic",
+                "jetha2019_hic", "shanehsazzadeh2023_hic",
+            }:
                 continue
             vh = (record.get("vh") or "").strip().upper()
             vl = (record.get("vl") or "").strip().upper() or None
@@ -101,8 +104,14 @@ def run() -> dict:
     source_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         source_counts[row["study_id"]] += 1
-    if source_counts.get("roche34_2022") != 17 or source_counts.get("jain2017_hic") != 134:
-        raise RuntimeError("Expected exactly 17 Roche-34 and 134 Jain-2017 HIC records before refresh")
+    expected = {
+        "roche34_2022": 17,
+        "jain2017_hic": 134,
+        "jetha2019_hic": 90,
+        "shanehsazzadeh2023_hic": 12,
+    }
+    if any(source_counts.get(source) != count for source, count in expected.items()):
+        raise RuntimeError(f"Unexpected accepted external HIC counts: {dict(source_counts)}")
 
     X = [_feature(row) for row in rows]
     y = [row["bad"] for row in rows]
@@ -122,7 +131,7 @@ def run() -> dict:
                 "training_note": (
                     "Binary source-normalized HIC-risk model: each assay/study's "
                     "highest 15% retention values are labelled higher_bad. Includes "
-                    "accepted Roche-34 and Jain-2017 HIC data after holdout gates."
+                    "all external HIC sources that passed their holdout gates."
                 ),
             }
         },
