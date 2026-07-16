@@ -134,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-length", type=int, default=200)
     parser.add_argument("--learning-rate", type=float, default=2e-5)
     parser.add_argument("--preflight-only", action="store_true")
-    arguments = parser.parse_args()
+    # Colab executes pasted scripts through a kernel launcher that injects -f <kernel.json>.
+    arguments, _ = parser.parse_known_args()
     result = run(arguments)
     Path(arguments.out).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
