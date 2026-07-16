@@ -17,7 +17,7 @@ code. Be rigorously honest.
 
 ## The dataset
 Shehata et al. 2019, Cell Reports, "Affinity Maturation Enhances Antibody Specificity but
-Compromises Conformational Stability." DOI 10.1016/j.celrep.2019.05.066.
+Compromises Conformational Stability." DOI 10.1016/j.celrep.2019.08.056.
 ~400 antibodies with VH/VL sequences + PSR (polyspecificity reagent) binding + HIC + Tm.
 Find its supplementary data (Cell Reports supplemental tables / any linked repo) and download
 the table that has, per antibody: VH sequence, VL sequence, and a PSR value.
