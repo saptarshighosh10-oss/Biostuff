@@ -7,6 +7,7 @@
 - **QUARANTINED:**
   - **AbSci unlocking-de-novo** — the mechanical shell-quoting issue was corrected and the CSV was inspected. It has numeric AC-SINS, polyspecificity, and HIC endpoints but only HCDR3 strings, not full VH/VL sequences, so it is unusable.
   - **ANDD (Zenodo)** — 48,800 antibody/nanobody sequences, but the measured endpoint is antigen binding affinity, not AC-SINS, PSR/polyreactivity, or HIC.
+  - **Harvey 2022 VHH PSR** — 140,901 valid VHH rows (120 duplicate VHs removed) were downloaded from Hugging Face, with binary PSR labels where `1` means high polyreactivity. The deterministic, source-balanced gate used 2,000 VHH rows and the same fixed 2,000-row cap for each large library source because the full Python-list transfer implementation exceeded local memory. Mean strict-holdout AUC fell from `0.574` to `0.566` (−`0.008`): AIMS-mouse improved `0.645`→`0.649`, but VH-deduplicated AIMS-flu fell `0.503`→`0.483` (only 38 unique VHs). It fails the −`0.005` threshold, so it remains in the CSV but is excluded from training.
 
 ## Current platform artifact
 
@@ -14,7 +15,7 @@
 
 ## Queues
 
-- **Auto queue:** Roche-34 is `ingested`; no remaining row is `new` or `downloaded`.
+- **Auto queue:** Roche-34 is `ingested`; Harvey VHH is `quarantined`; no remaining row is `new` or `downloaded`.
 - **Human queue:**
   - Borowska et al. 2023 — Cell Reports supplementary for polyreactivity.
   - SEC developability models (bioRxiv 2025) — supplementary URL returned HTTP 403 to curl; exact URL is in `tools/human_queue.csv`.
