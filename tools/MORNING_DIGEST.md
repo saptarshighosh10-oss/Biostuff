@@ -31,6 +31,7 @@
   - Hierarchical-clustering mAb developability 2025 — open PMC article reports 65 affinity-matured or immunization mAbs with HIC, PSR, AC-SINS and SEC measurements across four XLSX supplements. Direct PMC links returned proof-of-work HTML, so sequence availability still needs confirmation after a browser download.
   - Anti-MSLN ADC CDR variants 2021 — open-access article says Supplementary Table S1 contains scFv CDR-variant sequences and numerical data, with HIC on selected IgG variants. The direct Springer workbook returned HTTP 403 to curl; exact link is in the human queue.
   - Armstrong et al. 2024 anti-IL8 mutants — open article reports AC-SINS on a ~25-variant panel, but its PMC page was reCAPTCHA-gated before the supplementary sequence/value pairing could be checked.
+  - Assessment of in-vitro PK correlates 2024 — high-priority: the paper describes a diverse 334-IgG1 panel with Fv sequences plus PSR, HIC, and AC-SINS. Download its supplement in a browser and place it under `~/Downloads/antibody_sources/`; its DOI is in the human queue.
 
 ## Other checked lead
 
