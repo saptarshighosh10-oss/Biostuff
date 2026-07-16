@@ -14,6 +14,7 @@
   - **FLAb Jain 2024 clinical HIC** — all 43 valid paired rows were retained (HIC `8.4–16.0` min), but the Shehata-holdout AUC declined `0.681`→`0.675` (−`0.006`), just beyond tolerance.
   - **FLAb Jain 2017 clinical PSR** — 136 valid paired rows (one duplicate skipped; PSR `0.0–0.81`) reduced the source-balanced AIMS mean `0.574`→`0.561` (−`0.013`), so it is excluded from training.
   - **FLAb Jain 2024 clinical AC-SINS** — 43 exact paired rows were verified, but not ingested after the source-normalized AC-SINS AUC on a separate 137-antibody Jain-2017 clinical holdout fell `0.623`→`0.591` (−`0.032`).
+  - **FLAb Shanehsazzadeh 2023 AC-SINS** — 13 exact paired rows were verified, but likewise not ingested: the same external AUC fell `0.623`→`0.605` (−`0.018`).
 
 ## Current platform artifact
 
