@@ -1,4 +1,4 @@
-"""Refresh the served HIC head after the Roche-34 external-data gate passes.
+"""Refresh the served HIC head after external HIC sources pass their gates.
 
 HIC retention values from different laboratories are not on a common numerical
 scale.  This script therefore trains one shared, source-normalized classifier:
@@ -6,7 +6,7 @@ within each study/assay, the highest 15% retention values are ``higher_bad``.
 It replaces only the hydrophobicity head in the existing platform artifact;
 the aggregation and polyreactivity heads are preserved byte-for-byte.
 
-The external Roche rows are used only after their holdout-safe gate passes.
+External rows are used only after their holdout-safe gates pass.
 ``shehata2019`` is also included here because final retraining may use all
 accepted data; it was excluded from the gate's training folds.
 """
@@ -28,7 +28,7 @@ from model.head_developability_honest import _load_rows
 
 DATA = Path.home() / "Downloads/antibody_sources/hydrophobicity_dataset.csv"
 ARTIFACT = Path("model/saved/platform.pkl")
-BACKUP = Path("model/saved/platform.before_roche_hic.pkl")
+BACKUP = Path("model/saved/platform.before_jain2017_hic.pkl")
 REPORT = Path("results/hic_platform_refresh.json")
 FRACTION = 0.15
 
@@ -40,7 +40,7 @@ def _external_rows() -> list[dict]:
     with DATA.open(newline="", encoding="utf-8") as handle:
         for record in csv.DictReader(handle):
             source = record.get("source", "")
-            if source not in {"shehata2019", "roche34_2022"}:
+            if source not in {"shehata2019", "roche34_2022", "jain2017_hic"}:
                 continue
             vh = (record.get("vh") or "").strip().upper()
             vl = (record.get("vl") or "").strip().upper() or None
@@ -101,8 +101,8 @@ def run() -> dict:
     source_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         source_counts[row["study_id"]] += 1
-    if source_counts.get("roche34_2022") != 17:
-        raise RuntimeError("Expected exactly 17 accepted Roche-34 records before refresh")
+    if source_counts.get("roche34_2022") != 17 or source_counts.get("jain2017_hic") != 134:
+        raise RuntimeError("Expected exactly 17 Roche-34 and 134 Jain-2017 HIC records before refresh")
 
     X = [_feature(row) for row in rows]
     y = [row["bad"] for row in rows]
@@ -122,7 +122,7 @@ def run() -> dict:
                 "training_note": (
                     "Binary source-normalized HIC-risk model: each assay/study's "
                     "highest 15% retention values are labelled higher_bad. Includes "
-                    "accepted Roche-34 relative-HIC data after holdout gate."
+                    "accepted Roche-34 and Jain-2017 HIC data after holdout gates."
                 ),
             }
         },

@@ -6,3 +6,7 @@ date,source,url,property,download_link,status
 2026-07-16,Teixeira 2021 drug-like antibodies,https://pmc.ncbi.nlm.nih.gov/articles/PMC8654478/,developability,https://pmc.ncbi.nlm.nih.gov/articles/PMC8654478/,needs_human
 2026-07-16,Harvey 2022 VHH PSR,https://huggingface.co/datasets/hugging-science/harvey-nanobody-polyreactivity,polyreactivity,https://huggingface.co/datasets/hugging-science/harvey-nanobody-polyreactivity/resolve/main/data/test.csv?download=true,quarantined
 2026-07-16,Boughter antibody polyreactivity,https://huggingface.co/datasets/hugging-science/boughter-antibody-polyreactivity,polyreactivity,https://huggingface.co/datasets/hugging-science/boughter-antibody-polyreactivity/resolve/main/data/train.csv?download=true,quarantined
+2026-07-16,FLAb Jain 2017 clinical HIC,https://github.com/Graylab/FLAb,hydrophobicity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation/jain2017biophyscial_HICRT.csv,ingested
+2026-07-16,FLAb Jain 2024 clinical HIC,https://github.com/Graylab/FLAb,hydrophobicity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/aggregation/jain2024assessment_HIC.csv,quarantined
+2026-07-16,FLAb Jain 2017 clinical PSR,https://github.com/Graylab/FLAb,polyreactivity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/polyreactivity/jain2017biophysical_PSR.csv,quarantined
+2026-07-16,FLAb Jain 2024 clinical PSR,https://github.com/Graylab/FLAb,polyreactivity,https://raw.githubusercontent.com/Graylab/FLAb/main/data/polyreactivity/jain2024assessment_PSR.csv,ingested

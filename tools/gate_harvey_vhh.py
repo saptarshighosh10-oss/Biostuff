@@ -16,7 +16,6 @@ from model.head_c_polyreactivity import _binary_labels, _feat, _model
 
 LIBRARIES = ("emi", "igg", "iso", "tessier_lib1", "tessier_lib2")
 TESTS = ("aims_mouse", "aims_flu")
-CANDIDATE = "harvey2022_vhh"
 MAX_PER_SOURCE = 2_000
 DATA = Path.home() / "Downloads/antibody_sources/polyreactivity_dataset.csv"
 
@@ -38,10 +37,10 @@ def _matrix(rows):
     return X
 
 
-def _load_gate_rows():
+def _load_gate_rows(candidate: str):
     """Stream only the reservoir and holdout rows, not the whole CSV."""
-    selected = set(LIBRARIES + (CANDIDATE,) + TESTS)
-    samples = {source: {0: [], 1: []} for source in LIBRARIES + (CANDIDATE,)}
+    selected = set(LIBRARIES + (candidate,) + TESTS)
+    samples = {source: {0: [], 1: []} for source in LIBRARIES + (candidate,)}
     tests = {source: [] for source in TESTS}
     seen = {source: set() for source in selected}
     totals = {source: 0 for source in selected}
@@ -97,17 +96,17 @@ def _score(train_rows, test_rows):
             "test_positives": sum(_binary_labels(test_rows))}
 
 
-def run():
+def run(candidate: str):
     # Head C is documented as biophysical+charge.  Avoid loading the optional,
     # unrelated ProteinGym scorer once per sequence during this gate.
     model_features._FITNESS_HEAD_TRIED = True
     model_features._FITNESS_HEAD = None
-    training, tests, totals = _load_gate_rows()
+    training, tests, totals = _load_gate_rows(candidate)
     baseline = [row for source in LIBRARIES for row in training[source]]
-    candidate = training[CANDIDATE]
-    trial = baseline + candidate
-    report = {"candidate": CANDIDATE, "candidate_n": totals[CANDIDATE],
-              "candidate_used_n": len(candidate), "max_per_source": MAX_PER_SOURCE,
+    candidate_rows = training[candidate]
+    trial = baseline + candidate_rows
+    report = {"candidate": candidate, "candidate_n": totals[candidate],
+              "candidate_used_n": len(candidate_rows), "max_per_source": MAX_PER_SOURCE,
               "baseline": {}, "trial": {}}
     for source, test_rows in tests.items():
         print(f"baseline: {source}", flush=True)
@@ -121,16 +120,17 @@ def run():
     return report
 
 
-def run_one(arm, source):
+def run_one(arm, source, candidate: str):
     """Run one fit at a time so the local command runner can report it."""
     model_features._FITNESS_HEAD_TRIED = True
     model_features._FITNESS_HEAD = None
-    training, tests, totals = _load_gate_rows()
+    training, tests, totals = _load_gate_rows(candidate)
     baseline = [row for name in LIBRARIES for row in training[name]]
-    rows = baseline if arm == "baseline" else baseline + training[CANDIDATE]
+    rows = baseline if arm == "baseline" else baseline + training[candidate]
     result = _score(rows, tests[source])
-    result.update({"arm": arm, "source": source, "candidate_n": totals[CANDIDATE],
-                   "candidate_used_n": len(training[CANDIDATE]),
+    result.update({"arm": arm, "source": source, "candidate": candidate,
+                   "candidate_n": totals[candidate],
+                   "candidate_used_n": len(training[candidate]),
                    "max_per_source": MAX_PER_SOURCE})
     return result
 
@@ -139,6 +139,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm", choices=("baseline", "trial"))
     parser.add_argument("--test", choices=TESTS)
+    parser.add_argument("--candidate", default="harvey2022_vhh")
     args = parser.parse_args()
-    report = run_one(args.arm, args.test) if args.arm else run()
+    report = run_one(args.arm, args.test, args.candidate) if args.arm else run(args.candidate)
     print(json.dumps(report, indent=2, sort_keys=True))
