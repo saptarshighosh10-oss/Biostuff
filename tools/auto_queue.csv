@@ -1,4 +1,4 @@
 date,source,url,property,download_link,status
-2026-07-15,AbSci unlocking-de-novo,https://github.com/AbSciBio/unlocking-de-novo-antibody-design,developability,https://github.com/AbSciBio/unlocking-de-novo-antibody-design,new
-2026-07-15,SEC developability models (bioRxiv 2025),https://www.biorxiv.org/content/10.1101/2025.02.02.636157v1,aggregation_sec,https://www.biorxiv.org/content/10.1101/2025.02.02.636157v1.supplementary-material,new
-2026-07-15,ANDD (Zenodo),https://zenodo.org/records/16894086,developability,https://zenodo.org/records/16894086,new
+2026-07-15,AbSci unlocking-de-novo,https://github.com/AbSciBio/unlocking-de-novo-antibody-design,developability,https://github.com/AbSciBio/unlocking-de-novo-antibody-design,quarantined
+2026-07-15,ANDD (Zenodo),https://zenodo.org/records/16894086,developability,https://zenodo.org/records/16894086,quarantined
+2026-07-16,Roche-34 relative HIC,https://pmc.ncbi.nlm.nih.gov/articles/PMC9475378/,hydrophobicity,https://www.frontiersin.org/api/v4/articles/960194/file/DataSheet1.xlsx/960194_supplementary-materials_datasheets_1_xlsx/1,quarantined
