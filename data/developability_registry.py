@@ -8,6 +8,7 @@ import json
 import math
 import os
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -436,7 +437,7 @@ def build_registry(
     input_manifest = []
     input_rows = 0
     try:
-        with sqlite3.connect(temporary) as connection:
+        with closing(sqlite3.connect(temporary)) as connection:
             _create_schema(connection)
             batch: list[dict] = []
             for spec in input_specs:

@@ -4,6 +4,7 @@ import csv
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from data.developability_registry import RegistryInput, build_registry
@@ -68,7 +69,7 @@ class TestDevelopabilityRegistry(unittest.TestCase):
             self.assertEqual(report["tier_counts"]["single_chain_supervised"], 1)
             self.assertEqual(report["tier_counts"]["cdr_supervised"], 1)
 
-            with sqlite3.connect(database) as connection:
+            with closing(sqlite3.connect(database)) as connection:
                 harvey = connection.execute(
                     "SELECT supervision_tier, vl, split_group FROM records WHERE source = 'harvey2022_vhh'"
                 ).fetchone()
@@ -110,13 +111,15 @@ class TestDevelopabilityRegistry(unittest.TestCase):
             }
             first_construct = {**model_row, "molecule_id": "first_construct"}
             first = build_registry(database, spec, model_rows=[first_construct, second_construct])
-            first_ids = sqlite3.connect(database).execute("SELECT record_id FROM records").fetchall()
+            with closing(sqlite3.connect(database)) as connection:
+                first_ids = connection.execute("SELECT record_id FROM records").fetchall()
             second = build_registry(database, spec, model_rows=[first_construct, second_construct])
-            second_ids = sqlite3.connect(database).execute("SELECT record_id FROM records").fetchall()
+            with closing(sqlite3.connect(database)) as connection:
+                second_ids = connection.execute("SELECT record_id FROM records").fetchall()
             self.assertEqual(first["registry_hash"], second["registry_hash"])
             self.assertEqual(first_ids, second_ids)
             self.assertEqual(second["source_counts"], {"gdpa1": 2, "shehata2019": 1})
-            with sqlite3.connect(database) as connection:
+            with closing(sqlite3.connect(database)) as connection:
                 aggregation = connection.execute(
                     "SELECT property, endpoint_unit, assay_context_json FROM records "
                     "WHERE source = 'gdpa1' ORDER BY endpoint_value LIMIT 1"
