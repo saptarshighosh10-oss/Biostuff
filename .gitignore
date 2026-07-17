@@ -24,6 +24,7 @@ data/external/proteingym/quarantine.json
 .venv/
 .cache/
 .playwright-cli/
+.worktrees/
 data/external/gdpa/
 data/external/structures/
 data/external/public_sources/
