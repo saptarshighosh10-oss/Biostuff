@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import pickle
 import unittest
 
 from model.developability_matrix import (
     assign_group_labels,
     classification_metrics,
     eligible_split,
+    fit_applicability_index,
+    fit_candidate,
+    score_applicability,
     source_balanced_sample,
     strip_holdout_overlap,
 )
@@ -93,6 +97,45 @@ class TestDevelopabilityMatrix(unittest.TestCase):
         self.assertEqual(metrics["catch_rate_at_15pct"], 0.5)
         self.assertGreater(metrics["enrichment_at_15pct"], 1.0)
         self.assertLess(metrics["brier"], 0.1)
+
+
+class TestCandidateFitting(unittest.TestCase):
+    @staticmethod
+    def _featured(count: int = 40) -> list[tuple[dict, list[float]]]:
+        return [
+            (
+                row(f"r{i}", "a" if i % 4 < 2 else "b", i % 2, target=i % 2),
+                [float(i % 2), float(i)],
+            )
+            for i in range(count)
+        ]
+
+    def test_supported_learners_return_pickleable_calibrated_probabilities(self) -> None:
+        featured = self._featured()
+        for learner in ("lgbm", "histgb", "ridge"):
+            result = fit_candidate(
+                learner, featured[:30], featured[30:35], featured[35:], 42
+            )
+            self.assertEqual(len(result["scores"]), 5)
+            self.assertTrue(all(0.0 <= score <= 1.0 for score in result["scores"]))
+            restored = pickle.loads(pickle.dumps(result["calibrator"]))
+            self.assertEqual(len(restored(result["raw_scores"])), 5)
+
+    def test_unknown_candidate_raises(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unsupported learner"):
+            fit_candidate("forest", self._featured(), [], self._featured(4), 42)
+
+    def test_applicability_index_round_trips_to_scoring(self) -> None:
+        featured = self._featured()
+        index = fit_applicability_index(featured)
+        restored = pickle.loads(pickle.dumps(index))
+        records = score_applicability(restored, featured[:3])
+        self.assertEqual(len(records), 3)
+        self.assertTrue(all(record["nearest_training_source"] in {"a", "b"}
+                            for record in records))
+        self.assertTrue(all(record["applicability"] in {
+            "in_domain", "borderline", "out_of_domain"
+        } for record in records))
 
 
 if __name__ == "__main__":

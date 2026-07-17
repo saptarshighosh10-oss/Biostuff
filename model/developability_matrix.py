@@ -17,6 +17,7 @@ import random
 import sqlite3
 import statistics
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -331,6 +332,30 @@ def _model(seed: int):
     )
 
 
+def _candidate_model(learner: str, seed: int):
+    if learner == "lgbm":
+        return _model(seed)
+    if learner == "histgb":
+        from sklearn.ensemble import HistGradientBoostingClassifier
+
+        return HistGradientBoostingClassifier(
+            max_iter=500,
+            learning_rate=0.05,
+            l2_regularization=1.0,
+            random_state=seed,
+        )
+    if learner == "ridge":
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.pipeline import make_pipeline
+        from sklearn.preprocessing import StandardScaler
+
+        return make_pipeline(
+            StandardScaler(),
+            LogisticRegression(C=0.1, max_iter=2000, random_state=seed),
+        )
+    raise ValueError(f"unsupported learner: {learner}")
+
+
 def _weights(rows: list[dict]) -> list[float]:
     counts: dict[tuple[str, int], int] = defaultdict(int)
     for row in rows:
@@ -359,41 +384,100 @@ def _fit_calibration_split(
     return fit, calibration
 
 
+@dataclass(frozen=True)
+class IdentityCalibrator:
+    reason: str
+
+    def __call__(self, scores) -> list[float]:
+        return [float(score) for score in scores]
+
+
+@dataclass(frozen=True)
+class PlattCalibrator:
+    coefficient: float
+    intercept: float
+
+    def __call__(self, scores) -> list[float]:
+        import numpy as np
+
+        values = np.clip(np.asarray(scores, dtype=float), 1e-6, 1 - 1e-6)
+        logits = np.log(values / (1.0 - values))
+        transformed = self.coefficient * logits + self.intercept
+        return [float(value) for value in 1.0 / (1.0 + np.exp(-transformed))]
+
+
 def _platt_calibrator(labels: list[int], raw_scores: list[float]):
-    """Return a train-only monotone Platt transform or identity fallback."""
+    """Return a pickleable train-only monotone Platt transform."""
     if len(labels) < 20 or len(set(labels)) != 2:
-        return (lambda scores: list(scores)), "identity_insufficient_calibration_rows"
+        reason = "identity_insufficient_calibration_rows"
+        return IdentityCalibrator(reason), reason
     import numpy as np
     from sklearn.linear_model import LogisticRegression
 
     clipped = np.clip(np.asarray(raw_scores, dtype=float), 1e-6, 1 - 1e-6)
     logits = np.log(clipped / (1.0 - clipped)).reshape(-1, 1)
-    calibrator = LogisticRegression(C=1.0, random_state=0).fit(logits, labels)
-    if float(calibrator.coef_[0, 0]) <= 0:
-        return (lambda scores: list(scores)), "identity_nonpositive_platt_slope"
+    fitted = LogisticRegression(C=1.0, random_state=0).fit(logits, labels)
+    coefficient = float(fitted.coef_[0, 0])
+    if coefficient <= 0:
+        reason = "identity_nonpositive_platt_slope"
+        return IdentityCalibrator(reason), reason
+    return (
+        PlattCalibrator(coefficient, float(fitted.intercept_[0])),
+        "platt_logistic_train_only",
+    )
 
-    def transform(scores):
-        values = np.clip(np.asarray(scores, dtype=float), 1e-6, 1 - 1e-6)
-        values = np.log(values / (1.0 - values)).reshape(-1, 1)
-        return [float(value) for value in calibrator.predict_proba(values)[:, 1]]
 
-    return transform, "platt_logistic_train_only"
-
-
-def _applicability(
-    train_featured: list[tuple[dict, list[float]]],
+def fit_candidate(
+    learner: str,
+    fit_featured: list[tuple[dict, list[float]]],
+    calibration_featured: list[tuple[dict, list[float]]],
     test_featured: list[tuple[dict, list[float]]],
-) -> tuple[list[dict], dict]:
-    """Train-fitted normalized source-centroid distance and applicability bands."""
+    seed: int,
+) -> dict:
+    """Fit one comparable classifier and its train-only calibration."""
+    model = _candidate_model(learner, seed)
+    X = [vector for _, vector in fit_featured]
+    y = [int(row["target"]) for row, _ in fit_featured]
+    weights = _weights([row for row, _ in fit_featured])
+    if learner == "ridge":
+        model.fit(X, y, logisticregression__sample_weight=weights)
+    else:
+        model.fit(X, y, sample_weight=weights)
+
+    calibration_raw = (
+        [float(value) for value in model.predict_proba(
+            [vector for _, vector in calibration_featured]
+        )[:, 1]]
+        if calibration_featured else []
+    )
+    calibrator, calibration_method = _platt_calibrator(
+        [int(row["target"]) for row, _ in calibration_featured], calibration_raw
+    )
+    raw_scores = [float(value) for value in model.predict_proba(
+        [vector for _, vector in test_featured]
+    )[:, 1]]
+    return {
+        "model": model,
+        "calibrator": calibrator,
+        "raw_scores": raw_scores,
+        "scores": calibrator(raw_scores),
+        "calibration_method": calibration_method,
+    }
+
+
+def fit_applicability_index(
+    train_featured: list[tuple[dict, list[float]]],
+) -> dict:
+    """Fit a serializable normalized source-centroid applicability index."""
     import numpy as np
 
+    if not train_featured:
+        raise ValueError("applicability index requires training rows")
     train_matrix = np.asarray([vector for _, vector in train_featured], dtype=float)
-    test_matrix = np.asarray([vector for _, vector in test_featured], dtype=float)
     center = train_matrix.mean(axis=0)
     scale = train_matrix.std(axis=0)
     scale[scale < 1e-8] = 1.0
     train_scaled = (train_matrix - center) / scale
-    test_scaled = (test_matrix - center) / scale
     source_indexes: dict[str, list[int]] = defaultdict(list)
     for index, (row, _) in enumerate(train_featured):
         source_indexes[str(row["source"])].append(index)
@@ -404,21 +488,66 @@ def _applicability(
     own_distances = []
     for source, indexes in source_indexes.items():
         centroid = centroids[source_names.index(source)]
-        own_distances.extend(np.sqrt(((train_scaled[indexes] - centroid) ** 2).mean(axis=1)))
-    p95, p99 = (float(np.quantile(own_distances, quantile)) for quantile in (0.95, 0.99))
-    distance_matrix = np.sqrt(((test_scaled[:, None, :] - centroids[None, :, :]) ** 2).mean(axis=2))
-    nearest = distance_matrix.argmin(axis=1)
+        own_distances.extend(
+            np.sqrt(((train_scaled[indexes] - centroid) ** 2).mean(axis=1))
+        )
+    return {
+        "distance": "RMS normalized feature distance to nearest source centroid",
+        "center": center.tolist(),
+        "scale": scale.tolist(),
+        "source_names": source_names,
+        "centroids": centroids.tolist(),
+        "train_p95": float(np.quantile(own_distances, 0.95)),
+        "train_p99": float(np.quantile(own_distances, 0.99)),
+    }
+
+
+def score_applicability(
+    index: dict,
+    test_featured: list[tuple[dict, list[float]]],
+) -> list[dict]:
+    """Score rows with a fitted applicability index."""
+    import numpy as np
+
+    if not test_featured:
+        return []
+    matrix = np.asarray([vector for _, vector in test_featured], dtype=float)
+    center = np.asarray(index["center"], dtype=float)
+    scale = np.asarray(index["scale"], dtype=float)
+    centroids = np.asarray(index["centroids"], dtype=float)
+    scaled = (matrix - center) / scale
+    distances = np.sqrt(((scaled[:, None, :] - centroids[None, :, :]) ** 2).mean(axis=2))
+    nearest = distances.argmin(axis=1)
     records = []
     for row_index, source_index in enumerate(nearest):
-        distance = float(distance_matrix[row_index, source_index])
-        label = "in_domain" if distance <= p95 else "borderline" if distance <= p99 else "out_of_domain"
+        distance = float(distances[row_index, source_index])
+        label = (
+            "in_domain" if distance <= index["train_p95"]
+            else "borderline" if distance <= index["train_p99"]
+            else "out_of_domain"
+        )
         records.append({
             "ood_distance": distance,
             "applicability": label,
-            "nearest_training_source": source_names[int(source_index)],
+            "nearest_training_source": index["source_names"][int(source_index)],
         })
-    return records, {"distance": "RMS normalized feature distance to nearest source centroid",
-                     "train_p95": p95, "train_p99": p99, "source_centroids": source_names}
+    return records
+
+
+def _applicability(
+    train_featured: list[tuple[dict, list[float]]],
+    test_featured: list[tuple[dict, list[float]]],
+) -> tuple[list[dict], dict]:
+    """Compatibility wrapper preserving the existing compact report schema."""
+    index = fit_applicability_index(train_featured)
+    records = score_applicability(index, test_featured)
+    summary = {
+        "distance": index["distance"],
+        "train_p95": index["train_p95"],
+        "train_p99": index["train_p99"],
+        "source_centroids": index["source_names"],
+    }
+    return records, summary
 
 
 def _feature_row(row: dict) -> dict:
@@ -511,27 +640,13 @@ def _source_result(
     fit_featured, calibration_featured = _fit_calibration_split(train_featured, seed)
     if len(fit_featured) < MIN_TRAIN_ROWS or len({int(row["target"]) for row, _ in fit_featured}) != 2:
         fit_featured, calibration_featured = train_featured, []
-    classifier = _model(seed)
-    classifier.fit(
-        [vector for _, vector in fit_featured],
-        [int(row["target"]) for row, _ in fit_featured],
-        sample_weight=_weights([row for row, _ in fit_featured]),
+    fitted = fit_candidate(
+        "lgbm", fit_featured, calibration_featured, test_featured, seed
     )
-    calibration_raw = (
-        [float(score) for score in classifier.predict_proba(
-            [vector for _, vector in calibration_featured]
-        )[:, 1]]
-        if calibration_featured else []
-    )
-    calibrate, calibration_method = _platt_calibrator(
-        [int(row["target"]) for row, _ in calibration_featured],
-        calibration_raw,
-    )
+    calibration_method = fitted["calibration_method"]
     test_rows = [row for row, _ in test_featured]
-    raw_scores = [float(score) for score in classifier.predict_proba(
-        [vector for _, vector in test_featured]
-    )[:, 1]]
-    scores = calibrate(raw_scores)
+    raw_scores = fitted["raw_scores"]
+    scores = fitted["scores"]
     applicability, applicability_fit = _applicability(fit_featured, test_featured)
 
     per_assay: dict[str, dict] = {}
