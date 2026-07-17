@@ -453,9 +453,12 @@ def fit_candidate(
     calibrator, calibration_method = _platt_calibrator(
         [int(row["target"]) for row, _ in calibration_featured], calibration_raw
     )
-    raw_scores = [float(value) for value in model.predict_proba(
-        [vector for _, vector in test_featured]
-    )[:, 1]]
+    raw_scores = (
+        [float(value) for value in model.predict_proba(
+            [vector for _, vector in test_featured]
+        )[:, 1]]
+        if test_featured else []
+    )
     return {
         "model": model,
         "calibrator": calibrator,

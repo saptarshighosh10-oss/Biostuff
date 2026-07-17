@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import pickle
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
+from model.developability_matrix import IdentityCalibrator
 from model.developability_multi_expert import (
     CandidateSpec,
+    evaluate_specialists,
+    family_references,
     nested_generalist,
+    predict_artifact,
     prepare_outer_split,
     summarize_generalists,
 )
@@ -115,6 +122,119 @@ class TestNestedGeneralist(unittest.TestCase):
         self.assertAlmostEqual(summary["trial"]["mean_macro_source_auc"], 0.63)
         self.assertEqual(summary["trial"]["source_mean_auc"], {"a": 0.63, "b": 0.63})
         self.assertEqual(summary["trial"]["seed_macro_source_auc"], [0.62, 0.63, 0.64])
+
+
+class ConstantModel:
+    def __init__(self, risk: float):
+        self.risk = risk
+
+    def predict_proba(self, rows):
+        import numpy as np
+
+        return np.asarray([[1.0 - self.risk, self.risk] for _ in rows])
+
+
+class TestExperimentalArtifact(unittest.TestCase):
+    @staticmethod
+    def _bundle(risk: float, seed: int) -> dict:
+        return {
+            "component": "constant",
+            "seed": seed,
+            "learner": "lgbm",
+            "feature_mode": "biophysical_charge",
+            "model": ConstantModel(risk),
+            "calibrator": IdentityCalibrator("identity_test"),
+        }
+
+    def test_family_references_cover_separated_clusters_deterministically(self) -> None:
+        sequences = ["A" * 120, "A" * 119 + "C", "C" * 120]
+        first = family_references(sequences, threshold=0.90, max_references=4)
+        second = family_references(reversed(sequences), threshold=0.90, max_references=4)
+        self.assertEqual(first, second)
+        self.assertEqual(len(first), 2)
+
+    @patch("model.developability_multi_expert.score_applicability")
+    def test_sequence_identity_routes_without_source_name(self, applicability) -> None:
+        applicability.return_value = [{
+            "ood_distance": 0.1,
+            "applicability": "in_domain",
+            "nearest_training_source": "train",
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "artifact.pkl"
+            artifact = {
+                "schema_version": "1",
+                "router_threshold": 0.90,
+                "training_manifest": {"registry_hash": "abc"},
+                "properties": {
+                    "polyreactivity": {
+                        "generalist": [self._bundle(0.2, seed) for seed in (42, 43, 44)],
+                        "applicability_index": {},
+                        "specialists": {
+                            "tessier_lib1": {
+                                "references": ["A" * 120],
+                                "models": [self._bundle(0.9, seed) for seed in (42, 43, 44)],
+                            }
+                        },
+                    }
+                },
+            }
+            path.write_bytes(pickle.dumps(artifact))
+            near = predict_artifact(path, "A" * 120)
+            far = predict_artifact(path, "C" * 120)
+            self.assertEqual(near["polyreactivity"]["expert_name"], "tessier_lib1")
+            self.assertAlmostEqual(near["polyreactivity"]["risk_score"], 0.9)
+            self.assertEqual(far["polyreactivity"]["expert_type"], "generalist")
+            self.assertAlmostEqual(far["polyreactivity"]["risk_score"], 0.2)
+            self.assertFalse(far["polyreactivity"]["abstain"])
+
+    def test_invalid_vh_is_rejected_before_artifact_read(self) -> None:
+        with self.assertRaisesRegex(ValueError, "standard 20-amino-acid"):
+            predict_artifact(Path("unused.pkl"), "ABZ")
+
+    @patch("model.developability_multi_expert.make_featurizer")
+    def test_selected_plm_cache_miss_fails_with_exact_command(self, make) -> None:
+        make.return_value = lambda _row: None
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "artifact.pkl"
+            bundle = self._bundle(0.2, 42)
+            bundle["feature_mode"] = "frozen_plm"
+            path.write_bytes(pickle.dumps({
+                "schema_version": "1",
+                "router_threshold": 0.90,
+                "training_manifest": {"registry_hash": "abc"},
+                "properties": {
+                    "polyreactivity": {
+                        "generalist": [bundle],
+                        "applicability_index": {},
+                        "specialists": {},
+                    }
+                },
+            }))
+            with self.assertRaisesRegex(RuntimeError, "features.plm --precompute"):
+                predict_artifact(path, "A" * 120)
+
+    def test_specialist_evaluation_reports_router_coverage(self) -> None:
+        alphabet = "ACDEFGHIKLMNPQRSTVWY"
+        rows = []
+        for index in range(120):
+            suffix = "".join(
+                alphabet[(index // divisor) % len(alphabet)]
+                for divisor in (1, 20, 400)
+            )
+            rows.append(item(
+                f"lib-{index}", "library", index % 2,
+                "A" * 117 + suffix,
+                source_class="LIBRARY",
+            ))
+        report = evaluate_specialists(
+            rows, "polyreactivity", 42, n_splits=3, max_per_source_class=60
+        )
+        self.assertIn("library", report["per_source"])
+        result = report["per_source"]["library"]
+        self.assertEqual(result["n"], 120)
+        self.assertTrue(0.0 <= result["router_coverage"] <= 1.0)
+        self.assertIn("roc_auc", result)
 
 
 if __name__ == "__main__":
