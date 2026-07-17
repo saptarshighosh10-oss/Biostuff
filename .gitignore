@@ -11,6 +11,8 @@ data/cache/
 results/*.tsv
 results/*.txt
 results/*.sqlite
+results/developability_*_predictions.csv
+results/plm_colab_work/
 results/*_progress.json
 
 # Rebuildable ProteinGym partitions are intentionally kept out of Git.

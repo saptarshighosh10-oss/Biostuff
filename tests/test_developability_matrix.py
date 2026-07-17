@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+import unittest
+
+from model.developability_matrix import (
+    assign_group_labels,
+    classification_metrics,
+    source_balanced_sample,
+    strip_holdout_overlap,
+)
+
+
+VH = "EVQLVESGGGLVQPGGSLRLSCAASGFTFSSYAMSWVRQAPGKGLEWVSAISGSGGSTYYADSVKGRFTISRDNSKNTLYLQMNSLRAEDTAVYYCARDRGGYFDYWGQGTLVTVSS"
+VL = "DIQMTQSPSSLSASVGDRVTITCRASQDVSTAVAWYQQKPGKAPKLLIYSASFLYSGVPSRFSGSGSGTDFTLTISSLQPEDFATYYCQQYNSYPYTFGQGTKLEIK"
+
+
+def row(record_id: str, source: str, value: float, **extra) -> dict:
+    return {
+        "record_id": record_id,
+        "source": source,
+        "assay_metric": extra.pop("assay_metric", "assay"),
+        "label_type": extra.pop("label_type", "continuous"),
+        "endpoint_value": value,
+        "endpoint_direction": extra.pop("endpoint_direction", "higher_bad"),
+        "vh": extra.pop("vh", VH),
+        "vl": extra.pop("vl", VL),
+        **extra,
+    }
+
+
+class TestDevelopabilityMatrix(unittest.TestCase):
+    def test_group_labels_keep_binary_and_use_exact_top_tail(self) -> None:
+        binary = [row("b0", "s", 0.0), row("b1", "s", 1.0)]
+        assign_group_labels(binary)
+        self.assertEqual([item["target"] for item in binary], [0, 1])
+
+        continuous = [row(f"c{i}", "s", float(i)) for i in range(20)]
+        assign_group_labels(continuous, bad_fraction=0.15)
+        self.assertEqual(sum(item["target"] for item in continuous), 3)
+        self.assertEqual(
+            {item["record_id"] for item in continuous if item["target"]},
+            {"c17", "c18", "c19"},
+        )
+
+        react = [row("r0", "s", 1, label_type="num_react"), row("r1", "s", 2, label_type="num_react")]
+        assign_group_labels(react)
+        self.assertEqual([item["target"] for item in react], [0, 1])
+
+    def test_overlap_stripping_removes_exact_chains_and_near_vh(self) -> None:
+        near = VH[:20] + ("A" if VH[20] != "A" else "C") + VH[21:]
+        unrelated = "A" * len(VH)
+        train = [
+            row("exact_vh", "train", 0, vh=VH, vl="C" * len(VL)),
+            row("exact_vl", "train", 0, vh=unrelated, vl=VL),
+            row("near", "train", 0, vh=near, vl="D" * len(VL)),
+            row("keep", "train", 0, vh=unrelated, vl="E" * len(VL)),
+        ]
+        test = [row("test", "held", 1)]
+        kept, audit = strip_holdout_overlap(train, test, near_identity=0.90)
+        self.assertEqual([item["record_id"] for item in kept], ["keep"])
+        self.assertEqual(audit["exact_vh_removed"], 1)
+        self.assertEqual(audit["exact_vl_removed"], 1)
+        self.assertEqual(audit["near_vh_removed"], 1)
+
+    def test_source_balancing_caps_each_source_and_class_deterministically(self) -> None:
+        rows = [row(f"{source}-{label}-{i}", source, label, target=label)
+                for source in ("a", "b") for label in (0, 1) for i in range(8)]
+        first = source_balanced_sample(rows, max_per_source_class=3, seed=42)
+        second = source_balanced_sample(rows, max_per_source_class=3, seed=42)
+        self.assertEqual([item["record_id"] for item in first], [item["record_id"] for item in second])
+        self.assertEqual(len(first), 12)
+
+    def test_metrics_report_auc_pr_screening_and_calibration(self) -> None:
+        metrics = classification_metrics([0, 0, 1, 1], [0.1, 0.2, 0.8, 0.9])
+        self.assertEqual(metrics["roc_auc"], 1.0)
+        self.assertEqual(metrics["pr_auc"], 1.0)
+        self.assertEqual(metrics["catch_rate_at_15pct"], 0.5)
+        self.assertGreater(metrics["enrichment_at_15pct"], 1.0)
+        self.assertLess(metrics["brier"], 0.1)
+
+
+if __name__ == "__main__":
+    unittest.main()
