@@ -17,6 +17,27 @@ correctly picks the worse of two antibodies (0.5 = coin flip, 1.0 = perfect).
 | **Polyreactivity** | how much it sticks to the wrong things | **0.70** |
 | **Hydrophobicity (HIC)** | how "greasy" its surface is | **0.70** |
 
+## Benchmark interpretation (Phase 0 lock)
+
+The table above is the historical platform scorecard. It is not a claim that a
+library-trained polyreactivity model achieves 0.70 on unseen diverse antibodies.
+The current fixed hard-transfer baseline is 0.626926 macro-source ROC AUC across
+`aims_mouse`, `aims_flu`, and `shehata2019`; all three have already been used for
+development. Aggregation's strict solid-study development estimate is 0.739.
+Hydrophobicity currently has no newer hard-transfer AUC registered in machine-
+readable evidence, so its traceable Phase 0 value remains the historical 0.70.
+
+GDPa3 remains the unspent, single-shot final source for all three properties. It
+must not be inspected, downloaded, counted, trained on, or tuned against during
+development. No locked-validation source is assigned yet.
+
+Run the traceable status report:
+
+```bash
+cd /Users/saptarshighosh/Biostuff
+/Users/saptarshighosh/Biostuff/.venv/bin/python -m tools.benchmark_status
+```
+
 In plain terms: **~7 times out of 10** it correctly flags the riskier antibody — on
 molecules from a lab it has never worked with. That catches roughly **2× more problem
 antibodies** than random screening.
