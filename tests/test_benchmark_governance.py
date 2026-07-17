@@ -13,6 +13,7 @@ from model.benchmark_governance import (
     record_holdout_use,
     validate_policy,
 )
+from tools.benchmark_status import render_status
 
 
 def minimal_policy() -> dict:
@@ -234,6 +235,35 @@ class TestHoldoutLedger(unittest.TestCase):
                     purpose="test",
                     evidence_path=root / "missing.json",
                 )
+
+
+class TestStatusRendering(unittest.TestCase):
+    def test_render_keeps_historical_and_hard_transfer_separate(self) -> None:
+        report = {
+            "generated_at": "2026-07-17T00:00:00+00:00",
+            "metric_definitions": {"primary": "macro_source_roc_auc", "required": []},
+            "properties": {
+                "polyreactivity": {
+                    "source_roles": {
+                        "development": [{"name": "aims_flu", "prior_use": True}],
+                        "locked_validation": [],
+                        "final": [{"name": "gdpa3", "prior_use": False}],
+                    },
+                    "baselines": [
+                        {"name": "historical_platform_scorecard", "status": "ok", "value": 0.7},
+                        {"name": "hard_library_to_diverse_transfer", "status": "ok", "value": 0.6269},
+                    ],
+                    "counts": [],
+                }
+            },
+            "frozen_artifacts": [],
+            "holdout_uses": [],
+        }
+        text = render_status(report)
+        self.assertIn("historical_platform_scorecard: 0.700", text)
+        self.assertIn("hard_library_to_diverse_transfer: 0.627", text)
+        self.assertIn("final (UNSPENT): gdpa3", text)
+        self.assertIn("locked validation: NONE ASSIGNED", text)
 
 
 if __name__ == "__main__":
