@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -71,13 +72,100 @@ class TestDevelopabilityRegistry(unittest.TestCase):
 
             with closing(sqlite3.connect(database)) as connection:
                 harvey = connection.execute(
-                    "SELECT supervision_tier, vl, split_group FROM records WHERE source = 'harvey2022_vhh'"
+                    "SELECT supervision_tier, vl, split_group, evidence_tier, "
+                    "training_eligible, holdout_eligible "
+                    "FROM records WHERE source = 'harvey2022_vhh'"
                 ).fetchone()
                 self.assertEqual(harvey[0], "single_chain_supervised")
                 self.assertIsNone(harvey[1])
                 self.assertEqual(harvey[2], "source:harvey2022_vhh")
+                self.assertEqual(harvey[3:], ("direct", 1, 1))
                 reasons = connection.execute("SELECT reason FROM rejections").fetchall()
                 self.assertEqual(reasons, [("invalid amino-acid sequence",)])
+
+    def test_verified_reconstruction_can_train_but_cannot_be_a_holdout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "reconstructed.csv"
+            database = root / "registry.sqlite"
+            expected_vh = "A" + VH[1:]
+            fields = [
+                "source", "parent_vh", "parent_vl", "vh_mutations", "vl_mutations",
+                "expected_vh", "expected_vl", "parent_mutation_reference",
+                "verification_reference", "label", "label_type",
+            ]
+            valid = {
+                "source": "reconstructed",
+                "parent_vh": VH,
+                "parent_vl": VL,
+                "vh_mutations": "E1A",
+                "vl_mutations": "",
+                "expected_vh": expected_vh,
+                "expected_vl": VL,
+                "parent_mutation_reference": "paper:supplement-2",
+                "verification_reference": "genbank:AB123456",
+                "label": "1",
+                "label_type": "psr_continuous",
+            }
+            write_csv(source, fields, [valid, {**valid, "expected_vh": VH}])
+
+            report = build_registry(
+                database,
+                [RegistryInput(source, "polyreactivity", "reconstructed_sequence_table")],
+            )
+
+            self.assertEqual(report["accepted_rows"], 1)
+            self.assertEqual(report["rejected_rows"], 1)
+            self.assertEqual(report["evidence_counts"], {"reconstructed_verified": 1})
+            self.assertEqual(report["training_eligible_rows"], 1)
+            self.assertEqual(report["holdout_eligible_rows"], 0)
+            with closing(sqlite3.connect(database)) as connection:
+                record = connection.execute(
+                    "SELECT vh,vl,evidence_tier,training_eligible,holdout_eligible,"
+                    "provenance_status,verification_json FROM records"
+                ).fetchone()
+                self.assertEqual(record[:6], (
+                    expected_vh, VL, "reconstructed_verified", 1, 0,
+                    "deterministic_reconstruction_verified",
+                ))
+                verification = json.loads(record[6])
+                self.assertTrue(verification["chains"]["vh"]["round_trip_diff_check"])
+                reason = connection.execute("SELECT reason FROM rejections").fetchone()[0]
+                self.assertEqual(reason, "independent VH sequence does not match reconstruction")
+
+    def test_direct_evidence_wins_when_reconstruction_is_an_exact_duplicate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            direct = root / "direct.csv"
+            reconstructed = root / "reconstructed.csv"
+            database = root / "registry.sqlite"
+            expected_vh = "A" + VH[1:]
+            write_csv(
+                direct,
+                ["source", "vh", "vl", "label", "label_type"],
+                [{"source": "direct", "vh": expected_vh, "vl": VL,
+                  "label": "1", "label_type": "psr_continuous"}],
+            )
+            write_csv(
+                reconstructed,
+                ["source", "parent_vh", "parent_vl", "vh_mutations", "vl_mutations",
+                 "expected_vh", "expected_vl", "parent_mutation_reference",
+                 "verification_reference", "label", "label_type"],
+                [{"source": "reconstructed", "parent_vh": VH, "parent_vl": VL,
+                  "vh_mutations": "E1A", "vl_mutations": "", "expected_vh": expected_vh,
+                  "expected_vl": VL, "parent_mutation_reference": "paper:s2",
+                  "verification_reference": "genbank:AB123456", "label": "1",
+                  "label_type": "psr_continuous"}],
+            )
+            report = build_registry(database, [
+                RegistryInput(reconstructed, "polyreactivity", "reconstructed_sequence_table"),
+                RegistryInput(direct, "polyreactivity", "sequence_table"),
+            ])
+            self.assertEqual(report["accepted_rows"], 1)
+            self.assertEqual(report["duplicate_rows"], 1)
+            with closing(sqlite3.connect(database)) as connection:
+                statuses = dict(connection.execute("SELECT source,status FROM records"))
+            self.assertEqual(statuses, {"direct": "accepted", "reconstructed": "duplicate"})
 
     def test_build_is_deterministic_and_replaces_the_database(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -119,6 +207,9 @@ class TestDevelopabilityRegistry(unittest.TestCase):
             self.assertEqual(first["registry_hash"], second["registry_hash"])
             self.assertEqual(first_ids, second_ids)
             self.assertEqual(second["source_counts"], {"gdpa1": 2, "shehata2019": 1})
+            self.assertEqual(second["evidence_counts"], {"direct": 3})
+            self.assertEqual(second["training_eligible_rows"], 3)
+            self.assertEqual(second["holdout_eligible_rows"], 3)
             with closing(sqlite3.connect(database)) as connection:
                 aggregation = connection.execute(
                     "SELECT property, endpoint_unit, assay_context_json FROM records "

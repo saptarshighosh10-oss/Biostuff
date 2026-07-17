@@ -15,9 +15,10 @@ from typing import Iterable
 
 from data.contract import ContractError, canonical_sequence, hash_payload, sha256_hex
 from data.run_manifest import file_sha256
+from data.sequence_reconstruction import reconstruct_verified_pair
 
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 CDR_FIELDS = ("cdr_h1", "cdr_h2", "cdr_h3", "cdr_l1", "cdr_l2", "cdr_l3")
 LIBRARY_SOURCES = {"emi", "igg", "iso", "tessier_lib1", "tessier_lib2"}
 NARROW_AUXILIARY_SOURCES = {"harvey2022_vhh"}
@@ -50,11 +51,16 @@ class RegistryInput:
 
 def default_inputs() -> list[RegistryInput]:
     root = Path.home() / "Downloads" / "antibody_sources"
-    return [
+    inputs = [
         RegistryInput(root / "polyreactivity_dataset.csv", "polyreactivity", "sequence_table"),
         RegistryInput(root / "hydrophobicity_dataset.csv", "hydrophobicity", "sequence_table"),
         RegistryInput(root / "polyreactivity_cdr_dataset.csv", "polyreactivity", "cdr_table"),
     ]
+    for property_name in ("polyreactivity", "aggregation", "hydrophobicity"):
+        path = root / f"reconstructed_{property_name}_dataset.csv"
+        if path.exists():
+            inputs.append(RegistryInput(path, property_name, "reconstructed_sequence_table"))
+    return inputs
 
 
 def default_model_rows() -> list[dict]:
@@ -112,6 +118,7 @@ def _row_payload(spec: RegistryInput, row: dict[str, str], row_number: int) -> d
     endpoint_value = None if spec.table_format == "unlabeled_table" else _number(row.get("label"))
 
     vh = vl = None
+    verification: dict = {}
     cdrs: dict[str, str | None] = {field: None for field in CDR_FIELDS}
     if spec.table_format == "cdr_table":
         for field in CDR_FIELDS:
@@ -119,6 +126,8 @@ def _row_payload(spec: RegistryInput, row: dict[str, str], row_number: int) -> d
         supervision_tier = "cdr_supervised"
         molecule_key = "cdr:" + sha256_hex("\0".join(cdrs[field] or "" for field in CDR_FIELDS))
         identity_component_id = molecule_key
+        evidence_tier = "direct"
+        training_eligible = holdout_eligible = 1
     elif spec.table_format in {"sequence_table", "unlabeled_table"}:
         vh = _sequence(row.get("vh") or row.get("vh_sequence"), min_length=20)
         vl = _sequence(row.get("vl") or row.get("vl_sequence"), allow_empty=True, min_length=20)
@@ -130,6 +139,22 @@ def _row_payload(spec: RegistryInput, row: dict[str, str], row_number: int) -> d
             supervision_tier = "single_chain_supervised" if supervised else "unlabeled_antibody"
             molecule_key = "vh:" + sha256_hex(vh or "")
         identity_component_id = "vh:" + sha256_hex(vh or "")
+        evidence_tier = "direct" if supervised else "unlabeled"
+        training_eligible = holdout_eligible = int(supervised)
+    elif spec.table_format == "reconstructed_sequence_table":
+        vh, vl, verification = reconstruct_verified_pair(row)
+        vh = _sequence(vh, min_length=20)
+        vl = _sequence(vl, allow_empty=True, min_length=20)
+        if vl:
+            supervision_tier = "paired_fv_supervised"
+            molecule_key = "pair:" + sha256_hex(f"{vh}\0{vl}")
+        else:
+            supervision_tier = "single_chain_supervised"
+            molecule_key = "vh:" + sha256_hex(vh or "")
+        identity_component_id = "vh:" + sha256_hex(vh or "")
+        evidence_tier = "reconstructed_verified"
+        training_eligible = 1
+        holdout_eligible = 0
     else:
         raise ValueError(f"unsupported table format: {spec.table_format}")
 
@@ -171,7 +196,15 @@ def _row_payload(spec: RegistryInput, row: dict[str, str], row_number: int) -> d
         "source_file": str(spec.path.expanduser().resolve()),
         "source_row_number": row_number,
         "assay_context_json": "{}",
-        "provenance_status": "local_consolidated_artifact",
+        "evidence_tier": evidence_tier,
+        "training_eligible": training_eligible,
+        "holdout_eligible": holdout_eligible,
+        "verification_json": json.dumps(verification, sort_keys=True, separators=(",", ":")),
+        "provenance_status": (
+            "deterministic_reconstruction_verified"
+            if evidence_tier == "reconstructed_verified"
+            else "local_consolidated_artifact"
+        ),
         "status": "accepted",
         "exclusion_reason": None,
     }
@@ -258,6 +291,10 @@ def _model_row_payload(row: dict, row_number: int) -> dict:
         "source_file": "project_loader:served_project_rows",
         "source_row_number": row_number,
         "assay_context_json": json.dumps(context, sort_keys=True, separators=(",", ":")),
+        "evidence_tier": "direct",
+        "training_eligible": 1,
+        "holdout_eligible": 1,
+        "verification_json": "{}",
         "provenance_status": "project_loader_with_source_metadata",
         "status": "accepted",
         "exclusion_reason": None,
@@ -269,6 +306,7 @@ _COLUMNS = (
     "endpoint_unit", "endpoint_direction", "supervision_tier", "source_class", "vh", "vl",
     *CDR_FIELDS, "vh_hash", "vl_hash", "pair_hash", "molecule_key", "identity_component_id",
     "split_group", "source_row_hash", "source_file", "source_row_number", "assay_context_json",
+    "evidence_tier", "training_eligible", "holdout_eligible", "verification_json",
     "provenance_status", "status", "exclusion_reason",
 )
 
@@ -303,6 +341,10 @@ def _create_schema(connection: sqlite3.Connection) -> None:
             source_file TEXT NOT NULL,
             source_row_number INTEGER NOT NULL,
             assay_context_json TEXT NOT NULL,
+            evidence_tier TEXT NOT NULL,
+            training_eligible INTEGER NOT NULL CHECK(training_eligible IN (0, 1)),
+            holdout_eligible INTEGER NOT NULL CHECK(holdout_eligible IN (0, 1)),
+            verification_json TEXT NOT NULL,
             provenance_status TEXT NOT NULL,
             status TEXT NOT NULL,
             exclusion_reason TEXT
@@ -374,10 +416,21 @@ def _mark_conflicts_and_duplicates(connection: sqlite3.Connection) -> None:
     connection.execute(
         """
         CREATE TEMP TABLE duplicate_keep AS
-        SELECT MIN(record_id) AS record_id
-        FROM records
-        WHERE status = 'accepted'
-        GROUP BY property, assay_metric, molecule_key, endpoint_value
+        SELECT record_id
+        FROM (
+            SELECT record_id,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY property, assay_metric, molecule_key, endpoint_value
+                       ORDER BY CASE evidence_tier
+                           WHEN 'direct' THEN 0
+                           WHEN 'reconstructed_verified' THEN 1
+                           ELSE 2
+                       END, record_id
+                   ) AS priority
+            FROM records
+            WHERE status = 'accepted'
+        )
+        WHERE priority = 1
         """
     )
     connection.execute("CREATE UNIQUE INDEX duplicate_keep_record ON duplicate_keep(record_id)")
@@ -410,6 +463,19 @@ def _counts(connection: sqlite3.Connection) -> dict:
                 f"SELECT {column}, COUNT(*) FROM records {accepted_where} GROUP BY {column} ORDER BY {column}"
             )
         }
+    report["evidence_counts"] = {
+        name: int(count)
+        for name, count in connection.execute(
+            f"SELECT evidence_tier, COUNT(*) FROM records {accepted_where} "
+            "GROUP BY evidence_tier ORDER BY evidence_tier"
+        )
+    }
+    report["training_eligible_rows"] = scalar(
+        "SELECT COUNT(*) FROM records WHERE status = 'accepted' AND training_eligible = 1"
+    )
+    report["holdout_eligible_rows"] = scalar(
+        "SELECT COUNT(*) FROM records WHERE status = 'accepted' AND holdout_eligible = 1"
+    )
     report["cross_source_exact_vh_groups"] = scalar(
         "SELECT COUNT(*) FROM (SELECT vh_hash FROM records WHERE vh_hash IS NOT NULL "
         "GROUP BY vh_hash HAVING COUNT(DISTINCT source) > 1)"
