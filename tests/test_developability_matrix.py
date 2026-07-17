@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pickle
 import unittest
+import warnings
 
 from model.developability_matrix import (
     assign_group_labels,
@@ -113,9 +114,15 @@ class TestCandidateFitting(unittest.TestCase):
     def test_supported_learners_return_pickleable_calibrated_probabilities(self) -> None:
         featured = self._featured()
         for learner in ("lgbm", "histgb", "ridge"):
-            result = fit_candidate(
-                learner, featured[:30], featured[30:35], featured[35:], 42
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    "error",
+                    message="X does not have valid feature names.*",
+                    category=UserWarning,
+                )
+                result = fit_candidate(
+                    learner, featured[:30], featured[30:35], featured[35:], 42
+                )
             self.assertEqual(len(result["scores"]), 5)
             self.assertTrue(all(0.0 <= score <= 1.0 for score in result["scores"]))
             restored = pickle.loads(pickle.dumps(result["calibrator"]))

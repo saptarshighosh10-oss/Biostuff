@@ -1,9 +1,15 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from tools.multi_expert_gate import evaluate, evaluate_specialists
+from tools.multi_expert_gate import (
+    _comparable_specialists,
+    evaluate,
+    evaluate_specialists,
+)
 
 
 class TestMultiExpertGate(unittest.TestCase):
@@ -53,12 +59,39 @@ class TestMultiExpertGate(unittest.TestCase):
     def test_specialist_gate_never_changes_generalist_metrics(self) -> None:
         decisions = evaluate_specialists(
             {"polyreactivity": {
-                "lib": {"n": 100, "positives": 50, "mean_auc": 0.90}
+                "lib": {
+                    "n": 100,
+                    "positives": 50,
+                    "mean_auc": 0.90,
+                    "mean_router_coverage": 0.90,
+                }
             }},
             {"polyreactivity": {"lib": 0.904}},
         )
         self.assertTrue(decisions["polyreactivity"]["lib"]["experimental_admit"])
         self.assertAlmostEqual(decisions["polyreactivity"]["lib"]["delta_auc"], -0.004)
+
+    def test_specialist_gate_rejects_dormant_router(self) -> None:
+        decisions = evaluate_specialists(
+            {"polyreactivity": {
+                "lib": {
+                    "n": 100,
+                    "positives": 50,
+                    "mean_auc": 0.95,
+                    "mean_router_coverage": 0.10,
+                }
+            }},
+            {"polyreactivity": {"lib": 0.90}},
+        )
+        result = decisions["polyreactivity"]["lib"]
+        self.assertFalse(result["experimental_admit"])
+        self.assertEqual(result["reason"], "route coverage below 80%")
+
+    def test_missing_specialist_baseline_fails_loudly(self) -> None:
+        with TemporaryDirectory() as directory:
+            missing = Path(directory) / "missing.json"
+            with self.assertRaisesRegex(FileNotFoundError, "specialist baseline report"):
+                _comparable_specialists(missing)
 
 
 if __name__ == "__main__":

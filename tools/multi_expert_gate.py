@@ -14,6 +14,7 @@ MIN_MACRO_DELTA = 0.010
 MAX_SOURCE_DROP = 0.030
 MAX_SEED_STD = 0.030
 MAX_SPECIALIST_DROP = 0.005
+MIN_SPECIALIST_ROUTE_COVERAGE = 0.80
 EPSILON = 1e-12
 
 
@@ -95,23 +96,31 @@ def evaluate_specialists(specialists: dict, comparable: dict) -> dict:
                     int(result.get("n", 0)) - int(result.get("positives", 0)),
                 ) >= 10
             )
+            route_coverage = float(result.get("mean_router_coverage", 0.0))
             delta = float(result["mean_auc"]) - float(prior) if prior is not None else None
             property_decisions[source] = {
                 "experimental_admit": bool(
                     enough_rows
                     and delta is not None
                     and delta >= -MAX_SPECIALIST_DROP - EPSILON
+                    and route_coverage >= MIN_SPECIALIST_ROUTE_COVERAGE - EPSILON
                 ),
                 "n": int(result.get("n", 0)),
                 "mean_auc": float(result["mean_auc"]),
+                "mean_router_coverage": route_coverage,
                 "best_comparable_auc": float(prior) if prior is not None else None,
                 "delta_auc": delta,
                 "reason": (
-                    "held within 0.005 of comparable specialist"
+                    "held comparable AUC with at least 80% route coverage"
                     if enough_rows
                     and delta is not None
                     and delta >= -MAX_SPECIALIST_DROP - EPSILON
-                    else "insufficient rows or did not hold comparable specialist AUC"
+                    and route_coverage >= MIN_SPECIALIST_ROUTE_COVERAGE - EPSILON
+                    else (
+                        "route coverage below 80%"
+                        if route_coverage < MIN_SPECIALIST_ROUTE_COVERAGE - EPSILON
+                        else "insufficient rows or did not hold comparable specialist AUC"
+                    )
                 ),
             }
         decisions[property_name] = property_decisions
@@ -120,7 +129,10 @@ def evaluate_specialists(specialists: dict, comparable: dict) -> dict:
 
 def _comparable_specialists(path: Path) -> dict:
     if not path.exists():
-        return {}
+        raise FileNotFoundError(
+            f"specialist baseline report not found: {path}; "
+            "pass --specialist-baseline with an existing head_c report"
+        )
     report = json.loads(path.read_text(encoding="utf-8"))
     return {
         "polyreactivity": {
@@ -197,7 +209,8 @@ def main(argv: list[str] | None = None) -> int:
             prior_text = "unavailable" if prior is None else f"{prior:.3f}"
             print(
                 f"  specialist {property_name}/{source}: "
-                f"{prior_text} -> {decision['mean_auc']:.3f} {status}"
+                f"{prior_text} -> {decision['mean_auc']:.3f} "
+                f"route={decision['mean_router_coverage']:.3f} {status}"
             )
     print("  serving code and GDPa3 were untouched")
     print(f"wrote {args.out.resolve()}")

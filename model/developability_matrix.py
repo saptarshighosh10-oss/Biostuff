@@ -16,6 +16,7 @@ import math
 import random
 import sqlite3
 import statistics
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -356,6 +357,22 @@ def _candidate_model(learner: str, seed: int):
     raise ValueError(f"unsupported learner: {learner}")
 
 
+def predict_positive_probabilities(model, vectors) -> list[float]:
+    """Return positive-class probabilities without LightGBM's list-name warning."""
+    if not vectors:
+        return []
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=(
+                "X does not have valid feature names, but LGBMClassifier was "
+                "fitted with feature names"
+            ),
+            category=UserWarning,
+        )
+        return [float(value) for value in model.predict_proba(vectors)[:, 1]]
+
+
 def _weights(rows: list[dict]) -> list[float]:
     counts: dict[tuple[str, int], int] = defaultdict(int)
     for row in rows:
@@ -444,20 +461,14 @@ def fit_candidate(
     else:
         model.fit(X, y, sample_weight=weights)
 
-    calibration_raw = (
-        [float(value) for value in model.predict_proba(
-            [vector for _, vector in calibration_featured]
-        )[:, 1]]
-        if calibration_featured else []
+    calibration_raw = predict_positive_probabilities(
+        model, [vector for _, vector in calibration_featured]
     )
     calibrator, calibration_method = _platt_calibrator(
         [int(row["target"]) for row, _ in calibration_featured], calibration_raw
     )
-    raw_scores = (
-        [float(value) for value in model.predict_proba(
-            [vector for _, vector in test_featured]
-        )[:, 1]]
-        if test_featured else []
+    raw_scores = predict_positive_probabilities(
+        model, [vector for _, vector in test_featured]
     )
     return {
         "model": model,

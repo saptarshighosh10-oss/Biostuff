@@ -30,6 +30,7 @@ from model.developability_matrix import (
     fit_applicability_index,
     fit_candidate,
     make_featurizer,
+    predict_positive_probabilities,
     score_applicability,
     source_balanced_sample,
     strip_holdout_overlap,
@@ -156,7 +157,7 @@ def _score_models(models: list[dict], vh: str, vl: str) -> tuple[float, float]:
     scores = []
     for item in models:
         vector = _query_vector(item["feature_mode"], vh, vl)
-        raw = float(item["model"].predict_proba([vector])[0, 1])
+        raw = predict_positive_probabilities(item["model"], [vector])[0]
         scores.append(float(item["calibrator"]([raw])[0]))
     if not scores:
         raise ValueError("selected expert has no fitted models")
