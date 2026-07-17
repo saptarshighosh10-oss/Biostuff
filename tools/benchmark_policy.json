@@ -1,0 +1,161 @@
+{
+  "schema_version": "1",
+  "metric_definitions": {
+    "primary": "macro_source_roc_auc",
+    "primary_definition": "Arithmetic mean of ROC AUC computed separately for each assigned held-out source; never a row-weighted pooled mean.",
+    "required": [
+      "source_roc_auc",
+      "source_pr_auc",
+      "catch_rate_at_10pct",
+      "catch_rate_at_15pct",
+      "enrichment_at_10pct",
+      "enrichment_at_15pct",
+      "three_seed_summary",
+      "source_cluster_bootstrap_95pct_ci",
+      "calibration",
+      "subgroup_checks",
+      "ood_abstention"
+    ],
+    "positive_direction": "Higher endpoint value is worse for polyreactivity, aggregation/self-association, and HIC retention.",
+    "locked_validation_rule": "Assign a genuinely new diverse source before labels are used and freeze predictions before reading labels.",
+    "final_rule": "GDPa3 is single-shot final evidence and may not be inspected, downloaded, counted, trained on, or tuned against during development."
+  },
+  "properties": {
+    "polyreactivity": {
+      "source_roles": {
+        "development": [
+          {"name": "aims_mouse", "prior_use": true},
+          {"name": "aims_flu", "prior_use": true},
+          {"name": "shehata2019", "prior_use": true}
+        ],
+        "locked_validation": [],
+        "final": [{"name": "gdpa3", "prior_use": false}]
+      },
+      "baselines": [
+        {
+          "name": "historical_platform_scorecard",
+          "metric": "historical_honest_auc",
+          "path": "results/platform_scorecard.json",
+          "json_pointer": "/served_heads/polyreactivity/honest_auc",
+          "scope": "Historical platform estimate; not the hard library-to-diverse transfer benchmark."
+        },
+        {
+          "name": "hard_library_to_diverse_transfer",
+          "metric": "macro_source_roc_auc",
+          "path": "results/gate_cdr_polyreactivity.json",
+          "json_pointer": "/baseline_mean_auc",
+          "scope": "Library-trained model tested separately on aims_mouse, aims_flu, and shehata2019 after held-out VH removal."
+        }
+      ],
+      "count_evidence": [
+        {
+          "name": "dataset_rows_by_source",
+          "kind": "csv_group_count",
+          "path": "~/Downloads/antibody_sources/polyreactivity_dataset.csv",
+          "column": "source"
+        },
+        {
+          "name": "hard_transfer_test_rows",
+          "kind": "object_field_map",
+          "path": "results/gate_cdr_polyreactivity.json",
+          "json_pointer": "/baseline",
+          "field": "test_n"
+        }
+      ]
+    },
+    "aggregation": {
+      "source_roles": {
+        "development": [
+          {"name": "gdpa1", "prior_use": true},
+          {"name": "gdpa2", "prior_use": true},
+          {"name": "gdpa4.1", "prior_use": true},
+          {"name": "jain2017biophysical", "prior_use": true},
+          {"name": "jain2024assessment", "prior_use": true},
+          {"name": "dotad_jain_et_al", "prior_use": true}
+        ],
+        "locked_validation": [],
+        "final": [{"name": "gdpa3", "prior_use": false}]
+      },
+      "baselines": [
+        {
+          "name": "historical_platform_scorecard",
+          "metric": "historical_honest_auc",
+          "path": "results/platform_scorecard.json",
+          "json_pointer": "/served_heads/aggregation/honest_auc",
+          "scope": "Historical platform estimate."
+        },
+        {
+          "name": "strict_solid_study_ensemble",
+          "metric": "mean_roc_auc_solid_studies",
+          "path": "results/head_b_acsins_ensemble_cdr_h3_plm.json",
+          "json_pointer": "/baseline/mean_auc_solid_studies",
+          "scope": "Strict leakage-free baseline over solid AC-SINS development studies; still development evidence."
+        }
+      ],
+      "count_evidence": [
+        {
+          "name": "evaluation_rows_by_assay",
+          "kind": "json_records",
+          "path": "results/head_b_acsins_ensemble_cdr_h3_plm.json",
+          "json_pointer": "/baseline/per_assay",
+          "fields": ["study", "assay", "n", "n_bad"]
+        }
+      ]
+    },
+    "hydrophobicity": {
+      "source_roles": {
+        "development": [
+          {"name": "gdpa1", "prior_use": true},
+          {"name": "gdpa2", "prior_use": true},
+          {"name": "gdpa4.1", "prior_use": true},
+          {"name": "jain2017_hic", "prior_use": true},
+          {"name": "jetha2019_hic", "prior_use": true},
+          {"name": "roche34_2022", "prior_use": true},
+          {"name": "shanehsazzadeh2023_hic", "prior_use": true},
+          {"name": "shehata2019", "prior_use": true}
+        ],
+        "locked_validation": [],
+        "final": [{"name": "gdpa3", "prior_use": false}]
+      },
+      "baselines": [
+        {
+          "name": "historical_platform_scorecard",
+          "metric": "historical_honest_auc",
+          "path": "results/platform_scorecard.json",
+          "json_pointer": "/served_heads/hydrophobicity/honest_auc",
+          "scope": "Only registered traceable AUC JSON at Phase 0; no newer hard-transfer AUC is claimed."
+        }
+      ],
+      "count_evidence": [
+        {
+          "name": "platform_training_rows_by_source",
+          "kind": "json_value",
+          "path": "results/hic_platform_refresh.json",
+          "json_pointer": "/source_counts"
+        },
+        {
+          "name": "standalone_hic_dataset_rows_by_source",
+          "kind": "csv_group_count",
+          "path": "~/Downloads/antibody_sources/hydrophobicity_dataset.csv",
+          "column": "source"
+        }
+      ]
+    }
+  },
+  "frozen_artifacts": [
+    {"kind": "dataset", "path": "~/Downloads/antibody_sources/polyreactivity_dataset.csv"},
+    {"kind": "dataset", "path": "~/Downloads/antibody_sources/hydrophobicity_dataset.csv"},
+    {"kind": "dataset", "path": "data/external/gdpa/GDPa1_v1.2_20250814.csv"},
+    {"kind": "dataset", "path": "data/external/gdpa/GDPa2.1.xlsx"},
+    {"kind": "dataset", "path": "data/external/gdpa/GDPa4.1_20260616.xlsx"},
+    {"kind": "serving_artifact", "path": "model/saved/platform.pkl"},
+    {"kind": "feature_code", "path": "model/head_b_gbm.py"},
+    {"kind": "feature_code", "path": "model/head_b_acsins_charge.py"},
+    {"kind": "feature_code", "path": "model/cdr_features.py"},
+    {"kind": "feature_code", "path": "model/head_platform.py"},
+    {"kind": "benchmark_report", "path": "results/platform_scorecard.json"},
+    {"kind": "benchmark_report", "path": "results/gate_cdr_polyreactivity.json"},
+    {"kind": "benchmark_report", "path": "results/head_b_acsins_ensemble_cdr_h3_plm.json"},
+    {"kind": "training_manifest", "path": "results/hic_platform_refresh.json"}
+  ]
+}
