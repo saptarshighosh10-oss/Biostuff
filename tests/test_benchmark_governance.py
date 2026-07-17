@@ -9,6 +9,8 @@ from model.benchmark_governance import (
     build_status,
     load_policy,
     read_json_pointer,
+    read_ledger,
+    record_holdout_use,
     validate_policy,
 )
 
@@ -144,6 +146,94 @@ class TestEvidenceStatus(unittest.TestCase):
             self.assertEqual(item["status"], "missing")
             self.assertIsNone(item["value"])
             self.assertIn("absent.json", item["error"])
+
+
+class TestHoldoutLedger(unittest.TestCase):
+    def test_development_use_appends_a_traceable_record(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / "uses.jsonl"
+            evidence = root / "trial.json"
+            evidence.write_text('{"auc": 0.63}\n', encoding="utf-8")
+            record = record_holdout_use(
+                minimal_policy(),
+                ledger_path=ledger,
+                property_name="polyreactivity",
+                source="polyreactivity_dev",
+                experiment_id="exp-001",
+                purpose="fixed development comparison",
+                evidence_path=evidence,
+            )
+            self.assertEqual(record["role"], "development")
+            self.assertEqual(len(record["evidence_sha256"]), 64)
+            self.assertEqual(read_ledger(ledger), [record])
+
+    def test_locked_use_requires_confirmation_and_is_single_shot(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / "uses.jsonl"
+            policy = minimal_policy()
+            policy["properties"]["polyreactivity"]["source_roles"]["locked_validation"] = [
+                {"name": "new_locked", "prior_use": False}
+            ]
+            evidence = root / "trial.json"
+            evidence.write_text("{}\n", encoding="utf-8")
+            arguments = dict(
+                policy=policy,
+                ledger_path=ledger,
+                property_name="polyreactivity",
+                source="new_locked",
+                experiment_id="exp-locked",
+                purpose="one locked evaluation",
+                evidence_path=evidence,
+            )
+            with self.assertRaisesRegex(PolicyError, "confirm_locked_use"):
+                record_holdout_use(**arguments)
+            record_holdout_use(**arguments, confirm_locked_use=True)
+            with self.assertRaisesRegex(PolicyError, "already recorded"):
+                record_holdout_use(
+                    **(arguments | {"experiment_id": "exp-locked-repeat"}),
+                    confirm_locked_use=True,
+                )
+
+    def test_final_use_is_confirmed_and_single_shot(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / "uses.jsonl"
+            evidence = root / "final.json"
+            evidence.write_text("{}\n", encoding="utf-8")
+            arguments = dict(
+                policy=minimal_policy(),
+                ledger_path=ledger,
+                property_name="polyreactivity",
+                source="gdpa3",
+                experiment_id="final-001",
+                purpose="single-shot final evaluation",
+                evidence_path=evidence,
+            )
+            with self.assertRaisesRegex(PolicyError, "confirm_final_use"):
+                record_holdout_use(**arguments)
+            record_holdout_use(**arguments, confirm_final_use=True)
+            report = build_status(arguments["policy"], repo_root=root, ledger_path=ledger)
+            final = report["properties"]["polyreactivity"]["source_roles"]["final"][0]
+            self.assertTrue(final["used"])
+            self.assertFalse(final["prior_use"])
+            with self.assertRaisesRegex(PolicyError, "already recorded"):
+                record_holdout_use(**arguments, confirm_final_use=True)
+
+    def test_unknown_source_is_rejected_before_missing_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaisesRegex(PolicyError, "not assigned"):
+                record_holdout_use(
+                    minimal_policy(),
+                    ledger_path=root / "uses.jsonl",
+                    property_name="polyreactivity",
+                    source="unknown",
+                    experiment_id="exp",
+                    purpose="test",
+                    evidence_path=root / "missing.json",
+                )
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -150,7 +151,93 @@ def read_ledger(path: str | Path) -> list[dict[str, Any]]:
     candidate = Path(path)
     if not candidate.exists():
         return []
-    return [json.loads(line) for line in candidate.read_text(encoding="utf-8").splitlines() if line.strip()]
+    records: list[dict[str, Any]] = []
+    for line_number, raw in enumerate(candidate.read_text(encoding="utf-8").splitlines(), 1):
+        if not raw.strip():
+            continue
+        try:
+            record = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise PolicyError(f"ledger contains invalid JSON at line {line_number}: {candidate}") from exc
+        if not isinstance(record, dict):
+            raise PolicyError(f"ledger line {line_number} is not an object: {candidate}")
+        records.append(record)
+    return records
+
+
+def _source_role(policy: dict[str, Any], property_name: str, source: str) -> str:
+    try:
+        roles = policy["properties"][property_name]["source_roles"]
+    except KeyError as exc:
+        raise PolicyError(f"unknown property: {property_name}") from exc
+    for role, entries in roles.items():
+        if source in {entry["name"] for entry in entries}:
+            return role
+    raise PolicyError(f"{source} is not assigned to {property_name}")
+
+
+def record_holdout_use(
+    policy: dict[str, Any],
+    *,
+    ledger_path: str | Path,
+    property_name: str,
+    source: str,
+    experiment_id: str,
+    purpose: str,
+    evidence_path: str | Path,
+    confirm_locked_use: bool = False,
+    confirm_final_use: bool = False,
+) -> dict[str, Any]:
+    validate_policy(policy)
+    role = _source_role(policy, property_name, source)
+    if role == "locked_validation" and not confirm_locked_use:
+        raise PolicyError("locked-validation use requires confirm_locked_use=True")
+    if role == "final" and not confirm_final_use:
+        raise PolicyError("final use requires confirm_final_use=True")
+    evidence = Path(evidence_path).expanduser().resolve()
+    evidence_hash = file_sha256(evidence)
+    if evidence_hash is None:
+        raise PolicyError(f"evidence file not found: {evidence}")
+    if not experiment_id.strip() or not purpose.strip():
+        raise PolicyError("experiment_id and purpose must be nonempty")
+
+    existing = read_ledger(ledger_path)
+    if role in {"locked_validation", "final"} and any(
+        item.get("property") == property_name and item.get("source") == source
+        for item in existing
+    ):
+        raise PolicyError(f"{role} source {source} already recorded for {property_name}")
+    if role == "final" and any(
+        item.get("source") == source and item.get("experiment_id") != experiment_id.strip()
+        for item in existing
+    ):
+        raise PolicyError(
+            f"final source {source} was already spent by another experiment; "
+            "all property records must share the original experiment_id"
+        )
+
+    record = {
+        "schema_version": SCHEMA_VERSION,
+        "recorded_at": _utc_now(),
+        "property": property_name,
+        "source": source,
+        "role": role,
+        "experiment_id": experiment_id.strip(),
+        "purpose": purpose.strip(),
+        "evidence_path": str(evidence),
+        "evidence_sha256": evidence_hash,
+    }
+    target = Path(ledger_path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    encoded = (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    fd = os.open(target, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o644)
+    try:
+        if os.write(fd, encoded) != len(encoded):
+            raise OSError(f"short write while appending holdout ledger: {target}")
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+    return record
 
 
 def build_status(
@@ -161,17 +248,33 @@ def build_status(
 ) -> dict[str, Any]:
     validate_policy(policy)
     root = Path(repo_root).resolve()
+    ledger = read_ledger(ledger_path)
     report: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": _utc_now(),
         "metric_definitions": policy["metric_definitions"],
         "properties": {},
         "frozen_artifacts": [],
-        "holdout_uses": read_ledger(ledger_path),
+        "holdout_uses": ledger,
     }
     for property_name, property_policy in policy["properties"].items():
+        roles = {
+            role: [
+                {
+                    **entry,
+                    "used": entry["prior_use"]
+                    or any(
+                        record.get("property") == property_name
+                        and record.get("source") == entry["name"]
+                        for record in ledger
+                    ),
+                }
+                for entry in entries
+            ]
+            for role, entries in property_policy["source_roles"].items()
+        }
         property_report = {
-            "source_roles": property_policy["source_roles"],
+            "source_roles": roles,
             "baselines": [],
             "counts": [],
         }
