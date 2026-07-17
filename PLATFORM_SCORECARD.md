@@ -9,7 +9,7 @@ on antibodies the model has **never seen** (leave-one-dataset-out), with any sha
 antibodies removed from training so nothing leaks. Scores are **AUC** = the chance it
 correctly picks the worse of two antibodies (0.5 = coin flip, 1.0 = perfect).
 
-## The three validated properties
+## Historical served estimates
 
 | Property | What it means | Honest AUC (unseen antibodies) |
 |---|---|---|
@@ -31,6 +31,37 @@ GDPa3 remains the unspent, single-shot final source for all three properties. It
 must not be inspected, downloaded, counted, trained on, or tuned against during
 development. No locked-validation source is assigned yet.
 
+## Current three-seed development matrix (2026-07-17)
+
+The new matrix uses the unified registry, source/class caps, exact VH/VL removal,
+90% positional VH identity filtering for equal-length chains, train-only Platt
+calibration, seeds 42/43/44, and macro source AUC. These are development results,
+not locked validation.
+
+| Property | Best development arm | Macro source AUC | Held-out source AUCs | Promotion |
+|---|---|---:|---|---|
+| Polyreactivity | CDR-aware, library-only, paired Fv | **0.671** | AIMS flu 0.611; AIMS mouse 0.666; Shehata 0.737 | **Fail** |
+| Aggregation | Frozen PLM, diverse-only, paired Fv | **0.526** | GDPa4.1 0.546; Jain 2017 0.507 | **Fail** |
+| Hydrophobicity | Biophysical + charge, mixed paired/VH training | **0.757** | GDPa1 0.769; GDPa4.1 0.811; Jain 2017 0.828; Jetha 2019 0.713; Shehata 0.665 | **Fail** |
+
+Hydrophobicity is the closest to lab-ready and averages 2.53x enrichment at a
+15% screening budget, but it is still below the preregistered 0.80 macro AUC and
+has no locked-validation source. Polyreactivity also fails the minimum per-source
+AUC and 2x enrichment checks. Aggregation fails the transfer bar in this comparable
+all-assay matrix. Therefore `model/head_platform.py` and the serving artifact were
+not changed.
+
+The saved 66,558 held-out prediction rows were independently recomputed: 102
+experiment-seed runs, 255 source evaluations, and 450 assay evaluations matched
+the report and SHA-256 exactly. Across the 22,186 seed-consolidated records,
+20,095 are in-domain, 1,127 borderline, and 964 out-of-domain; mean seed
+disagreement is 0.0315 (95th percentile 0.0857).
+
+The Colab runner is ready for frozen, adapter, and full fine-tuning, but no new
+GPU result is claimed here. Local preflight found 519,711 raw rows, rejected 11
+invalid-sequence rows, and prepared a 24,165-row balanced library arm. AIMS flu
+is explicitly reported as a tiny 97-row holdout.
+
 Run the traceable status report:
 
 ```bash
@@ -38,9 +69,8 @@ cd /Users/saptarshighosh/Biostuff
 /Users/saptarshighosh/Biostuff/.venv/bin/python -m tools.benchmark_status
 ```
 
-In plain terms: **~7 times out of 10** it correctly flags the riskier antibody — on
-molecules from a lab it has never worked with. That catches roughly **2× more problem
-antibodies** than random screening.
+The historical served estimates remain useful context, but promotion decisions now
+use the stricter current matrix above rather than the older three-number mean.
 
 ## What was tested and honestly rejected
 
@@ -75,4 +105,7 @@ antibodies** than random screening.
 - Thermostability *is* possible later, but needs heavy physics-based stability modeling.
 
 _Artifacts: `model/saved/platform.pkl`, `results/platform_scorecard.json`,
-`results/head_developability_honest.json`._
+`results/developability_baseline_matrix.json`,
+`results/developability_baseline_predictions.csv`,
+`results/developability_uncertainty.json`, and
+`results/developability_promotion_gate.json`._
