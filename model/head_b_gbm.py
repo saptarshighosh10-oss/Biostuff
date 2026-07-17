@@ -29,6 +29,7 @@ from model.features import extract_from_sequence, features_to_vector
 from model.metrics import spearman_rho, mae, topk_enrichment, group_bootstrap_ci
 from model.plan_c_cv import composite_group_key, grouped_folds, assert_no_group_leakage
 from data.cohort import is_head_b_aggregation_row
+from features import plm
 
 # GDPa ships its own homology-cluster fold column; honor it over a recomputed
 # split when present (design: leave-homology-cluster-out).
@@ -59,17 +60,30 @@ def _plm_feature_width() -> int:
     return _PLM_FEATURE_WIDTH
 
 
-def build_feature_vector(row: dict, use_plm: bool = True) -> list[float]:
-    """[ PLM | biophysical ] for one row with a fixed width on cache misses."""
+def build_feature_vector(
+    row: dict,
+    use_plm: bool = True,
+    add_paired_ablang: bool = False,
+) -> list[float]:
+    """Build ``[base PLM | paired AbLang2 | flags | biophysical]`` features."""
     seq = row.get("variant_sequence") or row.get("vh_sequence") or row.get("sequence", "")
     biophysical = features_to_vector(extract_from_sequence(seq, row.get("mutations", [])))
-    if not use_plm:
-        return biophysical
-    from features.plm import embed_combined
-    try:
-        return list(embed_combined(seq)) + biophysical
-    except RuntimeError:
-        return [0.0] * _plm_feature_width() + biophysical
+    features: list[float] = []
+    if use_plm:
+        try:
+            features.extend(plm.embed_combined(seq))
+        except RuntimeError:
+            features.extend([0.0] * _plm_feature_width())
+    if add_paired_ablang:
+        vh = str(row.get("vh_sequence") or "").strip()
+        vl = str(row.get("vl_sequence") or "").strip()
+        if vh and vl:
+            features.extend(plm.embed_ablang2_pairs([(vh, vl)])[0])
+            features.append(1.0)
+        else:
+            features.extend([0.0] * plm.ABLANG2_SEQUENCE_CODING_WIDTH)
+            features.append(0.0)
+    return features + biophysical
 
 
 def _group_key(row: dict) -> str:

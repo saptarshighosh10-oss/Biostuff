@@ -84,7 +84,8 @@ def assay_context_features(row: dict) -> list[float]:
 def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = BAD_FRACTION,
                  add_charge: bool = False, add_struct: bool = False,
                  struct_path: str = "data/external/structures/structure_features_v2.csv",
-                 add_assay_context: bool = False, add_cdr_h3: bool = False) -> dict:
+                 add_assay_context: bool = False, add_cdr_h3: bool = False,
+                 add_paired_ablang: bool = False) -> dict:
     rows = _acsins_rows(include_gdpa)
     if add_charge:
         from model.head_b_acsins_charge import charge_features
@@ -120,7 +121,11 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
         ck = json.dumps(cache_key, sort_keys=True)
         v = base_cache.get(ck)
         if v is None:
-            v = build_feature_vector(r, use_plm)
+            v = build_feature_vector(
+                r,
+                use_plm=use_plm,
+                add_paired_ablang=add_paired_ablang,
+            )
             base_cache[ck] = v
         v = list(v)
         if add_charge:
@@ -170,6 +175,8 @@ def run_ensemble(use_plm: bool = True, include_gdpa: bool = True, frac: float = 
         features += "+assay_context"
     if add_cdr_h3:
         features += "+cdr_h3"
+    if add_paired_ablang:
+        features += "+paired_ablang2"
     return {
         "head": "acsins_ensemble_self_association",
         "features": features,

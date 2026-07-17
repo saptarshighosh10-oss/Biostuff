@@ -22,6 +22,8 @@ from pathlib import Path
 
 MODEL_TAG_ESM2 = "esm2_t33_650M"
 MODEL_TAG_ABLANG2 = "ablang2"
+MODEL_TAG_ABLANG2_PAIRED = "ablang2_pair"
+ABLANG2_SEQUENCE_CODING_WIDTH = 480
 
 ESM2_MODEL_ID = "facebook/esm2_t33_650M_UR50D"
 
@@ -116,6 +118,24 @@ def _run_ablang2(sequences: list[str], device: str = "auto") -> list[list[float]
     return [list(map(float, v)) for v in vecs]
 
 
+def _run_ablang2_pairs(
+    pairs: list[tuple[str, str]], device: str = "auto"
+) -> list[list[float]]:
+    """Embed explicit heavy/light pairs with AbLang2's paired interface."""
+    try:
+        import ablang2
+    except ImportError as e:
+        raise RuntimeError(
+            f"Paired AbLang2 embedding requires 'ablang2' (missing: "
+            f"{getattr(e, 'name', e)}). Install: pip install ablang2"
+        ) from e
+
+    model = ablang2.pretrained(device=_pick_device(device))
+    model.freeze()
+    vecs = model([[vh, vl] for vh, vl in pairs], mode="seqcoding")
+    return [list(map(float, vector)) for vector in vecs]
+
+
 # --- cache-first embedding API -----------------------------------------------
 
 def _embed_with_cache(sequences, model_tag, runner, device):
@@ -148,6 +168,42 @@ def embed_esm2(sequences: list[str], device: str = "auto") -> list[list[float]]:
 def embed_ablang2(sequences: list[str], device: str = "auto") -> list[list[float]]:
     """Cache-first AbLang2 embeddings; runs the model only for cache misses."""
     return _embed_with_cache(sequences, MODEL_TAG_ABLANG2, _run_ablang2, device)
+
+
+def ablang2_pair_cache_key(vh: str, vl: str) -> str:
+    """Collision-free serialized pair key used beneath the paired model tag."""
+    return json.dumps([vh, vl], ensure_ascii=True, separators=(",", ":"))
+
+
+def embed_ablang2_pairs(
+    pairs: list[tuple[str, str]], device: str = "auto"
+) -> list[list[float]]:
+    """Cache-first paired AbLang2 embeddings for explicit ``(VH, VL)`` inputs."""
+    results: list[list[float] | None] = [None] * len(pairs)
+    missing_pairs: list[tuple[str, str]] = []
+    missing_indexes: list[int] = []
+    for index, pair in enumerate(pairs):
+        key = ablang2_pair_cache_key(*pair)
+        cached = load_cached(MODEL_TAG_ABLANG2_PAIRED, key)
+        if cached is None:
+            missing_pairs.append(pair)
+            missing_indexes.append(index)
+        else:
+            results[index] = cached
+
+    if missing_pairs:
+        unique_pairs = list(dict.fromkeys(missing_pairs))
+        vectors = _run_ablang2_pairs(unique_pairs, device)
+        vector_by_pair = dict(zip(unique_pairs, vectors))
+        for pair, vector in vector_by_pair.items():
+            save_cached(
+                MODEL_TAG_ABLANG2_PAIRED,
+                ablang2_pair_cache_key(*pair),
+                vector,
+            )
+        for index, pair in zip(missing_indexes, missing_pairs):
+            results[index] = vector_by_pair[pair]
+    return results  # type: ignore[return-value]
 
 
 def embed_combined(sequence: str) -> list[float]:
