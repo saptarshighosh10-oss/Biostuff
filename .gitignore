@@ -10,6 +10,7 @@ model/saved/
 data/cache/
 results/*.tsv
 results/*.txt
+results/*.sqlite
 results/*_progress.json
 
 # Rebuildable ProteinGym partitions are intentionally kept out of Git.
