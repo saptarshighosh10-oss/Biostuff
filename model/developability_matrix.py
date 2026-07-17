@@ -215,6 +215,9 @@ def _row_from_sql(row: sqlite3.Row) -> dict:
         "endpoint_value": float(row["endpoint_value"]),
         "endpoint_direction": row["endpoint_direction"],
         "supervision_tier": row["supervision_tier"],
+        "evidence_tier": row["evidence_tier"],
+        "training_eligible": bool(row["training_eligible"]),
+        "holdout_eligible": bool(row["holdout_eligible"]),
         "vh": row["vh"] or "",
         "vl": row["vl"] or "",
         "molecule_key": row["molecule_key"],
@@ -227,7 +230,8 @@ def _row_from_sql(row: sqlite3.Row) -> dict:
 
 _SELECT_COLUMNS = (
     "record_id,source,source_class,property,assay_metric,label_type,endpoint_value,"
-    "endpoint_direction,supervision_tier,vh,vl,molecule_key,split_group,cdr_h1,cdr_h2,cdr_h3"
+    "endpoint_direction,supervision_tier,evidence_tier,training_eligible,holdout_eligible,"
+    "vh,vl,molecule_key,split_group,cdr_h1,cdr_h2,cdr_h3"
 )
 
 
@@ -243,20 +247,25 @@ def load_property_rows(
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         metadata = connection.execute(
-            "SELECT source,supervision_tier,assay_metric,label_type,COUNT(*) n,"
+            "SELECT source,supervision_tier,evidence_tier,training_eligible,holdout_eligible,"
+            "assay_metric,label_type,COUNT(*) n,"
             "MIN(endpoint_value) lo,MAX(endpoint_value) hi,COUNT(DISTINCT endpoint_value) distinct_n "
             "FROM records WHERE status='accepted' AND property=? "
-            "GROUP BY source,supervision_tier,assay_metric,label_type "
-            "ORDER BY source,supervision_tier,assay_metric,label_type",
+            "AND (training_eligible=1 OR holdout_eligible=1) "
+            "GROUP BY source,supervision_tier,evidence_tier,training_eligible,holdout_eligible,"
+            "assay_metric,label_type "
+            "ORDER BY source,supervision_tier,evidence_tier,assay_metric,label_type",
             (property_name,),
         ).fetchall()
         for group in metadata:
             params = (
                 property_name, group["source"], group["supervision_tier"],
+                group["evidence_tier"], group["training_eligible"], group["holdout_eligible"],
                 group["assay_metric"], group["label_type"],
             )
             where = (
                 "status='accepted' AND property=? AND source=? AND supervision_tier=? "
+                "AND evidence_tier=? AND training_eligible=? AND holdout_eligible=? "
                 "AND assay_metric=? AND label_type=?"
             )
             is_large_binary = (
@@ -284,6 +293,9 @@ def load_property_rows(
             manifest_groups.append({
                 "source": group["source"],
                 "tier": group["supervision_tier"],
+                "evidence_tier": group["evidence_tier"],
+                "training_eligible": bool(group["training_eligible"]),
+                "holdout_eligible": bool(group["holdout_eligible"]),
                 "assay": group["assay_metric"],
                 "available_n": int(group["n"]),
                 "loaded_n": len(converted),
@@ -588,6 +600,19 @@ def _training_arm_rows(rows: list[dict], arm: str) -> list[dict]:
     raise ValueError(f"unsupported training arm: {arm}")
 
 
+def eligible_split(rows: list[dict], held_source: str) -> tuple[list[dict], list[dict]]:
+    """Apply evidence eligibility before supervision-tier and arm filters."""
+    train = [
+        row for row in rows
+        if row["source"] != held_source and row["training_eligible"]
+    ]
+    test = [
+        row for row in rows
+        if row["source"] == held_source and row["holdout_eligible"]
+    ]
+    return train, test
+
+
 def _run_configuration(
     *,
     property_name: str,
@@ -607,14 +632,13 @@ def _run_configuration(
     key = f"{property_name}:{feature_mode}:{training_arm}:{'+'.join(training_tiers)}:{test_tier}"
     per_source = []
     for held_source in held_sources:
-        test = [row for row in rows
-                if row["source"] == held_source and row["supervision_tier"] == test_tier]
+        eligible_train, eligible_test = eligible_split(rows, held_source)
+        test = [row for row in eligible_test if row["supervision_tier"] == test_tier]
         cache_key = (held_source, training_arm, training_tiers, test_tier, seed)
         cached_overlap = overlap_cache.get(cache_key)
         if cached_overlap is None:
             eligible = _training_arm_rows(
-                [row for row in rows
-                 if row["source"] != held_source and row["supervision_tier"] in training_tiers],
+                [row for row in eligible_train if row["supervision_tier"] in training_tiers],
                 training_arm,
             )
             raw_train = source_balanced_sample(
@@ -777,7 +801,7 @@ def run_matrix(
                 cdr_sources = sorted({
                     str(row["source"])
                     for row in rows
-                    if row["supervision_tier"] == "cdr_supervised"
+                    if row["supervision_tier"] == "cdr_supervised" and row["holdout_eligible"]
                 })
                 experiments.append(_run_configuration(
                     property_name=property_name,
@@ -813,6 +837,7 @@ def run_matrix(
             "GDPa3 was not loaded or inspected.",
             "Frozen PLM comparisons require at least 80% real cache coverage on train and test.",
             "Single-chain and CDR-only evidence is auxiliary and cannot promote the paired-Fv head.",
+            "Verified reconstructed evidence may train but is never eligible for held-out evaluation.",
         ],
     }
 

@@ -5,6 +5,7 @@ import unittest
 from model.developability_matrix import (
     assign_group_labels,
     classification_metrics,
+    eligible_split,
     source_balanced_sample,
     strip_holdout_overlap,
 )
@@ -69,6 +70,21 @@ class TestDevelopabilityMatrix(unittest.TestCase):
         second = source_balanced_sample(rows, max_per_source_class=3, seed=42)
         self.assertEqual([item["record_id"] for item in first], [item["record_id"] for item in second])
         self.assertEqual(len(first), 12)
+
+    def test_eligibility_keeps_reconstructions_out_of_holdouts(self) -> None:
+        rows = [
+            {"record_id": "direct-held", "source": "held",
+             "training_eligible": 1, "holdout_eligible": 1},
+            {"record_id": "reconstructed-held", "source": "held",
+             "training_eligible": 1, "holdout_eligible": 0},
+            {"record_id": "unlabeled-train", "source": "train",
+             "training_eligible": 0, "holdout_eligible": 0},
+            {"record_id": "reconstructed-train", "source": "train",
+             "training_eligible": 1, "holdout_eligible": 0},
+        ]
+        train, test = eligible_split(rows, "held")
+        self.assertEqual([item["record_id"] for item in train], ["reconstructed-train"])
+        self.assertEqual([item["record_id"] for item in test], ["direct-held"])
 
     def test_metrics_report_auc_pr_screening_and_calibration(self) -> None:
         metrics = classification_metrics([0, 0, 1, 1], [0.1, 0.2, 0.8, 0.9])
