@@ -1080,9 +1080,9 @@ def main(argv: list[str] | None = None) -> int:
     artifact = train_experimental_artifact(
         rows_by_property, report, args.artifact, args.max_per_source_class
     )
-    report["predictions"] = str(args.predictions.resolve())
+    report["predictions"] = str(args.predictions)
     report["prediction_rows"] = prediction_count
-    report["artifact"] = str(args.artifact.resolve())
+    report["artifact"] = str(args.artifact)
     report["artifact_properties"] = sorted(artifact["properties"])
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

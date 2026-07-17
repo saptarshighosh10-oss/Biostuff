@@ -57,6 +57,65 @@ the report and SHA-256 exactly. Across the 22,186 seed-consolidated records,
 20,095 are in-domain, 1,127 borderline, and 964 out-of-domain; mean seed
 disagreement is 0.0315 (95th percentile 0.0857).
 
+## Routed multi-expert experiment (2026-07-17)
+
+This experiment tested whether nested learner selection and sequence-only family
+routing could preserve the high library-specialist results while improving
+unseen-source generalization. Baseline and trial below use the exact same outer
+records. They are directly comparable to each other, but not interchangeable
+with differently filtered historical rows elsewhere in this scorecard.
+
+| Property | Fixed-record baseline | Routed trial | Delta | Development decision | Serving decision |
+|---|---:|---:|---:|---|---|
+| Aggregation | 0.508 | 0.508 | +0.000 | Quarantined | Not eligible |
+| Hydrophobicity | 0.744 | **0.756** | **+0.012** | Accepted experimentally | Not eligible |
+| Polyreactivity | 0.668 | 0.666 | -0.002 | Quarantined | Not eligible |
+
+Hydrophobicity improved on four of five held sources and held on the fifth:
+GDPa1 0.706→0.706, GDPa4.1 0.810→0.815, Jain 2017 HIC
+0.800→0.820, Jetha 2019 HIC 0.717→0.735, and Shehata 2019
+0.685→0.703. Mean enrichment at 15% improved from 2.417x to 2.511x,
+and seed-to-seed macro AUC standard deviation was 0.0072. This is a real
+development gain, but it remains below the preregistered 0.80 serving bar.
+
+Polyreactivity did not improve: AIMS flu held at 0.605, AIMS mouse declined
+0.664→0.658, and Shehata held at 0.735. Aggregation selected the same
+biophysical LightGBM baseline in every outer fold, so the apparent ensemble
+added no value and was quarantined.
+
+Known-family specialists were gated separately from generalists:
+
+| Specialist | Historical AUC | Trial AUC | Conservative route coverage | Decision |
+|---|---:|---:|---:|---|
+| EMI | 0.948 | 0.948 | 100.0% | Accepted experimentally |
+| ISO | 0.699 | 0.660 | 100.0% | Quarantined: AUC regressed |
+| Tessier library 1 | 0.984 | 0.980 | 1.2% | Quarantined: router mostly dormant |
+| Tessier library 2 | 0.982 | 0.980 | 2.1% | Quarantined: router mostly dormant |
+
+IGG was not evaluated as a specialist because the deduplicated registry slice
+has only 57 rows and 9 positive labels, below the preregistered minimum of 10
+per class. A separate routing audit found that even 64 conservative Tessier VH
+references cover only about 10–13% of those libraries at 90% identity. The
+threshold was not relaxed because doing so could misroute unrelated diverse
+antibodies.
+
+The 10,428-row prediction ledger was independently recomputed from scratch:
+78 source/mode and 132 assay/mode metric checks matched the JSON report exactly.
+Its SHA-256 is
+`98e1f5caf62217dc29666ad2970a3939384b0c64e06b78dad945e932f53c75f5`.
+The experimental artifact loaded successfully and a real VH-only EMI query
+routed polyreactivity to the EMI specialist while aggregation and HIC used the
+diverse generalists. Across 3,476 unique held-out records, 3,321 were in-domain,
+102 borderline, and 53 out-of-domain; mean seed disagreement was 0.0326 and the
+95th percentile was 0.0885.
+
+Serving unchanged: no genuinely locked validation source is assigned; GDPa3
+remains untouched. The research-only outputs are
+`model/saved/platform_experimental.pkl`,
+`results/developability_multi_expert.json`,
+`results/developability_multi_expert_predictions.csv`, and
+`results/developability_multi_expert_gate.json`.
+
 The Colab runner is ready for frozen, adapter, and full fine-tuning, but no new
 GPU result is claimed here. Local preflight found 519,711 raw rows, rejected 11
 invalid-sequence rows, and prepared a 24,165-row balanced library arm. AIMS flu

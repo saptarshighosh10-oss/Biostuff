@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from data.run_manifest import file_sha256
 from model.benchmark_governance import load_policy
 from tools.promotion_gate import evaluate as evaluate_serving
 
@@ -182,6 +183,10 @@ def main(argv: list[str] | None = None) -> int:
         "schema_version": "1",
         "decisions": decisions,
         "specialists": specialist_decisions,
+        "specialist_baseline": {
+            "filename": args.specialist_baseline.name,
+            "sha256": file_sha256(args.specialist_baseline),
+        },
         "serving_modified": False,
         "gdpa3_touched": False,
     }
