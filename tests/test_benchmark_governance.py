@@ -4,7 +4,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from model.benchmark_governance import PolicyError, load_policy, validate_policy
+from model.benchmark_governance import (
+    PolicyError,
+    build_status,
+    load_policy,
+    read_json_pointer,
+    validate_policy,
+)
 
 
 def minimal_policy() -> dict:
@@ -66,6 +72,78 @@ class TestPolicyValidation(unittest.TestCase):
             path.write_text("not json", encoding="utf-8")
             with self.assertRaisesRegex(PolicyError, "valid JSON"):
                 load_policy(path)
+
+
+class TestEvidenceStatus(unittest.TestCase):
+    def test_json_pointer_reads_nested_values_and_rejects_missing_fields(self) -> None:
+        payload = {"a": {"b": [10, {"c": 0.625}]}}
+        self.assertEqual(read_json_pointer(payload, "/a/b/1/c"), 0.625)
+        with self.assertRaisesRegex(PolicyError, "JSON pointer"):
+            read_json_pointer(payload, "/a/missing")
+
+    def test_status_resolves_values_hashes_and_streamed_csv_counts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            evidence = root / "evidence.json"
+            rows = root / "rows.csv"
+            artifact = root / "artifact.bin"
+            evidence.write_text(
+                '{"score": 0.625, "counts": {"heldout": {"test_n": 97}}}\n',
+                encoding="utf-8",
+            )
+            rows.write_text("source,label\na,0\na,1\nb,1\n", encoding="utf-8")
+            artifact.write_bytes(b"frozen")
+            policy = minimal_policy()
+            prop = policy["properties"]["polyreactivity"]
+            prop["baselines"] = [
+                {
+                    "name": "hard_transfer",
+                    "metric": "macro_source_roc_auc",
+                    "path": "evidence.json",
+                    "json_pointer": "/score",
+                    "scope": "test",
+                }
+            ]
+            prop["count_evidence"] = [
+                {
+                    "name": "rows",
+                    "kind": "csv_group_count",
+                    "path": "rows.csv",
+                    "column": "source",
+                }
+            ]
+            policy["frozen_artifacts"] = [{"kind": "test", "path": "artifact.bin"}]
+
+            report = build_status(policy, repo_root=root, ledger_path=root / "uses.jsonl")
+
+            baseline = report["properties"]["polyreactivity"]["baselines"][0]
+            self.assertEqual(baseline["value"], 0.625)
+            self.assertEqual(baseline["status"], "ok")
+            self.assertEqual(
+                report["properties"]["polyreactivity"]["counts"][0]["value"],
+                {"a": 2, "b": 1},
+            )
+            self.assertEqual(report["frozen_artifacts"][0]["size_bytes"], 6)
+            self.assertEqual(len(report["frozen_artifacts"][0]["sha256"]), 64)
+
+    def test_missing_evidence_is_reported_not_fabricated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            policy = minimal_policy()
+            policy["properties"]["hydrophobicity"]["baselines"] = [
+                {
+                    "name": "missing",
+                    "metric": "roc_auc",
+                    "path": "absent.json",
+                    "json_pointer": "/auc",
+                    "scope": "test",
+                }
+            ]
+            report = build_status(policy, repo_root=root, ledger_path=root / "uses.jsonl")
+            item = report["properties"]["hydrophobicity"]["baselines"][0]
+            self.assertEqual(item["status"], "missing")
+            self.assertIsNone(item["value"])
+            self.assertIn("absent.json", item["error"])
 
 
 if __name__ == "__main__":
