@@ -38,6 +38,7 @@ MIN_CLASS_ROWS = 3
 FEATURE_MODES = (
     "biophysical_charge",
     "paired_biophysical_charge",
+    "paired_interaction_biophysical_charge",
     "cdr_aware",
     "frozen_plm",
 )
@@ -673,6 +674,36 @@ def _feature_row(row: dict) -> dict:
     }
 
 
+def _paired_chain_interactions(
+    vh: str,
+    vl: str,
+    heavy: list[float],
+    light: list[float],
+) -> list[float]:
+    """Return fixed whole-Fv composition and chain-imbalance descriptors."""
+    if not vl:
+        return [0.0] * 21
+    total_length = len(vh) + len(vl)
+    average_indexes = (0, 2, 4, 5, 6, 8)
+    interaction = []
+    for index in average_indexes:
+        interaction.extend([
+            (heavy[index] * len(vh) + light[index] * len(vl)) / total_length,
+            abs(heavy[index] - light[index]),
+        ])
+    for index in (3, 7, 9):
+        interaction.extend([
+            max(heavy[index], light[index]),
+            abs(heavy[index] - light[index]),
+        ])
+    interaction.extend([
+        len(vh) / 150.0,
+        len(vl) / 150.0,
+        abs(len(vh) - len(vl)) / 150.0,
+    ])
+    return interaction
+
+
 def make_featurizer(
     mode: str,
     baseline_cache: dict[str, list[float]] | None = None,
@@ -693,7 +724,11 @@ def make_featurizer(
             shared_baseline[record_id] = baseline
         if mode == "biophysical_charge":
             vector: list[float] | None = baseline
-        elif mode == "paired_biophysical_charge":
+        elif mode in {
+            "paired_biophysical_charge",
+            "paired_interaction_biophysical_charge",
+        }:
+            vh = str(row.get("vh") or "")
             vl = str(row.get("vl") or "")
             light = build_feature_vector(
                 {
@@ -703,7 +738,12 @@ def make_featurizer(
                 },
                 use_plm=False,
             )
-            vector = baseline + light + [float(bool(vl))]
+            interaction = (
+                _paired_chain_interactions(vh, vl, baseline, light)
+                if mode == "paired_interaction_biophysical_charge"
+                else []
+            )
+            vector = baseline + light + interaction + [float(bool(vl))]
         elif mode == "cdr_aware":
             vector = baseline + cdr_feature_vector(model_row, "heavy_all")
         else:

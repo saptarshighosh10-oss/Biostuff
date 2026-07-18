@@ -105,6 +105,30 @@ HYBRID_WEIGHT_SPECS = SOURCE_WEIGHT_SPECS + (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+INTERACTION_BEST = 0.7931685835411875
+INTERACTION_SPECS = HYBRID_WEIGHT_SPECS + (
+    CandidateSpec(
+        "paired_interaction_rank_lgbm",
+        "paired_interaction_biophysical_charge",
+        "mixed",
+        "rank_lgbm",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+    CandidateSpec(
+        "paired_interaction_rank_lgbm_source",
+        "paired_interaction_biophysical_charge",
+        "mixed",
+        "rank_lgbm_source",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+    CandidateSpec(
+        "paired_interaction_rank_lgbm_hybrid",
+        "paired_interaction_biophysical_charge",
+        "mixed",
+        "rank_lgbm_hybrid",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
 def run(
@@ -115,6 +139,7 @@ def run(
     rank_ensemble: bool = False,
     source_weight: bool = False,
     hybrid_weight: bool = False,
+    interaction: bool = False,
 ) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
@@ -127,7 +152,9 @@ def run(
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
-    if hybrid_weight:
+    if interaction:
+        specs, current_best = INTERACTION_SPECS, INTERACTION_BEST
+    elif hybrid_weight:
         specs, current_best = HYBRID_WEIGHT_SPECS, HYBRID_WEIGHT_BEST
     elif source_weight:
         specs, current_best = SOURCE_WEIGHT_SPECS, SOURCE_WEIGHT_BEST
@@ -155,7 +182,9 @@ def run(
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
     experiment = (
-        "hic_continuous_rank_hybrid_weight"
+        "hic_paired_chain_interactions"
+        if interaction
+        else "hic_continuous_rank_hybrid_weight"
         if hybrid_weight
         else "hic_continuous_rank_source_weight"
         if source_weight
@@ -168,7 +197,9 @@ def run(
         else "hic_paired_chain_biophysical"
     )
     hypothesis = (
-        "Geometric midpoint weighting retains macro HIC gain without sacrificing the Jetha source"
+        "Explicit whole-Fv composition and VH/VL imbalance improve HIC transfer"
+        if interaction
+        else "Geometric midpoint weighting retains macro HIC gain without sacrificing the Jetha source"
         if hybrid_weight
         else "Source-only weighting preserves full HIC rank information better than binary class balancing"
         if source_weight
@@ -204,6 +235,11 @@ def main(argv: list[str] | None = None) -> int:
         "--database",
         type=Path,
         default=Path("results/developability_registry.sqlite"),
+    )
+    parser.add_argument(
+        "--interaction",
+        action="store_true",
+        help="add fixed whole-Fv composition and VH/VL imbalance candidates",
     )
     parser.add_argument(
         "--hybrid-weight",
@@ -247,6 +283,7 @@ def main(argv: list[str] | None = None) -> int:
         args.rank_ensemble,
         args.source_weight,
         args.hybrid_weight,
+        args.interaction,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(

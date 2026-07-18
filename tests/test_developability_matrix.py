@@ -174,6 +174,20 @@ class TestCandidateFitting(unittest.TestCase):
         self.assertEqual(missing[-1], 0.0)
         self.assertNotEqual(paired, missing)
 
+    def test_paired_interactions_add_fixed_whole_fv_descriptors(self) -> None:
+        base = row("interaction", "a", 1, target=1)
+        paired = make_featurizer("paired_biophysical_charge")(base)
+        interaction = make_featurizer(
+            "paired_interaction_biophysical_charge"
+        )(base)
+        missing = make_featurizer(
+            "paired_interaction_biophysical_charge"
+        )({**base, "vl": ""})
+        self.assertEqual(len(interaction), len(paired) + 21)
+        self.assertEqual(interaction[-1], 1.0)
+        self.assertEqual(missing[-1], 0.0)
+        self.assertTrue(all(value == 0.0 for value in missing[-22:-1]))
+
 
 if __name__ == "__main__":
     unittest.main()
