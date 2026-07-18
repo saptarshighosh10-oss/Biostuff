@@ -33,3 +33,21 @@
   unchanged.
 - End condition reached for this loop: hydrophobicity exceeded the preregistered
   0.80 development goal. Polyreactivity remains 0.6715 and aggregation 0.5264.
+
+## 2026-07-18 05:30 UTC — confirmation corrected the HIC claim
+
+- The 0.8093 HIC development result did not survive the new selection-isolated
+  Shehata confirmation. With train-only Platt calibration, the interaction
+  family scored 0.7388 on Shehata versus 0.7486 without the interactions; the
+  combined macro-source AUC was 0.7820. The HIC 0.85 stretch is stopped rather
+  than tuned against this failure.
+- Aggregation continuous-rank and molecule-consensus trials were quarantined.
+  They scored 0.4855 and 0.5124, respectively, below the registered 0.5264
+  development best.
+- Reliable heavy-chain CDR1+CDR3 features parsed at 94.8% to 98.4% by source,
+  but polyreactivity transfer reached only 0.6645, below the 0.6665 gate floor
+  and the registered 0.6715 best. The experiment was reverted as a null result.
+- A fixed domain/representation polyreactivity trial is running. It tests
+  library-only biophysics and diverse/mixed CDR learners under the same nested
+  whole-source holdouts; its candidate menu and gate were fixed before launch.
+- GDPa3 remains unspent, and production serving files remain unchanged.
