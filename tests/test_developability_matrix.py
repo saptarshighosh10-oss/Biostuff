@@ -10,6 +10,7 @@ from model.developability_matrix import (
     eligible_split,
     fit_applicability_index,
     fit_candidate,
+    make_featurizer,
     score_applicability,
     source_balanced_sample,
     strip_holdout_overlap,
@@ -143,6 +144,17 @@ class TestCandidateFitting(unittest.TestCase):
         self.assertTrue(all(record["applicability"] in {
             "in_domain", "borderline", "out_of_domain"
         } for record in records))
+
+    def test_paired_features_add_light_chain_signal_and_presence_flag(self) -> None:
+        base = row("paired", "a", 1, target=1)
+        base.update({"vh": VH, "vl": VL})
+        paired = make_featurizer("paired_biophysical_charge")(base)
+        heavy_only = make_featurizer("biophysical_charge")(base)
+        missing = make_featurizer("paired_biophysical_charge")({**base, "vl": ""})
+        self.assertGreater(len(paired), len(heavy_only))
+        self.assertEqual(paired[-1], 1.0)
+        self.assertEqual(missing[-1], 0.0)
+        self.assertNotEqual(paired, missing)
 
 
 if __name__ == "__main__":

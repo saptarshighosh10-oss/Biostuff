@@ -35,7 +35,12 @@ BAD_FRACTION = 0.15
 MIN_TRAIN_ROWS = 40
 MIN_TEST_ROWS = 20
 MIN_CLASS_ROWS = 3
-FEATURE_MODES = ("biophysical_charge", "cdr_aware", "frozen_plm")
+FEATURE_MODES = (
+    "biophysical_charge",
+    "paired_biophysical_charge",
+    "cdr_aware",
+    "frozen_plm",
+)
 TRAINING_ARMS = ("library_only", "diverse_only", "mixed")
 
 
@@ -595,6 +600,17 @@ def make_featurizer(
             shared_baseline[record_id] = baseline
         if mode == "biophysical_charge":
             vector: list[float] | None = baseline
+        elif mode == "paired_biophysical_charge":
+            vl = str(row.get("vl") or "")
+            light = build_feature_vector(
+                {
+                    "variant_sequence": vl,
+                    "vh_sequence": vl,
+                    "vl_sequence": "",
+                },
+                use_plm=False,
+            )
+            vector = baseline + light + [float(bool(vl))]
         elif mode == "cdr_aware":
             vector = baseline + cdr_feature_vector(model_row, "heavy_all")
         else:
