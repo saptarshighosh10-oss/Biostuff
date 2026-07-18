@@ -99,6 +99,11 @@ class TestNestedGeneralist(unittest.TestCase):
             first["per_source"]["a"]["trial_members"],
             second["per_source"]["a"]["trial_members"],
         )
+        confirmation = nested_generalist(
+            self.rows(), ["a", "b", "c"], "polyreactivity", 42,
+            candidates=(candidate,), outer_sources=("c",),
+        )
+        self.assertEqual(set(confirmation["per_source"]), {"c"})
 
     def test_seed_summary_keeps_baseline_and_trial_separate(self) -> None:
         runs = []

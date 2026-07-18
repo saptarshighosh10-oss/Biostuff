@@ -371,14 +371,21 @@ def nested_generalist(
     max_per_source_class: int = 5000,
     near_identity: float = 0.90,
     candidates: tuple[CandidateSpec, ...] | list[CandidateSpec] | None = None,
+    outer_sources: tuple[str, ...] | list[str] | None = None,
 ) -> dict:
     """Nested candidate selection with untouched outer-source labels."""
     specs = tuple(candidates or CANDIDATES[property_name])
     by_name = {spec.name: spec for spec in specs}
     per_source = {}
     skipped = {}
+    evaluated_sources = tuple(outer_sources or held_sources)
+    unknown_sources = set(evaluated_sources) - set(held_sources)
+    if unknown_sources:
+        raise ValueError(
+            f"outer sources are not declared held sources: {sorted(unknown_sources)}"
+        )
 
-    for outer in held_sources:
+    for outer in evaluated_sources:
         outer_pool, outer_test, outer_audit = prepare_outer_split(
             rows, outer, near_identity
         )

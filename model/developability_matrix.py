@@ -512,49 +512,68 @@ def fit_candidate(
     seed: int,
 ) -> dict:
     """Fit one comparable classifier and its train-only calibration."""
-    model = _candidate_model(learner, seed)
     rank_learner = learner.startswith("rank_")
     training_featured = (
         fit_featured + calibration_featured
         if rank_learner else fit_featured
     )
-    X = [vector for _, vector in training_featured]
-    y = [
-        float(row["rank_target"])
-        if rank_learner else int(row["target"])
-        for row, _ in training_featured
-    ]
-    training_rows = [row for row, _ in training_featured]
-    if learner == "rank_lgbm_source":
-        weights = _source_weights(training_rows)
-    elif learner == "rank_lgbm_hybrid":
-        class_weights = _weights(training_rows)
-        source_weights = _source_weights(training_rows)
-        weights = [math.sqrt(a * b) for a, b in zip(class_weights, source_weights)]
-        scale = len(weights) / sum(weights)
-        weights = [weight * scale for weight in weights]
-    else:
-        weights = _weights(training_rows)
     if rank_learner:
-        if learner == "rank_ridge":
-            model.fit(X, y, ridge__sample_weight=weights)
-        else:
-            model.fit(X, y, sample_weight=weights)
+        def fit_rank(featured):
+            model = _candidate_model(learner, seed)
+            rows = [row for row, _ in featured]
+            class_weights = _weights(rows)
+            if learner == "rank_lgbm_source":
+                weights = _source_weights(rows)
+            elif learner == "rank_lgbm_hybrid":
+                source_weights = _source_weights(rows)
+                weights = [
+                    math.sqrt(a * b)
+                    for a, b in zip(class_weights, source_weights)
+                ]
+                scale = len(weights) / sum(weights)
+                weights = [weight * scale for weight in weights]
+            else:
+                weights = class_weights
+            X = [vector for _, vector in featured]
+            y = [float(row["rank_target"]) for row in rows]
+            if learner == "rank_ridge":
+                model.fit(X, y, ridge__sample_weight=weights)
+            else:
+                model.fit(X, y, sample_weight=weights)
+            return model
+
+        calibration_model = fit_rank(fit_featured)
+        calibration_raw = _predict_without_lightgbm_name_warning(
+            calibration_model.predict,
+            [vector for _, vector in calibration_featured],
+        )
+        calibration_raw = [
+            min(1.0, max(0.0, float(value))) for value in calibration_raw
+        ]
+        calibrator, calibration_method = _platt_calibrator(
+            [int(row["target"]) for row, _ in calibration_featured],
+            calibration_raw,
+        )
+        model = fit_rank(training_featured)
         predicted = _predict_without_lightgbm_name_warning(
             model.predict, [vector for _, vector in test_featured]
         )
         raw_scores = [
-            min(1.0, max(0.0, float(value)))
-            for value in predicted
+            min(1.0, max(0.0, float(value))) for value in predicted
         ]
-        calibrator = IdentityCalibrator("identity_rank_regression")
         return {
             "model": model,
             "calibrator": calibrator,
             "raw_scores": raw_scores,
-            "scores": raw_scores,
-            "calibration_method": calibrator.reason,
+            "scores": calibrator(raw_scores),
+            "calibration_method": calibration_method,
         }
+
+    model = _candidate_model(learner, seed)
+    X = [vector for _, vector in training_featured]
+    y = [int(row["target"]) for row, _ in training_featured]
+    training_rows = [row for row, _ in training_featured]
+    weights = _weights(training_rows)
     if learner == "ridge":
         model.fit(X, y, logisticregression__sample_weight=weights)
     else:

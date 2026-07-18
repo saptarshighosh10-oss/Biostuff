@@ -147,6 +147,16 @@ class TestCandidateFitting(unittest.TestCase):
             restored = pickle.loads(pickle.dumps(result["calibrator"]))
             self.assertEqual(len(restored(result["raw_scores"])), 5)
 
+    def test_rank_learner_uses_train_only_platt_calibration(self) -> None:
+        featured = self._featured(100)
+        for item, _ in featured:
+            item["rank_target"] = float(item["target"])
+        result = fit_candidate(
+            "rank_lgbm_hybrid", featured[:60], featured[60:90], featured[90:], 42
+        )
+        self.assertEqual(result["calibration_method"], "platt_logistic_train_only")
+        self.assertEqual(len(result["scores"]), 10)
+
     def test_unknown_candidate_raises(self) -> None:
         with self.assertRaisesRegex(ValueError, "unsupported learner"):
             fit_candidate("forest", self._featured(), [], self._featured(4), 42)
