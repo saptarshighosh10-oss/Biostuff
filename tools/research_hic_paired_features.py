@@ -34,9 +34,26 @@ SPECS = (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+ENSEMBLE_BEST = 0.757651292206039
+ENSEMBLE_SPECS = SPECS + (
+    CandidateSpec(
+        "paired_bio_mixed_histgb",
+        "paired_biophysical_charge",
+        "mixed",
+        "histgb",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+    CandidateSpec(
+        "paired_bio_mixed_ridge",
+        "paired_biophysical_charge",
+        "mixed",
+        "ridge",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
-def run(database: Path, policy_path: Path) -> dict:
+def run(database: Path, policy_path: Path, ensemble: bool = False) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
     rows, manifest = load_property_rows(
@@ -48,13 +65,15 @@ def run(database: Path, policy_path: Path) -> dict:
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
+    specs = ENSEMBLE_SPECS if ensemble else SPECS
+    current_best = ENSEMBLE_BEST if ensemble else CURRENT_BEST
     runs = [
         nested_generalist(
             rows,
             held_sources,
             PROPERTY,
             seed,
-            candidates=SPECS,
+            candidates=specs,
         )
         for seed in (42, 43, 44)
     ]
@@ -63,17 +82,24 @@ def run(database: Path, policy_path: Path) -> dict:
         for source_result in run_result["per_source"].values():
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
+    experiment = (
+        "hic_paired_chain_learner_ensemble"
+        if ensemble else "hic_paired_chain_biophysical"
+    )
+    hypothesis = (
+        "Nested LGBM, HistGB, and ridge blends stabilize paired-chain HIC transfer"
+        if ensemble
+        else "VL biophysical descriptors add HIC signal missing from the VH-only baseline"
+    )
     return {
         "schema_version": "1",
-        "experiment": "hic_paired_chain_biophysical",
-        "hypothesis": (
-            "VL biophysical descriptors add HIC signal missing from the VH-only baseline"
-        ),
+        "experiment": experiment,
+        "hypothesis": hypothesis,
         "benchmark_role": "development_only",
         "seeds": [42, 43, 44],
-        "current_best_auc": CURRENT_BEST,
-        "gate_floor_auc": CURRENT_BEST - TOLERANCE,
-        "experimental_admit": trial_auc >= CURRENT_BEST - TOLERANCE,
+        "current_best_auc": current_best,
+        "gate_floor_auc": current_best - TOLERANCE,
+        "experimental_admit": trial_auc >= current_best - TOLERANCE,
         "summary": summary,
         "registry_hash": manifest.get("registry_hash"),
         "limitations": [
@@ -98,8 +124,13 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=Path("results/research_hic_paired_features.json"),
     )
+    parser.add_argument(
+        "--ensemble",
+        action="store_true",
+        help="also test paired-chain HistGB and ridge candidates",
+    )
     args = parser.parse_args(argv)
-    report = run(args.database, args.policy)
+    report = run(args.database, args.policy, args.ensemble)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
