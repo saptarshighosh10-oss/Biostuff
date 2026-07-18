@@ -58,10 +58,12 @@ def assign_group_labels(rows: list[dict], bad_fraction: float = BAD_FRACTION) ->
     if label_types == {"num_react"}:
         for row in rows:
             row["target"] = int(float(row["endpoint_value"]) >= 2.0)
+            row["rank_target"] = float(row["target"])
         return
     if _is_binary(values):
         for row in rows:
             row["target"] = int(float(row["endpoint_value"]))
+            row["rank_target"] = float(row["target"])
         return
 
     directions = {str(row.get("endpoint_direction") or "higher_bad") for row in rows}
@@ -75,8 +77,15 @@ def assign_group_labels(rows: list[dict], bad_fraction: float = BAD_FRACTION) ->
         reverse=reverse,
     )
     bad_ids = {row["record_id"] for row in ordered[:bad_count]}
+    positions: dict[float, list[int]] = defaultdict(list)
+    for index, value in enumerate(sorted(values)):
+        positions[value].append(index)
+    denominator = max(len(values) - 1, 1)
     for row in rows:
         row["target"] = int(row["record_id"] in bad_ids)
+        indexes = positions[float(row["endpoint_value"])]
+        percentile = statistics.fmean(indexes) / denominator
+        row["rank_target"] = percentile if reverse else 1.0 - percentile
 
 
 def _near_vh_matches(train_vh: set[str], test_vh: set[str], threshold: float) -> set[str]:
@@ -359,23 +368,44 @@ def _candidate_model(learner: str, seed: int):
             StandardScaler(),
             LogisticRegression(C=0.1, max_iter=2000, random_state=seed),
         )
+    if learner == "rank_lgbm":
+        from lightgbm import LGBMRegressor
+
+        return LGBMRegressor(
+            n_estimators=300,
+            num_leaves=31,
+            learning_rate=0.03,
+            min_child_samples=20,
+            reg_lambda=5.0,
+            subsample=0.8,
+            subsample_freq=1,
+            colsample_bytree=0.8,
+            random_state=seed,
+            n_jobs=1,
+            verbose=-1,
+        )
     raise ValueError(f"unsupported learner: {learner}")
 
 
-def predict_positive_probabilities(model, vectors) -> list[float]:
-    """Return positive-class probabilities without LightGBM's list-name warning."""
+def _predict_without_lightgbm_name_warning(method, vectors):
     if not vectors:
         return []
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
             message=(
-                "X does not have valid feature names, but LGBMClassifier was "
+                "X does not have valid feature names, but LGBM.* was "
                 "fitted with feature names"
             ),
             category=UserWarning,
         )
-        return [float(value) for value in model.predict_proba(vectors)[:, 1]]
+        return method(vectors)
+
+
+def predict_positive_probabilities(model, vectors) -> list[float]:
+    """Return positive-class probabilities without LightGBM's list-name warning."""
+    values = _predict_without_lightgbm_name_warning(model.predict_proba, vectors)
+    return [float(value) for value in values[:, 1]] if len(values) else []
 
 
 def _weights(rows: list[dict]) -> list[float]:
@@ -458,9 +488,34 @@ def fit_candidate(
 ) -> dict:
     """Fit one comparable classifier and its train-only calibration."""
     model = _candidate_model(learner, seed)
-    X = [vector for _, vector in fit_featured]
-    y = [int(row["target"]) for row, _ in fit_featured]
-    weights = _weights([row for row, _ in fit_featured])
+    training_featured = (
+        fit_featured + calibration_featured
+        if learner == "rank_lgbm" else fit_featured
+    )
+    X = [vector for _, vector in training_featured]
+    y = [
+        float(row["rank_target"])
+        if learner == "rank_lgbm" else int(row["target"])
+        for row, _ in training_featured
+    ]
+    weights = _weights([row for row, _ in training_featured])
+    if learner == "rank_lgbm":
+        model.fit(X, y, sample_weight=weights)
+        predicted = _predict_without_lightgbm_name_warning(
+            model.predict, [vector for _, vector in test_featured]
+        )
+        raw_scores = [
+            min(1.0, max(0.0, float(value)))
+            for value in predicted
+        ]
+        calibrator = IdentityCalibrator("identity_rank_regression")
+        return {
+            "model": model,
+            "calibrator": calibrator,
+            "raw_scores": raw_scores,
+            "scores": raw_scores,
+            "calibration_method": calibrator.reason,
+        }
     if learner == "ridge":
         model.fit(X, y, logisticregression__sample_weight=weights)
     else:

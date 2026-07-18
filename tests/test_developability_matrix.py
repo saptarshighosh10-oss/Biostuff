@@ -48,6 +48,17 @@ class TestDevelopabilityMatrix(unittest.TestCase):
             {item["record_id"] for item in continuous if item["target"]},
             {"c17", "c18", "c19"},
         )
+        self.assertEqual(continuous[0]["rank_target"], 0.0)
+        self.assertEqual(continuous[-1]["rank_target"], 1.0)
+
+        lower_bad = [
+            row("low0", "s", 1.0, endpoint_direction="lower_bad"),
+            row("low1", "s", 2.0, endpoint_direction="lower_bad"),
+        ]
+        assign_group_labels(lower_bad)
+        self.assertEqual(
+            [item["rank_target"] for item in lower_bad], [1.0, 0.0]
+        )
 
         react = [row("r0", "s", 1, label_type="num_react"), row("r1", "s", 2, label_type="num_react")]
         assign_group_labels(react)
@@ -114,7 +125,10 @@ class TestCandidateFitting(unittest.TestCase):
 
     def test_supported_learners_return_pickleable_calibrated_probabilities(self) -> None:
         featured = self._featured()
-        for learner in ("lgbm", "histgb", "ridge"):
+        for learner in ("lgbm", "histgb", "ridge", "rank_lgbm"):
+            if learner == "rank_lgbm":
+                for item, _ in featured:
+                    item["rank_target"] = float(item["target"])
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "error",

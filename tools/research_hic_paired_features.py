@@ -51,9 +51,24 @@ ENSEMBLE_SPECS = SPECS + (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+RANK_BEST = 0.7601431854319337
+RANK_SPECS = ENSEMBLE_SPECS + (
+    CandidateSpec(
+        "paired_bio_mixed_rank_lgbm",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_lgbm",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
-def run(database: Path, policy_path: Path, ensemble: bool = False) -> dict:
+def run(
+    database: Path,
+    policy_path: Path,
+    ensemble: bool = False,
+    rank: bool = False,
+) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
     rows, manifest = load_property_rows(
@@ -65,8 +80,8 @@ def run(database: Path, policy_path: Path, ensemble: bool = False) -> dict:
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
-    specs = ENSEMBLE_SPECS if ensemble else SPECS
-    current_best = ENSEMBLE_BEST if ensemble else CURRENT_BEST
+    specs = RANK_SPECS if rank else ENSEMBLE_SPECS if ensemble else SPECS
+    current_best = RANK_BEST if rank else ENSEMBLE_BEST if ensemble else CURRENT_BEST
     runs = [
         nested_generalist(
             rows,
@@ -83,11 +98,16 @@ def run(database: Path, policy_path: Path, ensemble: bool = False) -> dict:
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
     experiment = (
-        "hic_paired_chain_learner_ensemble"
-        if ensemble else "hic_paired_chain_biophysical"
+        "hic_continuous_rank_ensemble"
+        if rank
+        else "hic_paired_chain_learner_ensemble"
+        if ensemble
+        else "hic_paired_chain_biophysical"
     )
     hypothesis = (
-        "Nested LGBM, HistGB, and ridge blends stabilize paired-chain HIC transfer"
+        "Within-assay HIC percentile regression uses numeric label ordering discarded by binary training"
+        if rank
+        else "Nested LGBM, HistGB, and ridge blends stabilize paired-chain HIC transfer"
         if ensemble
         else "VL biophysical descriptors add HIC signal missing from the VH-only baseline"
     )
@@ -129,8 +149,13 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="also test paired-chain HistGB and ridge candidates",
     )
+    parser.add_argument(
+        "--rank",
+        action="store_true",
+        help="also test continuous within-assay percentile regression",
+    )
     args = parser.parse_args(argv)
-    report = run(args.database, args.policy, args.ensemble)
+    report = run(args.database, args.policy, args.ensemble, args.rank)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
