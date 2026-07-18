@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "candidate": "hic_paired_chain_interactions",
+  "benchmark_role": "development_only",
+  "macro_source_auc": 0.8092596742962376,
+  "mean_enrichment_at_15pct": 3.0775335141783438,
+  "seed_std_auc": 0.005442670513596761,
+  "source_auc": {
+    "gdpa1": 0.8059767084157329,
+    "gdpa4.1": 0.9237199582027168,
+    "jain2017_hic": 0.8551762888046074,
+    "jetha2019_hic": 0.7227443609022556,
+    "shehata2019": 0.7386810551558752
+  },
+  "checks": {
+    "macro_source_auc_at_least_0.80": true,
+    "three_declared_seeds": true,
+    "seed_std_at_most_0.03": true,
+    "at_least_two_diverse_sources": true,
+    "all_source_auc_at_least_0.65": true,
+    "mean_enrichment_at_15pct_at_least_2x": true,
+    "train_only_calibration_present": false,
+    "source_bootstrap_ci_present": true,
+    "locked_validation_source_assigned": false,
+    "gdpa3_unspent": true
+  },
+  "promote": false,
+  "serving_action": "keep_current_serving_head",
+  "serving_modified": false,
+  "gdpa3_touched": false
+}
