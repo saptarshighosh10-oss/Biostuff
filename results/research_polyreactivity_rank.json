@@ -1,0 +1,2789 @@
+{
+  "baseline": {
+    "audits_present": true,
+    "mean_enrichment_at_15pct": 1.5525703867433343,
+    "mean_macro_source_auc": 0.6638276873660452,
+    "seed_macro_source_auc": [
+      0.6679818330753258,
+      0.6547439400746676,
+      0.6687572889481425
+    ],
+    "seed_std_auc": 0.006430976161925428,
+    "source_bootstrap_ci95": [
+      0.6013975617008623,
+      0.7336137399228883
+    ],
+    "source_mean_auc": {
+      "aims_flu": 0.6013975617008623,
+      "aims_mouse": 0.6564717604743852,
+      "shehata2019": 0.7336137399228883
+    }
+  },
+  "baseline_source": "results/research_polyreactivity_domain.json",
+  "benchmark_role": "development_only",
+  "current_best_auc": 0.6714802054330579,
+  "experiment": "polyreactivity_continuous_psr_rank",
+  "experimental_admit": false,
+  "gate_floor_auc": 0.6664802054330579,
+  "hypothesis": "Source-normalized continuous PSR ranks retain information lost by binary polyreactivity targets",
+  "limitations": [
+    "AIMS Flu has only 97 held-out rows.",
+    "No locked validation source is assigned.",
+    "GDPa3 was not loaded or inspected.",
+    "Binary sources retain binary rank targets; only continuous assays add resolution."
+  ],
+  "registry_hash": "52b035df206b4f248018d509eacf3d7938d988cea0d56933db98f1aacc32f0d4",
+  "runs": [
+    {
+      "per_source": {
+        "aims_flu": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9360961290919184,
+            "train_p99": 1.1745647628827887
+          },
+          "baseline": {
+            "brier": 0.36976757323929127,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.13559322033898305,
+            "catch_rate_at_15pct": 0.1694915254237288,
+            "ece_10bin": 0.3664570666039147,
+            "enrichment_at_10pct": 1.3152542372881357,
+            "enrichment_at_15pct": 1.096045197740113,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.36976757323929127,
+                "catch_rate_at_10pct": 0.13559322033898305,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3664570666039147,
+                "enrichment_at_10pct": 1.3152542372881357,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7039415786361444,
+                "roc_auc": 0.6092774308652988
+              }
+            },
+            "pr_auc": 0.7039415786361444,
+            "roc_auc": 0.6092774308652988,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.3479635554754414,
+                "catch_rate_at_10pct": 0.1724137931034483,
+                "catch_rate_at_15pct": 0.20689655172413793,
+                "ece_10bin": 0.36794121107287775,
+                "enrichment_at_10pct": 1.7241379310344829,
+                "enrichment_at_15pct": 1.293103448275862,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7605396331617372,
+                "roc_auc": 0.6781609195402298
+              },
+              "vh_shorter": {
+                "brier": 0.3929633368178553,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.13333333333333333,
+                "ece_10bin": 0.4368714803125306,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.7833333333333333,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.6439752976489611,
+                "roc_auc": 0.5
+              },
+              "vl_present": {
+                "brier": 0.36976757323929127,
+                "catch_rate_at_10pct": 0.13559322033898305,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3664570666039147,
+                "enrichment_at_10pct": 1.3152542372881357,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7039415786361444,
+                "roc_auc": 0.6092774308652988
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "baseline_members": [
+            "cdr_library_lgbm"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037513549177623826
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36292
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4239,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16965
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3980,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15924
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4239,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16965
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03687983399358612
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 1,
+                  "input_train_rows": 36394,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 116,
+                  "retained_train_rows": 36277
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.7091921124074445,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_mouse",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.7091921124074445
+          },
+          "outer_candidate_audit": {
+            "cdr_library_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4000,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 16000
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 97,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 0,
+            "input_train_rows": 240859,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 179,
+            "retained_train_rows": 240680,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.36976757323929127,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.13559322033898305,
+            "catch_rate_at_15pct": 0.1694915254237288,
+            "ece_10bin": 0.3664570666039147,
+            "enrichment_at_10pct": 1.3152542372881357,
+            "enrichment_at_15pct": 1.096045197740113,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.36976757323929127,
+                "catch_rate_at_10pct": 0.13559322033898305,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3664570666039147,
+                "enrichment_at_10pct": 1.3152542372881357,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7039415786361444,
+                "roc_auc": 0.6092774308652988
+              }
+            },
+            "pr_auc": 0.7039415786361444,
+            "roc_auc": 0.6092774308652988,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.3479635554754414,
+                "catch_rate_at_10pct": 0.1724137931034483,
+                "catch_rate_at_15pct": 0.20689655172413793,
+                "ece_10bin": 0.36794121107287775,
+                "enrichment_at_10pct": 1.7241379310344829,
+                "enrichment_at_15pct": 1.293103448275862,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7605396331617372,
+                "roc_auc": 0.6781609195402298
+              },
+              "vh_shorter": {
+                "brier": 0.3929633368178553,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.13333333333333333,
+                "ece_10bin": 0.4368714803125306,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.7833333333333333,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.6439752976489611,
+                "roc_auc": 0.5
+              },
+              "vl_present": {
+                "brier": 0.36976757323929127,
+                "catch_rate_at_10pct": 0.13559322033898305,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3664570666039147,
+                "enrichment_at_10pct": 1.3152542372881357,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7039415786361444,
+                "roc_auc": 0.6092774308652988
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "trial_members": [
+            "cdr_library_lgbm"
+          ]
+        },
+        "aims_mouse": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9394042375076396,
+            "train_p99": 1.1648953928341146
+          },
+          "baseline": {
+            "brier": 0.26668980067239223,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.16666666666666666,
+            "catch_rate_at_15pct": 0.2361111111111111,
+            "ece_10bin": 0.16978658687497453,
+            "enrichment_at_10pct": 1.6666666666666667,
+            "enrichment_at_15pct": 1.5629890453834117,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.26668980067239223,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.2361111111111111,
+                "ece_10bin": 0.16978658687497453,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.5629890453834117,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6329400387860348,
+                "roc_auc": 0.6528324584426946
+              }
+            },
+            "pr_auc": 0.6329400387860348,
+            "roc_auc": 0.6528324584426946,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2657101820010181,
+                "catch_rate_at_10pct": 0.14782608695652175,
+                "catch_rate_at_15pct": 0.22608695652173913,
+                "ece_10bin": 0.16617954659288853,
+                "enrichment_at_10pct": 1.4782608695652175,
+                "enrichment_at_15pct": 1.4874141876430205,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6095225985628727,
+                "roc_auc": 0.6403864734299517
+              },
+              "vh_shorter": {
+                "brier": 0.2678030037080448,
+                "catch_rate_at_10pct": 0.1782178217821782,
+                "catch_rate_at_15pct": 0.25742574257425743,
+                "ece_10bin": 0.1980000706733378,
+                "enrichment_at_10pct": 1.7821782178217822,
+                "enrichment_at_15pct": 1.716171617161716,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.6627910359215543,
+                "roc_auc": 0.6694400532490223
+              },
+              "vl_present": {
+                "brier": 0.26668980067239223,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.2361111111111111,
+                "ece_10bin": 0.16978658687497453,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.5629890453834117,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6329400387860348,
+                "roc_auc": 0.6528324584426946
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "baseline_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4236,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16953
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3994,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15976
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4236,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16953
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037566661947236776
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 36,
+                  "retained_train_rows": 36262
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4169,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16675
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3984,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15933
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4169,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16675
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037516791402801765
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 2,
+                  "input_train_rows": 36021,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 102,
+                  "retained_train_rows": 35917
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.6692438871332209,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.6764019469622569
+          },
+          "outer_candidate_audit": {
+            "bio_mixed_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4263,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17059
+            },
+            "cdr_mixed_rank_lgbm_hybrid": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4263,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17059
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 470,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 6,
+            "input_train_rows": 240486,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 0,
+            "retained_train_rows": 240480,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.26280485719844704,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.16666666666666666,
+            "catch_rate_at_15pct": 0.22685185185185186,
+            "ece_10bin": 0.16740604457502134,
+            "enrichment_at_10pct": 1.6666666666666667,
+            "enrichment_at_15pct": 1.50169535732916,
+            "members": [
+              "bio_mixed_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.26280485719844704,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.22685185185185186,
+                "ece_10bin": 0.16740604457502134,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.50169535732916,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6412486354353648,
+                "roc_auc": 0.6641149023038787
+              }
+            },
+            "pr_auc": 0.6412486354353648,
+            "roc_auc": 0.6641149023038787,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.26290001982525985,
+                "catch_rate_at_10pct": 0.13043478260869565,
+                "catch_rate_at_15pct": 0.2,
+                "ece_10bin": 0.1565244795968798,
+                "enrichment_at_10pct": 1.3043478260869563,
+                "enrichment_at_15pct": 1.3157894736842104,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6203648887734659,
+                "roc_auc": 0.6513365539452495
+              },
+              "vh_shorter": {
+                "brier": 0.26269671784979615,
+                "catch_rate_at_10pct": 0.1782178217821782,
+                "catch_rate_at_15pct": 0.24752475247524752,
+                "ece_10bin": 0.21228395811167183,
+                "enrichment_at_10pct": 1.7821782178217822,
+                "enrichment_at_15pct": 1.6501650165016502,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.6700162155393794,
+                "roc_auc": 0.6806722689075632
+              },
+              "vl_present": {
+                "brier": 0.26280485719844704,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.22685185185185186,
+                "ece_10bin": 0.16740604457502134,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.50169535732916,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6412486354353648,
+                "roc_auc": 0.6641149023038787
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "trial_members": [
+            "bio_mixed_lgbm",
+            "cdr_mixed_rank_lgbm_hybrid"
+          ]
+        },
+        "shehata2019": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9354244862659516,
+            "train_p99": 1.1683022473070646
+          },
+          "baseline": {
+            "brier": 0.2584821313407981,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.21052631578947367,
+            "catch_rate_at_15pct": 0.3508771929824561,
+            "ece_10bin": 0.3033637372007513,
+            "enrichment_at_10pct": 2.0720221606648197,
+            "enrichment_at_15pct": 2.302246845183133,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.2584821313407981,
+                "catch_rate_at_10pct": 0.21052631578947367,
+                "catch_rate_at_15pct": 0.3508771929824561,
+                "ece_10bin": 0.3033637372007513,
+                "enrichment_at_10pct": 2.0720221606648197,
+                "enrichment_at_15pct": 2.302246845183133,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3009407529457773,
+                "roc_auc": 0.7192982456140351
+              }
+            },
+            "pr_auc": 0.3009407529457773,
+            "roc_auc": 0.7192982456140351,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2727480062037725,
+                "catch_rate_at_10pct": 0.1875,
+                "catch_rate_at_15pct": 0.28125,
+                "ece_10bin": 0.32096505356971317,
+                "enrichment_at_10pct": 1.8579545454545452,
+                "enrichment_at_15pct": 1.8579545454545452,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.2828891565436431,
+                "roc_auc": 0.680611559139785
+              },
+              "vh_shorter": {
+                "brier": 0.2385464856989493,
+                "catch_rate_at_10pct": 0.24,
+                "catch_rate_at_15pct": 0.44,
+                "ece_10bin": 0.2848275779014886,
+                "enrichment_at_10pct": 2.34,
+                "enrichment_at_15pct": 2.8599999999999994,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.35259067381311926,
+                "roc_auc": 0.7719083969465649
+              },
+              "vl_present": {
+                "brier": 0.2584821313407981,
+                "catch_rate_at_10pct": 0.21052631578947367,
+                "catch_rate_at_15pct": 0.3508771929824561,
+                "ece_10bin": 0.3033637372007513,
+                "enrichment_at_10pct": 2.0720221606648197,
+                "enrichment_at_15pct": 2.302246845183133,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3009407529457773,
+                "roc_auc": 0.7192982456140351
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "baseline_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4256,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17025
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3997,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15984
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4256,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17025
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.036746393496546216
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36379,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 25,
+                  "retained_train_rows": 36354
+                }
+              },
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03736799350121852
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36006,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36000
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.6393638936301562,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "aims_mouse"
+            ],
+            "trial_macro_source_auc": 0.6393638936301562
+          },
+          "outer_candidate_audit": {
+            "cdr_mixed_rank_lgbm_hybrid": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4281,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17122
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 374,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 7,
+            "input_train_rows": 240582,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 667,
+            "retained_train_rows": 239908,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.2584821313407981,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.21052631578947367,
+            "catch_rate_at_15pct": 0.3508771929824561,
+            "ece_10bin": 0.3033637372007513,
+            "enrichment_at_10pct": 2.0720221606648197,
+            "enrichment_at_15pct": 2.302246845183133,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.2584821313407981,
+                "catch_rate_at_10pct": 0.21052631578947367,
+                "catch_rate_at_15pct": 0.3508771929824561,
+                "ece_10bin": 0.3033637372007513,
+                "enrichment_at_10pct": 2.0720221606648197,
+                "enrichment_at_15pct": 2.302246845183133,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3009407529457773,
+                "roc_auc": 0.7192982456140351
+              }
+            },
+            "pr_auc": 0.3009407529457773,
+            "roc_auc": 0.7192982456140351,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2727480062037725,
+                "catch_rate_at_10pct": 0.1875,
+                "catch_rate_at_15pct": 0.28125,
+                "ece_10bin": 0.32096505356971317,
+                "enrichment_at_10pct": 1.8579545454545452,
+                "enrichment_at_15pct": 1.8579545454545452,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.2828891565436431,
+                "roc_auc": 0.680611559139785
+              },
+              "vh_shorter": {
+                "brier": 0.2385464856989493,
+                "catch_rate_at_10pct": 0.24,
+                "catch_rate_at_15pct": 0.44,
+                "ece_10bin": 0.2848275779014886,
+                "enrichment_at_10pct": 2.34,
+                "enrichment_at_15pct": 2.8599999999999994,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.35259067381311926,
+                "roc_auc": 0.7719083969465649
+              },
+              "vl_present": {
+                "brier": 0.2584821313407981,
+                "catch_rate_at_10pct": 0.21052631578947367,
+                "catch_rate_at_15pct": 0.3508771929824561,
+                "ece_10bin": 0.3033637372007513,
+                "enrichment_at_10pct": 2.0720221606648197,
+                "enrichment_at_15pct": 2.302246845183133,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3009407529457773,
+                "roc_auc": 0.7192982456140351
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "trial_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ]
+        }
+      },
+      "property": "polyreactivity",
+      "seed": 42,
+      "skipped_sources": {}
+    },
+    {
+      "per_source": {
+        "aims_flu": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9380778659153459,
+            "train_p99": 1.1743213698422892
+          },
+          "baseline": {
+            "brier": 0.38430372934995727,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.1016949152542373,
+            "catch_rate_at_15pct": 0.1694915254237288,
+            "ece_10bin": 0.3622980183732986,
+            "enrichment_at_10pct": 0.9864406779661017,
+            "enrichment_at_15pct": 1.096045197740113,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.38430372934995727,
+                "catch_rate_at_10pct": 0.1016949152542373,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3622980183732986,
+                "enrichment_at_10pct": 0.9864406779661017,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.6739357746337784,
+                "roc_auc": 0.58028545941124
+              }
+            },
+            "pr_auc": 0.6739357746337784,
+            "roc_auc": 0.58028545941124,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.34640315936220545,
+                "catch_rate_at_10pct": 0.13793103448275862,
+                "catch_rate_at_15pct": 0.1724137931034483,
+                "ece_10bin": 0.3543206004172232,
+                "enrichment_at_10pct": 1.3793103448275863,
+                "enrichment_at_15pct": 1.0775862068965518,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7274626683115565,
+                "roc_auc": 0.6535303776683087
+              },
+              "vh_shorter": {
+                "brier": 0.4246234846560761,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.1,
+                "ece_10bin": 0.4031409433899362,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.5875,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.6308128376110159,
+                "roc_auc": 0.4764705882352941
+              },
+              "vl_present": {
+                "brier": 0.38430372934995727,
+                "catch_rate_at_10pct": 0.1016949152542373,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3622980183732986,
+                "enrichment_at_10pct": 0.9864406779661017,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.6739357746337784,
+                "roc_auc": 0.58028545941124
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "baseline_members": [
+            "cdr_library_lgbm"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037513549177623826
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36292
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4240,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16964
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3981,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15923
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4240,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16964
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03687983399358612
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 1,
+                  "input_train_rows": 36394,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 116,
+                  "retained_train_rows": 36277
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.7010712105370165,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_mouse",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.7010712105370165
+          },
+          "outer_candidate_audit": {
+            "cdr_library_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4000,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 16000
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 97,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 0,
+            "input_train_rows": 240859,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 179,
+            "retained_train_rows": 240680,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.38430372934995727,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.1016949152542373,
+            "catch_rate_at_15pct": 0.1694915254237288,
+            "ece_10bin": 0.3622980183732986,
+            "enrichment_at_10pct": 0.9864406779661017,
+            "enrichment_at_15pct": 1.096045197740113,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.38430372934995727,
+                "catch_rate_at_10pct": 0.1016949152542373,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3622980183732986,
+                "enrichment_at_10pct": 0.9864406779661017,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.6739357746337784,
+                "roc_auc": 0.58028545941124
+              }
+            },
+            "pr_auc": 0.6739357746337784,
+            "roc_auc": 0.58028545941124,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.34640315936220545,
+                "catch_rate_at_10pct": 0.13793103448275862,
+                "catch_rate_at_15pct": 0.1724137931034483,
+                "ece_10bin": 0.3543206004172232,
+                "enrichment_at_10pct": 1.3793103448275863,
+                "enrichment_at_15pct": 1.0775862068965518,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7274626683115565,
+                "roc_auc": 0.6535303776683087
+              },
+              "vh_shorter": {
+                "brier": 0.4246234846560761,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.1,
+                "ece_10bin": 0.4031409433899362,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.5875,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.6308128376110159,
+                "roc_auc": 0.4764705882352941
+              },
+              "vl_present": {
+                "brier": 0.38430372934995727,
+                "catch_rate_at_10pct": 0.1016949152542373,
+                "catch_rate_at_15pct": 0.1694915254237288,
+                "ece_10bin": 0.3622980183732986,
+                "enrichment_at_10pct": 0.9864406779661017,
+                "enrichment_at_15pct": 1.096045197740113,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.6739357746337784,
+                "roc_auc": 0.58028545941124
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "trial_members": [
+            "cdr_library_lgbm"
+          ]
+        },
+        "aims_mouse": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9393187441203279,
+            "train_p99": 1.1706250784331274
+          },
+          "baseline": {
+            "brier": 0.26975598844897847,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.1712962962962963,
+            "catch_rate_at_15pct": 0.23148148148148148,
+            "ece_10bin": 0.18005343303401333,
+            "enrichment_at_10pct": 1.712962962962963,
+            "enrichment_at_15pct": 1.5323422013562857,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.26975598844897847,
+                "catch_rate_at_10pct": 0.1712962962962963,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.18005343303401333,
+                "enrichment_at_10pct": 1.712962962962963,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348148205904693,
+                "roc_auc": 0.6494240303295422
+              }
+            },
+            "pr_auc": 0.6348148205904693,
+            "roc_auc": 0.6494240303295422,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.26870615315236007,
+                "catch_rate_at_10pct": 0.1565217391304348,
+                "catch_rate_at_15pct": 0.21739130434782608,
+                "ece_10bin": 0.18161754705788544,
+                "enrichment_at_10pct": 1.5652173913043477,
+                "enrichment_at_15pct": 1.4302059496567505,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6107658656067371,
+                "roc_auc": 0.6342673107890501
+              },
+              "vh_shorter": {
+                "brier": 0.2709489831042266,
+                "catch_rate_at_10pct": 0.1782178217821782,
+                "catch_rate_at_15pct": 0.26732673267326734,
+                "ece_10bin": 0.2063323551969431,
+                "enrichment_at_10pct": 1.7821782178217822,
+                "enrichment_at_15pct": 1.7821782178217822,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.66390023362928,
+                "roc_auc": 0.6684416340793743
+              },
+              "vl_present": {
+                "brier": 0.26975598844897847,
+                "catch_rate_at_10pct": 0.1712962962962963,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.18005343303401333,
+                "enrichment_at_10pct": 1.712962962962963,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348148205904693,
+                "roc_auc": 0.6494240303295422
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "baseline_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4238,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16957
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3996,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15980
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4238,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16957
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03755602736494456
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 30,
+                  "retained_train_rows": 36268
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4166,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16665
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3981,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15923
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4166,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16665
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03754020450290432
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36021,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 117,
+                  "retained_train_rows": 35904
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.6783661688574213,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.6783661688574213
+          },
+          "outer_candidate_audit": {
+            "cdr_mixed_rank_lgbm_hybrid": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4263,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17059
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 470,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 6,
+            "input_train_rows": 240486,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 0,
+            "retained_train_rows": 240480,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.26975598844897847,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.1712962962962963,
+            "catch_rate_at_15pct": 0.23148148148148148,
+            "ece_10bin": 0.18005343303401333,
+            "enrichment_at_10pct": 1.712962962962963,
+            "enrichment_at_15pct": 1.5323422013562857,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.26975598844897847,
+                "catch_rate_at_10pct": 0.1712962962962963,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.18005343303401333,
+                "enrichment_at_10pct": 1.712962962962963,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348148205904693,
+                "roc_auc": 0.6494240303295422
+              }
+            },
+            "pr_auc": 0.6348148205904693,
+            "roc_auc": 0.6494240303295422,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.26870615315236007,
+                "catch_rate_at_10pct": 0.1565217391304348,
+                "catch_rate_at_15pct": 0.21739130434782608,
+                "ece_10bin": 0.18161754705788544,
+                "enrichment_at_10pct": 1.5652173913043477,
+                "enrichment_at_15pct": 1.4302059496567505,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6107658656067371,
+                "roc_auc": 0.6342673107890501
+              },
+              "vh_shorter": {
+                "brier": 0.2709489831042266,
+                "catch_rate_at_10pct": 0.1782178217821782,
+                "catch_rate_at_15pct": 0.26732673267326734,
+                "ece_10bin": 0.2063323551969431,
+                "enrichment_at_10pct": 1.7821782178217822,
+                "enrichment_at_15pct": 1.7821782178217822,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.66390023362928,
+                "roc_auc": 0.6684416340793743
+              },
+              "vl_present": {
+                "brier": 0.26975598844897847,
+                "catch_rate_at_10pct": 0.1712962962962963,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.18005343303401333,
+                "enrichment_at_10pct": 1.712962962962963,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348148205904693,
+                "roc_auc": 0.6494240303295422
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "trial_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ]
+        },
+        "shehata2019": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9373320766118759,
+            "train_p99": 1.1704102051496528
+          },
+          "baseline": {
+            "brier": 0.24685335487896568,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.24561403508771928,
+            "catch_rate_at_15pct": 0.38596491228070173,
+            "ece_10bin": 0.28011999613438615,
+            "enrichment_at_10pct": 2.41735918744229,
+            "enrichment_at_15pct": 2.5324715297014464,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.24685335487896568,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.38596491228070173,
+                "ece_10bin": 0.28011999613438615,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 2.5324715297014464,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3329680762083509,
+                "roc_auc": 0.7240024351098566
+              }
+            },
+            "pr_auc": 0.3329680762083509,
+            "roc_auc": 0.7240024351098566,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2567097455051616,
+                "catch_rate_at_10pct": 0.1875,
+                "catch_rate_at_15pct": 0.3125,
+                "ece_10bin": 0.28677043508386035,
+                "enrichment_at_10pct": 1.8579545454545452,
+                "enrichment_at_15pct": 2.0643939393939394,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.3118887523358751,
+                "roc_auc": 0.6804435483870968
+              },
+              "vh_shorter": {
+                "brier": 0.23307968079876873,
+                "catch_rate_at_10pct": 0.32,
+                "catch_rate_at_15pct": 0.44,
+                "ece_10bin": 0.2746102222299875,
+                "enrichment_at_10pct": 3.1199999999999997,
+                "enrichment_at_15pct": 2.8599999999999994,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.40336766166610744,
+                "roc_auc": 0.779236641221374
+              },
+              "vl_present": {
+                "brier": 0.24685335487896568,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.38596491228070173,
+                "ece_10bin": 0.28011999613438615,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 2.5324715297014464,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3329680762083509,
+                "roc_auc": 0.7240024351098566
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "baseline_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4253,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17014
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3994,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15973
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4253,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17014
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03677058353317346
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36379,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 39,
+                  "retained_train_rows": 36340
+                }
+              },
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03736799350121852
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36006,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36000
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.629475083177047,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "aims_mouse"
+            ],
+            "trial_macro_source_auc": 0.629475083177047
+          },
+          "outer_candidate_audit": {
+            "cdr_mixed_rank_lgbm_hybrid": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4281,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17122
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 374,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 7,
+            "input_train_rows": 240582,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 667,
+            "retained_train_rows": 239908,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.24685335487896568,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.24561403508771928,
+            "catch_rate_at_15pct": 0.38596491228070173,
+            "ece_10bin": 0.28011999613438615,
+            "enrichment_at_10pct": 2.41735918744229,
+            "enrichment_at_15pct": 2.5324715297014464,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.24685335487896568,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.38596491228070173,
+                "ece_10bin": 0.28011999613438615,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 2.5324715297014464,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3329680762083509,
+                "roc_auc": 0.7240024351098566
+              }
+            },
+            "pr_auc": 0.3329680762083509,
+            "roc_auc": 0.7240024351098566,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2567097455051616,
+                "catch_rate_at_10pct": 0.1875,
+                "catch_rate_at_15pct": 0.3125,
+                "ece_10bin": 0.28677043508386035,
+                "enrichment_at_10pct": 1.8579545454545452,
+                "enrichment_at_15pct": 2.0643939393939394,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.3118887523358751,
+                "roc_auc": 0.6804435483870968
+              },
+              "vh_shorter": {
+                "brier": 0.23307968079876873,
+                "catch_rate_at_10pct": 0.32,
+                "catch_rate_at_15pct": 0.44,
+                "ece_10bin": 0.2746102222299875,
+                "enrichment_at_10pct": 3.1199999999999997,
+                "enrichment_at_15pct": 2.8599999999999994,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.40336766166610744,
+                "roc_auc": 0.779236641221374
+              },
+              "vl_present": {
+                "brier": 0.24685335487896568,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.38596491228070173,
+                "ece_10bin": 0.28011999613438615,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 2.5324715297014464,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3329680762083509,
+                "roc_auc": 0.7240024351098566
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "trial_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ]
+        }
+      },
+      "property": "polyreactivity",
+      "seed": 43,
+      "skipped_sources": {}
+    },
+    {
+      "per_source": {
+        "aims_flu": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.93405764598054,
+            "train_p99": 1.1760615117241675
+          },
+          "baseline": {
+            "brier": 0.36252172462207993,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.11864406779661017,
+            "catch_rate_at_15pct": 0.1864406779661017,
+            "ece_10bin": 0.3714192420019729,
+            "enrichment_at_10pct": 1.1508474576271186,
+            "enrichment_at_15pct": 1.2056497175141243,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.36252172462207993,
+                "catch_rate_at_10pct": 0.11864406779661017,
+                "catch_rate_at_15pct": 0.1864406779661017,
+                "ece_10bin": 0.3714192420019729,
+                "enrichment_at_10pct": 1.1508474576271186,
+                "enrichment_at_15pct": 1.2056497175141243,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7086250539258924,
+                "roc_auc": 0.6146297948260482
+              }
+            },
+            "pr_auc": 0.7086250539258924,
+            "roc_auc": 0.6146297948260482,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.3405191431459224,
+                "catch_rate_at_10pct": 0.13793103448275862,
+                "catch_rate_at_15pct": 0.2413793103448276,
+                "ece_10bin": 0.3470063304237291,
+                "enrichment_at_10pct": 1.3793103448275863,
+                "enrichment_at_15pct": 1.5086206896551726,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7658642156760883,
+                "roc_auc": 0.6912972085385879
+              },
+              "vh_shorter": {
+                "brier": 0.3859287261924604,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.16666666666666666,
+                "ece_10bin": 0.4175147311241007,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.9791666666666666,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.665004716169255,
+                "roc_auc": 0.5235294117647059
+              },
+              "vl_present": {
+                "brier": 0.36252172462207993,
+                "catch_rate_at_10pct": 0.11864406779661017,
+                "catch_rate_at_15pct": 0.1864406779661017,
+                "ece_10bin": 0.3714192420019729,
+                "enrichment_at_10pct": 1.1508474576271186,
+                "enrichment_at_15pct": 1.2056497175141243,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7086250539258924,
+                "roc_auc": 0.6146297948260482
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "baseline_members": [
+            "cdr_library_lgbm"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4242,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16977
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037513549177623826
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36292
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4240,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16961
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3981,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15920
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4240,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16961
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.036885052591858876
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36394,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 120,
+                  "retained_train_rows": 36274
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.7027956412177543,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_mouse",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.7027956412177543
+          },
+          "outer_candidate_audit": {
+            "cdr_library_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4000,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 16000
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 97,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 0,
+            "input_train_rows": 240859,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 179,
+            "retained_train_rows": 240680,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.36252172462207993,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.11864406779661017,
+            "catch_rate_at_15pct": 0.1864406779661017,
+            "ece_10bin": 0.3714192420019729,
+            "enrichment_at_10pct": 1.1508474576271186,
+            "enrichment_at_15pct": 1.2056497175141243,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "num_react": {
+                "brier": 0.36252172462207993,
+                "catch_rate_at_10pct": 0.11864406779661017,
+                "catch_rate_at_15pct": 0.1864406779661017,
+                "ece_10bin": 0.3714192420019729,
+                "enrichment_at_10pct": 1.1508474576271186,
+                "enrichment_at_15pct": 1.2056497175141243,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7086250539258924,
+                "roc_auc": 0.6146297948260482
+              }
+            },
+            "pr_auc": 0.7086250539258924,
+            "roc_auc": 0.6146297948260482,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.3405191431459224,
+                "catch_rate_at_10pct": 0.13793103448275862,
+                "catch_rate_at_15pct": 0.2413793103448276,
+                "ece_10bin": 0.3470063304237291,
+                "enrichment_at_10pct": 1.3793103448275863,
+                "enrichment_at_15pct": 1.5086206896551726,
+                "n": 50,
+                "positives": 29,
+                "pr_auc": 0.7658642156760883,
+                "roc_auc": 0.6912972085385879
+              },
+              "vh_shorter": {
+                "brier": 0.3859287261924604,
+                "catch_rate_at_10pct": 0.1,
+                "catch_rate_at_15pct": 0.16666666666666666,
+                "ece_10bin": 0.4175147311241007,
+                "enrichment_at_10pct": 0.94,
+                "enrichment_at_15pct": 0.9791666666666666,
+                "n": 47,
+                "positives": 30,
+                "pr_auc": 0.665004716169255,
+                "roc_auc": 0.5235294117647059
+              },
+              "vl_present": {
+                "brier": 0.36252172462207993,
+                "catch_rate_at_10pct": 0.11864406779661017,
+                "catch_rate_at_15pct": 0.1864406779661017,
+                "ece_10bin": 0.3714192420019729,
+                "enrichment_at_10pct": 1.1508474576271186,
+                "enrichment_at_15pct": 1.2056497175141243,
+                "n": 97,
+                "positives": 59,
+                "pr_auc": 0.7086250539258924,
+                "roc_auc": 0.6146297948260482
+              }
+            },
+            "test_n": 97,
+            "test_positives": 59
+          },
+          "trial_members": [
+            "cdr_library_lgbm"
+          ]
+        },
+        "aims_mouse": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "shehata2019",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.942332583277676,
+            "train_p99": 1.1775179669496163
+          },
+          "baseline": {
+            "brier": 0.26648228705515004,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.1574074074074074,
+            "catch_rate_at_15pct": 0.23148148148148148,
+            "ece_10bin": 0.1738387553585034,
+            "enrichment_at_10pct": 1.5740740740740742,
+            "enrichment_at_15pct": 1.5323422013562857,
+            "members": [
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.26648228705515004,
+                "catch_rate_at_10pct": 0.1574074074074074,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.1738387553585034,
+                "enrichment_at_10pct": 1.5740740740740742,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6330865562471862,
+                "roc_auc": 0.6529235928842229
+              }
+            },
+            "pr_auc": 0.6330865562471862,
+            "roc_auc": 0.6529235928842229,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.2658657230831613,
+                "catch_rate_at_10pct": 0.14782608695652175,
+                "catch_rate_at_15pct": 0.22608695652173913,
+                "ece_10bin": 0.16398104661228236,
+                "enrichment_at_10pct": 1.4782608695652175,
+                "enrichment_at_15pct": 1.4874141876430205,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6102613627020959,
+                "roc_auc": 0.6387117552334944
+              },
+              "vh_shorter": {
+                "brier": 0.26718292793241,
+                "catch_rate_at_10pct": 0.1782178217821782,
+                "catch_rate_at_15pct": 0.2376237623762376,
+                "ece_10bin": 0.20149861659892576,
+                "enrichment_at_10pct": 1.7821782178217822,
+                "enrichment_at_15pct": 1.5841584158415842,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.6692540797391137,
+                "roc_auc": 0.67409934270738
+              },
+              "vl_present": {
+                "brier": 0.26648228705515004,
+                "catch_rate_at_10pct": 0.1574074074074074,
+                "catch_rate_at_15pct": 0.23148148148148148,
+                "ece_10bin": 0.1738387553585034,
+                "enrichment_at_10pct": 1.5740740740740742,
+                "enrichment_at_15pct": 1.5323422013562857,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6330865562471862,
+                "roc_auc": 0.6529235928842229
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "baseline_members": [
+            "cdr_mixed_rank_lgbm_hybrid"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4238,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16962
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3996,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15985
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4238,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16962
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03754716981132075
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36298,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 25,
+                  "retained_train_rows": 36273
+                }
+              },
+              "shehata2019": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4167,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16670
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3982,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15928
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4167,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16670
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.037529394826510534
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36021,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 111,
+                  "retained_train_rows": 35910
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.6740859661317116,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "shehata2019"
+            ],
+            "trial_macro_source_auc": 0.6745251957890234
+          },
+          "outer_candidate_audit": {
+            "bio_mixed_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4263,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17059
+            },
+            "cdr_mixed_rank_lgbm_hybrid": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4263,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 17059
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 470,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 6,
+            "input_train_rows": 240486,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 0,
+            "retained_train_rows": 240480,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.2649537824979547,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.16666666666666666,
+            "catch_rate_at_15pct": 0.22685185185185186,
+            "ece_10bin": 0.17894061501453412,
+            "enrichment_at_10pct": 1.6666666666666667,
+            "enrichment_at_15pct": 1.50169535732916,
+            "members": [
+              "bio_mixed_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "per_assay": {
+              "yn_binary": {
+                "brier": 0.2649537824979547,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.22685185185185186,
+                "ece_10bin": 0.17894061501453412,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.50169535732916,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348910410060402,
+                "roc_auc": 0.6545457859434238
+              }
+            },
+            "pr_auc": 0.6348910410060402,
+            "roc_auc": 0.6545457859434238,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.26650506187229583,
+                "catch_rate_at_10pct": 0.1391304347826087,
+                "catch_rate_at_15pct": 0.2,
+                "ece_10bin": 0.17417303924516672,
+                "enrichment_at_10pct": 1.391304347826087,
+                "enrichment_at_15pct": 1.3157894736842104,
+                "n": 250,
+                "positives": 115,
+                "pr_auc": 0.6048894348402646,
+                "roc_auc": 0.6371014492753624
+              },
+              "vh_shorter": {
+                "brier": 0.26319096502711253,
+                "catch_rate_at_10pct": 0.16831683168316833,
+                "catch_rate_at_15pct": 0.24752475247524752,
+                "ece_10bin": 0.1904501529370795,
+                "enrichment_at_10pct": 1.683168316831683,
+                "enrichment_at_15pct": 1.6501650165016502,
+                "n": 220,
+                "positives": 101,
+                "pr_auc": 0.6730642809586554,
+                "roc_auc": 0.675097761877028
+              },
+              "vl_present": {
+                "brier": 0.2649537824979547,
+                "catch_rate_at_10pct": 0.16666666666666666,
+                "catch_rate_at_15pct": 0.22685185185185186,
+                "ece_10bin": 0.17894061501453412,
+                "enrichment_at_10pct": 1.6666666666666667,
+                "enrichment_at_15pct": 1.50169535732916,
+                "n": 470,
+                "positives": 216,
+                "pr_auc": 0.6348910410060402,
+                "roc_auc": 0.6545457859434238
+              }
+            },
+            "test_n": 470,
+            "test_positives": 216
+          },
+          "trial_members": [
+            "bio_mixed_lgbm",
+            "cdr_mixed_rank_lgbm_hybrid"
+          ]
+        },
+        "shehata2019": {
+          "applicability_fit": {
+            "distance": "RMS normalized feature distance to nearest source centroid",
+            "source_centroids": [
+              "aims_flu",
+              "aims_gut_hiv_cdr",
+              "aims_mouse",
+              "aims_nat_control_cdr",
+              "aims_nat_hiv_cdr",
+              "aims_plos_hiv_cdr",
+              "emi",
+              "gdpa1",
+              "gdpa4.1",
+              "harvey2022_vhh",
+              "igg",
+              "iso",
+              "jain2017_psr",
+              "jain2024_psr",
+              "tessier_lib1",
+              "tessier_lib2"
+            ],
+            "train_p95": 0.9372945422639685,
+            "train_p99": 1.1751463869070604
+          },
+          "baseline": {
+            "brier": 0.2984854222893873,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.24561403508771928,
+            "catch_rate_at_15pct": 0.2982456140350877,
+            "ece_10bin": 0.31840857272852974,
+            "enrichment_at_10pct": 2.41735918744229,
+            "enrichment_at_15pct": 1.9569098184056632,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.2984854222893873,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.2982456140350877,
+                "ece_10bin": 0.31840857272852974,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 1.9569098184056632,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3246941594699043,
+                "roc_auc": 0.738281033814821
+              }
+            },
+            "pr_auc": 0.3246941594699043,
+            "roc_auc": 0.738281033814821,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.31224036905012237,
+                "catch_rate_at_10pct": 0.25,
+                "catch_rate_at_15pct": 0.3125,
+                "ece_10bin": 0.331375008759307,
+                "enrichment_at_10pct": 2.477272727272727,
+                "enrichment_at_15pct": 2.0643939393939394,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.2802878452148941,
+                "roc_auc": 0.7142137096774194
+              },
+              "vh_shorter": {
+                "brier": 0.2792637659186164,
+                "catch_rate_at_10pct": 0.28,
+                "catch_rate_at_15pct": 0.28,
+                "ece_10bin": 0.3002888095573155,
+                "enrichment_at_10pct": 2.73,
+                "enrichment_at_15pct": 1.82,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.41332332401121247,
+                "roc_auc": 0.7658015267175572
+              },
+              "vl_present": {
+                "brier": 0.2984854222893873,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.2982456140350877,
+                "ece_10bin": 0.31840857272852974,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 1.9569098184056632,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3246941594699043,
+                "roc_auc": 0.738281033814821
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "baseline_members": [
+            "cdr_library_lgbm"
+          ],
+          "inner_selection": {
+            "audits": {
+              "aims_flu": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4255,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17020
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 3996,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 15979
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4255,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 17020
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.036756756756756756
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 0,
+                  "input_train_rows": 36379,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 31,
+                  "retained_train_rows": 36348
+                }
+              },
+              "aims_mouse": {
+                "candidates": {
+                  "bio_mixed_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "cdr_library_lgbm": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4000,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16000
+                  },
+                  "cdr_mixed_rank_lgbm_hybrid": {
+                    "calibration_method": "platt_logistic_train_only",
+                    "calibration_n": 4185,
+                    "coverage": {
+                      "test": 1.0,
+                      "train": 1.0
+                    },
+                    "fit_n": 16742
+                  },
+                  "plm_mixed_lgbm": {
+                    "coverage": {
+                      "test": 0.0,
+                      "train": 0.03736799350121852
+                    },
+                    "skip": "feature coverage below 80% or fewer than 40 training rows"
+                  }
+                },
+                "overlap": {
+                  "exact_vh_removed": 0,
+                  "exact_vl_removed": 6,
+                  "input_train_rows": 36006,
+                  "near_identity_method": "exact positional identity for equal-length VH sequences",
+                  "near_identity_threshold": 0.9,
+                  "near_vh_removed": 0,
+                  "retained_train_rows": 36000
+                }
+              }
+            },
+            "baseline_macro_source_auc": 0.6410786113172815,
+            "eligible_candidates": [
+              "bio_mixed_lgbm",
+              "cdr_library_lgbm",
+              "cdr_mixed_rank_lgbm_hybrid"
+            ],
+            "inner_sources": [
+              "aims_flu",
+              "aims_mouse"
+            ],
+            "trial_macro_source_auc": 0.6410786113172815
+          },
+          "outer_candidate_audit": {
+            "cdr_library_lgbm": {
+              "calibration_method": "platt_logistic_train_only",
+              "calibration_n": 4000,
+              "coverage": {
+                "test": 1.0,
+                "train": 1.0
+              },
+              "fit_n": 16000
+            }
+          },
+          "outer_overlap_audit": {
+            "eligible_test_rows": 374,
+            "exact_vh_removed": 0,
+            "exact_vl_removed": 7,
+            "input_train_rows": 240582,
+            "near_identity_method": "exact positional identity for equal-length VH sequences",
+            "near_identity_threshold": 0.9,
+            "near_vh_removed": 667,
+            "retained_train_rows": 239908,
+            "test_tier": "paired_fv_supervised"
+          },
+          "trial": {
+            "brier": 0.2984854222893873,
+            "calibration_method": "platt_component_train_only",
+            "catch_rate_at_10pct": 0.24561403508771928,
+            "catch_rate_at_15pct": 0.2982456140350877,
+            "ece_10bin": 0.31840857272852974,
+            "enrichment_at_10pct": 2.41735918744229,
+            "enrichment_at_15pct": 1.9569098184056632,
+            "members": [
+              "cdr_library_lgbm"
+            ],
+            "per_assay": {
+              "psr_continuous": {
+                "brier": 0.2984854222893873,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.2982456140350877,
+                "ece_10bin": 0.31840857272852974,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 1.9569098184056632,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3246941594699043,
+                "roc_auc": 0.738281033814821
+              }
+            },
+            "pr_auc": 0.3246941594699043,
+            "roc_auc": 0.738281033814821,
+            "subgroups": {
+              "vh_longer_or_equal": {
+                "brier": 0.31224036905012237,
+                "catch_rate_at_10pct": 0.25,
+                "catch_rate_at_15pct": 0.3125,
+                "ece_10bin": 0.331375008759307,
+                "enrichment_at_10pct": 2.477272727272727,
+                "enrichment_at_15pct": 2.0643939393939394,
+                "n": 218,
+                "positives": 32,
+                "pr_auc": 0.2802878452148941,
+                "roc_auc": 0.7142137096774194
+              },
+              "vh_shorter": {
+                "brier": 0.2792637659186164,
+                "catch_rate_at_10pct": 0.28,
+                "catch_rate_at_15pct": 0.28,
+                "ece_10bin": 0.3002888095573155,
+                "enrichment_at_10pct": 2.73,
+                "enrichment_at_15pct": 1.82,
+                "n": 156,
+                "positives": 25,
+                "pr_auc": 0.41332332401121247,
+                "roc_auc": 0.7658015267175572
+              },
+              "vl_present": {
+                "brier": 0.2984854222893873,
+                "catch_rate_at_10pct": 0.24561403508771928,
+                "catch_rate_at_15pct": 0.2982456140350877,
+                "ece_10bin": 0.31840857272852974,
+                "enrichment_at_10pct": 2.41735918744229,
+                "enrichment_at_15pct": 1.9569098184056632,
+                "n": 374,
+                "positives": 57,
+                "pr_auc": 0.3246941594699043,
+                "roc_auc": 0.738281033814821
+              }
+            },
+            "test_n": 374,
+            "test_positives": 57
+          },
+          "trial_members": [
+            "cdr_library_lgbm"
+          ]
+        }
+      },
+      "property": "polyreactivity",
+      "seed": 44,
+      "skipped_sources": {}
+    }
+  ],
+  "schema_version": "1",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "trial": {
+    "audits_present": true,
+    "mean_enrichment_at_15pct": 1.6361223580332442,
+    "mean_macro_source_auc": 0.6615399020242383,
+    "seed_macro_source_auc": [
+      0.6642301929277376,
+      0.6512373082835463,
+      0.669152204861431
+    ],
+    "seed_std_auc": 0.007557077420456683,
+    "source_bootstrap_ci95": [
+      0.6013975617008623,
+      0.7271939048462376
+    ],
+    "source_mean_auc": {
+      "aims_flu": 0.6013975617008623,
+      "aims_mouse": 0.656028239525615,
+      "shehata2019": 0.7271939048462376
+    }
+  }
+}
