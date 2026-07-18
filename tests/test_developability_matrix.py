@@ -127,6 +127,7 @@ class TestCandidateFitting(unittest.TestCase):
         featured = self._featured()
         for learner in (
             "lgbm", "histgb", "ridge", "rank_lgbm", "rank_lgbm_source",
+            "rank_lgbm_hybrid",
             "rank_histgb", "rank_ridge"
         ):
             if learner.startswith("rank_"):

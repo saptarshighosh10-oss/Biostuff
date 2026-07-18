@@ -95,6 +95,16 @@ SOURCE_WEIGHT_SPECS = (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+HYBRID_WEIGHT_BEST = 0.7854265332552393
+HYBRID_WEIGHT_SPECS = SOURCE_WEIGHT_SPECS + (
+    CandidateSpec(
+        "paired_bio_mixed_rank_lgbm_hybrid",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_lgbm_hybrid",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
 def run(
@@ -104,6 +114,7 @@ def run(
     rank: bool = False,
     rank_ensemble: bool = False,
     source_weight: bool = False,
+    hybrid_weight: bool = False,
 ) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
@@ -116,7 +127,9 @@ def run(
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
-    if source_weight:
+    if hybrid_weight:
+        specs, current_best = HYBRID_WEIGHT_SPECS, HYBRID_WEIGHT_BEST
+    elif source_weight:
         specs, current_best = SOURCE_WEIGHT_SPECS, SOURCE_WEIGHT_BEST
     elif rank_ensemble:
         specs, current_best = RANK_ENSEMBLE_SPECS, RANK_ENSEMBLE_BEST
@@ -142,7 +155,9 @@ def run(
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
     experiment = (
-        "hic_continuous_rank_source_weight"
+        "hic_continuous_rank_hybrid_weight"
+        if hybrid_weight
+        else "hic_continuous_rank_source_weight"
         if source_weight
         else "hic_continuous_rank_multi_learner"
         if rank_ensemble
@@ -153,7 +168,9 @@ def run(
         else "hic_paired_chain_biophysical"
     )
     hypothesis = (
-        "Source-only weighting preserves full HIC rank information better than binary class balancing"
+        "Geometric midpoint weighting retains macro HIC gain without sacrificing the Jetha source"
+        if hybrid_weight
+        else "Source-only weighting preserves full HIC rank information better than binary class balancing"
         if source_weight
         else "Rank HistGB and ridge reduce learner-specific transfer error in continuous HIC ensembles"
         if rank_ensemble
@@ -187,6 +204,11 @@ def main(argv: list[str] | None = None) -> int:
         "--database",
         type=Path,
         default=Path("results/developability_registry.sqlite"),
+    )
+    parser.add_argument(
+        "--hybrid-weight",
+        action="store_true",
+        help="compare a fixed geometric midpoint of class and source weights",
     )
     parser.add_argument(
         "--source-weight",
@@ -224,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         args.rank,
         args.rank_ensemble,
         args.source_weight,
+        args.hybrid_weight,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(

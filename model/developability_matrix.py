@@ -368,7 +368,7 @@ def _candidate_model(learner: str, seed: int):
             StandardScaler(),
             LogisticRegression(C=0.1, max_iter=2000, random_state=seed),
         )
-    if learner in {"rank_lgbm", "rank_lgbm_source"}:
+    if learner in {"rank_lgbm", "rank_lgbm_source", "rank_lgbm_hybrid"}:
         from lightgbm import LGBMRegressor
 
         return LGBMRegressor(
@@ -524,11 +524,16 @@ def fit_candidate(
         for row, _ in training_featured
     ]
     training_rows = [row for row, _ in training_featured]
-    weights = (
-        _source_weights(training_rows)
-        if learner == "rank_lgbm_source"
-        else _weights(training_rows)
-    )
+    if learner == "rank_lgbm_source":
+        weights = _source_weights(training_rows)
+    elif learner == "rank_lgbm_hybrid":
+        class_weights = _weights(training_rows)
+        source_weights = _source_weights(training_rows)
+        weights = [math.sqrt(a * b) for a, b in zip(class_weights, source_weights)]
+        scale = len(weights) / sum(weights)
+        weights = [weight * scale for weight in weights]
+    else:
+        weights = _weights(training_rows)
     if rank_learner:
         if learner == "rank_ridge":
             model.fit(X, y, ridge__sample_weight=weights)
