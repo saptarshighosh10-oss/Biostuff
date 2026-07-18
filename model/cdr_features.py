@@ -87,26 +87,16 @@ def _descriptor(sequence: str) -> list[float]:
 
 def cdr_feature_vector(row: dict, mode: str = "h3") -> list[float]:
     """Return five descriptors per CDR: length, charge, KD, aromatic fraction, valid."""
-    if mode not in {"h3", "h1_h3", "heavy_all"}:
-        raise ValueError("mode must be 'h3', 'h1_h3', or 'heavy_all'")
-    names = {
-        "h3": ("h3",),
-        "h1_h3": ("h1", "h3"),
-        "heavy_all": ("h1", "h2", "h3"),
-    }[mode]
+    names = ("h3",) if mode == "h3" else ("h1", "h2", "h3")
+    if mode not in {"h3", "heavy_all"}:
+        raise ValueError("mode must be 'h3' or 'heavy_all'")
     cdrs = heavy_cdrs(row)
     return [value for name in names for value in _descriptor(cdrs[name])]
 
 
 def parse_rate(rows: list[dict], mode: str = "h3") -> dict[str, float]:
     """Fraction of rows with each requested CDR available from supplied values or H3 parsing."""
-    if mode not in {"h3", "h1_h3", "heavy_all"}:
-        raise ValueError("mode must be 'h3', 'h1_h3', or 'heavy_all'")
-    names = {
-        "h3": ("h3",),
-        "h1_h3": ("h1", "h3"),
-        "heavy_all": ("h1", "h2", "h3"),
-    }[mode]
+    names = ("h3",) if mode == "h3" else ("h1", "h2", "h3")
     counts = {name: 0 for name in names}
     for row in rows:
         cdrs = heavy_cdrs(row)

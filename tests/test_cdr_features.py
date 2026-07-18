@@ -18,13 +18,6 @@ class CdrFeaturesTest(unittest.TestCase):
         self.assertTrue(heavy_cdrs(row)["h1"])
         self.assertTrue(heavy_cdrs(row)["h2"])
 
-    def test_h1_h3_mode_excludes_unreliable_h2(self):
-        vector = cdr_feature_vector(
-            {"cdrh1": "AAA", "cdrh2": "WWWW", "cdrh3": "RR"}, "h1_h3"
-        )
-        self.assertEqual(len(vector), 10)
-        self.assertEqual((vector[0], vector[5]), (3.0, 2.0))
-
 
 if __name__ == "__main__":
     unittest.main()

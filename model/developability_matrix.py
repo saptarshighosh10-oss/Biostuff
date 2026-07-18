@@ -39,7 +39,6 @@ FEATURE_MODES = (
     "biophysical_charge",
     "paired_biophysical_charge",
     "paired_interaction_biophysical_charge",
-    "cdr_h1_h3",
     "cdr_aware",
     "frozen_plm",
 )
@@ -764,8 +763,6 @@ def make_featurizer(
                 else []
             )
             vector = baseline + light + interaction + [float(bool(vl))]
-        elif mode == "cdr_h1_h3":
-            vector = baseline + cdr_feature_vector(model_row, "h1_h3")
         elif mode == "cdr_aware":
             vector = baseline + cdr_feature_vector(model_row, "heavy_all")
         else:
