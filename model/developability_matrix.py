@@ -892,52 +892,9 @@ def _training_arm_rows(rows: list[dict], arm: str) -> list[dict]:
         return [row for row in rows if row["source_class"] == "LIBRARY"]
     if arm == "diverse_only":
         return [row for row in rows if row["source_class"] == "DIVERSE"]
-    if arm == "diverse_consensus":
-        return molecule_consensus_rows(
-            [row for row in rows if row["source_class"] == "DIVERSE"]
-        )
     if arm == "mixed":
         return rows
     raise ValueError(f"unsupported training arm: {arm}")
-
-
-def molecule_consensus_rows(rows: list[dict]) -> list[dict]:
-    """Collapse repeated assays to one source-normalized risk row per molecule."""
-    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
-    for row in rows:
-        molecule = str(
-            row.get("molecule_key")
-            or f"{row.get('vh', '')}|{row.get('vl', '')}"
-        )
-        grouped[(str(row["source"]), molecule)].append(row)
-
-    consensus = []
-    for (source, molecule), group in sorted(grouped.items()):
-        representative = dict(min(group, key=lambda row: str(row["record_id"])))
-        representative.update({
-            "record_id": f"consensus:{source}:{molecule}",
-            "assay_metric": "molecule_consensus",
-            "label_type": "consensus_rank",
-            "rank_target": statistics.fmean(
-                float(row["rank_target"]) for row in group
-            ),
-        })
-        consensus.append(representative)
-
-    by_source: dict[str, list[dict]] = defaultdict(list)
-    for row in consensus:
-        by_source[str(row["source"])].append(row)
-    for source_rows in by_source.values():
-        bad_count = max(1, math.ceil(len(source_rows) * BAD_FRACTION))
-        ordered = sorted(
-            source_rows,
-            key=lambda row: (float(row["rank_target"]), str(row["record_id"])),
-            reverse=True,
-        )
-        bad_ids = {row["record_id"] for row in ordered[:bad_count]}
-        for row in source_rows:
-            row["target"] = int(row["record_id"] in bad_ids)
-    return sorted(consensus, key=lambda row: str(row["record_id"]))
 
 
 def eligible_split(rows: list[dict], held_source: str) -> tuple[list[dict], list[dict]]:

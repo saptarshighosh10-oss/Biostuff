@@ -11,7 +11,6 @@ from model.developability_matrix import (
     fit_applicability_index,
     fit_candidate,
     make_featurizer,
-    molecule_consensus_rows,
     score_applicability,
     source_balanced_sample,
     strip_holdout_overlap,
@@ -37,23 +36,6 @@ def row(record_id: str, source: str, value: float, **extra) -> dict:
 
 
 class TestDevelopabilityMatrix(unittest.TestCase):
-    def test_molecule_consensus_collapses_assays_before_labeling(self) -> None:
-        rows = []
-        for molecule, values in (("m1", (0.1, 0.2)), ("m2", (0.8, 0.9))):
-            for assay, value in enumerate(values):
-                rows.append(row(
-                    f"{molecule}-{assay}", "s", value,
-                    molecule_key=molecule,
-                    source_class="DIVERSE",
-                    target=int(value > 0.5),
-                    rank_target=value,
-                ))
-        consensus = molecule_consensus_rows(rows)
-        self.assertEqual(len(consensus), 2)
-        self.assertAlmostEqual(consensus[0]["rank_target"], 0.15)
-        self.assertAlmostEqual(consensus[1]["rank_target"], 0.85)
-        self.assertEqual([item["target"] for item in consensus], [0, 1])
-
     def test_group_labels_keep_binary_and_use_exact_top_tail(self) -> None:
         binary = [row("b0", "s", 0.0), row("b1", "s", 1.0)]
         assign_group_labels(binary)
