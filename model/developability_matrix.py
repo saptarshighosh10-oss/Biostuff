@@ -384,6 +384,21 @@ def _candidate_model(learner: str, seed: int):
             n_jobs=1,
             verbose=-1,
         )
+    if learner == "rank_histgb":
+        from sklearn.ensemble import HistGradientBoostingRegressor
+
+        return HistGradientBoostingRegressor(
+            max_iter=500,
+            learning_rate=0.05,
+            l2_regularization=1.0,
+            random_state=seed,
+        )
+    if learner == "rank_ridge":
+        from sklearn.linear_model import Ridge
+        from sklearn.pipeline import make_pipeline
+        from sklearn.preprocessing import StandardScaler
+
+        return make_pipeline(StandardScaler(), Ridge(alpha=1.0))
     raise ValueError(f"unsupported learner: {learner}")
 
 
@@ -488,19 +503,23 @@ def fit_candidate(
 ) -> dict:
     """Fit one comparable classifier and its train-only calibration."""
     model = _candidate_model(learner, seed)
+    rank_learner = learner.startswith("rank_")
     training_featured = (
         fit_featured + calibration_featured
-        if learner == "rank_lgbm" else fit_featured
+        if rank_learner else fit_featured
     )
     X = [vector for _, vector in training_featured]
     y = [
         float(row["rank_target"])
-        if learner == "rank_lgbm" else int(row["target"])
+        if rank_learner else int(row["target"])
         for row, _ in training_featured
     ]
     weights = _weights([row for row, _ in training_featured])
-    if learner == "rank_lgbm":
-        model.fit(X, y, sample_weight=weights)
+    if rank_learner:
+        if learner == "rank_ridge":
+            model.fit(X, y, ridge__sample_weight=weights)
+        else:
+            model.fit(X, y, sample_weight=weights)
         predicted = _predict_without_lightgbm_name_warning(
             model.predict, [vector for _, vector in test_featured]
         )

@@ -61,6 +61,23 @@ RANK_SPECS = ENSEMBLE_SPECS + (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+RANK_ENSEMBLE_BEST = 0.7744206770990548
+RANK_ENSEMBLE_SPECS = RANK_SPECS + (
+    CandidateSpec(
+        "paired_bio_mixed_rank_histgb",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_histgb",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+    CandidateSpec(
+        "paired_bio_mixed_rank_ridge",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_ridge",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
 def run(
@@ -68,6 +85,7 @@ def run(
     policy_path: Path,
     ensemble: bool = False,
     rank: bool = False,
+    rank_ensemble: bool = False,
 ) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
@@ -80,8 +98,14 @@ def run(
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
-    specs = RANK_SPECS if rank else ENSEMBLE_SPECS if ensemble else SPECS
-    current_best = RANK_BEST if rank else ENSEMBLE_BEST if ensemble else CURRENT_BEST
+    if rank_ensemble:
+        specs, current_best = RANK_ENSEMBLE_SPECS, RANK_ENSEMBLE_BEST
+    elif rank:
+        specs, current_best = RANK_SPECS, RANK_BEST
+    elif ensemble:
+        specs, current_best = ENSEMBLE_SPECS, ENSEMBLE_BEST
+    else:
+        specs, current_best = SPECS, CURRENT_BEST
     runs = [
         nested_generalist(
             rows,
@@ -98,14 +122,18 @@ def run(
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
     experiment = (
-        "hic_continuous_rank_ensemble"
+        "hic_continuous_rank_multi_learner"
+        if rank_ensemble
+        else "hic_continuous_rank_ensemble"
         if rank
         else "hic_paired_chain_learner_ensemble"
         if ensemble
         else "hic_paired_chain_biophysical"
     )
     hypothesis = (
-        "Within-assay HIC percentile regression uses numeric label ordering discarded by binary training"
+        "Rank HistGB and ridge reduce learner-specific transfer error in continuous HIC ensembles"
+        if rank_ensemble
+        else "Within-assay HIC percentile regression uses numeric label ordering discarded by binary training"
         if rank
         else "Nested LGBM, HistGB, and ridge blends stabilize paired-chain HIC transfer"
         if ensemble
@@ -154,8 +182,19 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="also test continuous within-assay percentile regression",
     )
+    parser.add_argument(
+        "--rank-ensemble",
+        action="store_true",
+        help="also test HistGB and ridge continuous-rank learners",
+    )
     args = parser.parse_args(argv)
-    report = run(args.database, args.policy, args.ensemble, args.rank)
+    report = run(
+        args.database,
+        args.policy,
+        args.ensemble,
+        args.rank,
+        args.rank_ensemble,
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
