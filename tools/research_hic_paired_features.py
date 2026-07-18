@@ -78,6 +78,23 @@ RANK_ENSEMBLE_SPECS = RANK_SPECS + (
         ("paired_fv_supervised", "single_chain_supervised"),
     ),
 )
+SOURCE_WEIGHT_BEST = 0.7764847139373569
+SOURCE_WEIGHT_SPECS = (
+    CandidateSpec(
+        "paired_bio_mixed_rank_lgbm",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_lgbm",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+    CandidateSpec(
+        "paired_bio_mixed_rank_lgbm_source",
+        "paired_biophysical_charge",
+        "mixed",
+        "rank_lgbm_source",
+        ("paired_fv_supervised", "single_chain_supervised"),
+    ),
+)
 
 
 def run(
@@ -86,6 +103,7 @@ def run(
     ensemble: bool = False,
     rank: bool = False,
     rank_ensemble: bool = False,
+    source_weight: bool = False,
 ) -> dict:
     policy = load_policy(policy_path)
     validate_policy(policy)
@@ -98,7 +116,9 @@ def run(
         item["name"]
         for item in policy["properties"][PROPERTY]["source_roles"]["development"]
     ]
-    if rank_ensemble:
+    if source_weight:
+        specs, current_best = SOURCE_WEIGHT_SPECS, SOURCE_WEIGHT_BEST
+    elif rank_ensemble:
         specs, current_best = RANK_ENSEMBLE_SPECS, RANK_ENSEMBLE_BEST
     elif rank:
         specs, current_best = RANK_SPECS, RANK_BEST
@@ -122,7 +142,9 @@ def run(
             source_result.pop("record_predictions", None)
     trial_auc = float(summary["trial"]["mean_macro_source_auc"])
     experiment = (
-        "hic_continuous_rank_multi_learner"
+        "hic_continuous_rank_source_weight"
+        if source_weight
+        else "hic_continuous_rank_multi_learner"
         if rank_ensemble
         else "hic_continuous_rank_ensemble"
         if rank
@@ -131,7 +153,9 @@ def run(
         else "hic_paired_chain_biophysical"
     )
     hypothesis = (
-        "Rank HistGB and ridge reduce learner-specific transfer error in continuous HIC ensembles"
+        "Source-only weighting preserves full HIC rank information better than binary class balancing"
+        if source_weight
+        else "Rank HistGB and ridge reduce learner-specific transfer error in continuous HIC ensembles"
         if rank_ensemble
         else "Within-assay HIC percentile regression uses numeric label ordering discarded by binary training"
         if rank
@@ -165,6 +189,11 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("results/developability_registry.sqlite"),
     )
     parser.add_argument(
+        "--source-weight",
+        action="store_true",
+        help="compare class-balanced and source-only continuous-rank weighting",
+    )
+    parser.add_argument(
         "--policy", type=Path, default=Path("tools/benchmark_policy.json")
     )
     parser.add_argument(
@@ -194,6 +223,7 @@ def main(argv: list[str] | None = None) -> int:
         args.ensemble,
         args.rank,
         args.rank_ensemble,
+        args.source_weight,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(

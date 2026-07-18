@@ -126,7 +126,8 @@ class TestCandidateFitting(unittest.TestCase):
     def test_supported_learners_return_pickleable_calibrated_probabilities(self) -> None:
         featured = self._featured()
         for learner in (
-            "lgbm", "histgb", "ridge", "rank_lgbm", "rank_histgb", "rank_ridge"
+            "lgbm", "histgb", "ridge", "rank_lgbm", "rank_lgbm_source",
+            "rank_histgb", "rank_ridge"
         ):
             if learner.startswith("rank_"):
                 for item, _ in featured:
