@@ -1,0 +1,11 @@
+{
+  "accepted_sources": [
+    "aims_mouse",
+    "aims_flu",
+    "emi",
+    "igg",
+    "iso"
+  ],
+  "quarantined": {},
+  "history": []
+}

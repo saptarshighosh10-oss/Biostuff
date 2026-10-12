@@ -22,6 +22,8 @@ data/external/proteingym/quarantine.json
 
 # Local environment, caches, and downloaded data (never commit)
 .venv/
+.venvs/
+.tools/
 .cache/
 .playwright-cli/
 .worktrees/
