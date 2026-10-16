@@ -128,8 +128,10 @@ The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
   (5.7 vs 3.4). Ridge on skewed labels wastes the copies; ridge on ranked labels jumps from 0.44 to 0.64 cross-lab.
 - physchem-RF is still over-predicted on HIC and AC-SINS.
 - Post-hoc: the hypothesis came after seeing the miss. The noise level comes from the measured agreement, not from fitting the DiD.
-- **Consequence:** the LS values in `DEFINITION.md` used SD-sized noise, so they understate susceptibility on skewed assays.
-  They should be recomputed with rank-matched noise.
+- **LS table recomputed** with rank-matched noise (`synthetic.py`, `out/leakage_susceptibility.csv`). The SD-noise LS reproduced exactly.
+  - Mean LS by model: NN-copy 0.83, kmer-ridge 0.73, physchem-RF 0.58, esm2-ridge 0.31, ablang2-ridge 0.23 (was .56/.61/.51/.29/.21).
+  - NN-copy is now the ceiling.
+  - Prediction = LS × 0.54. Against the naive-minus-honest drop: corr 0.92, 15/15 inside the CI (was 0.79, 12/15). Against the DiD: corr 0.76, 10/15.
 
 ## 5. Defensible claim
 
@@ -141,6 +143,6 @@ The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- Recompute the LS table (`synthetic.py`, `DEFINITION.md`) with rank-matched label noise.
+- Check whether the salinity and EuroSAT label noise has the same SD-vs-rank problem. Salinity log EC is less skewed, and EuroSAT is classification.
 - Directly test the skew explanation for SMAC kmer-ridge.
 - LUCAS 2015 as an independent replication of the salinity result.
