@@ -92,16 +92,35 @@ The exact-copy curve over-predicts: corr 0.41, 19/45 inside the CI, signed +0.10
 - GDPa1 has almost no near-duplicates. Its "near" antibodies are 80–90% identity neighbours, which are weak copies, and they keep a .78–.84 neighbour after dedup (redundancy).
 - The assay matters: AC-SINS real leak ≈ 0 at every t, HIC is the largest (NN-copy .27 at t = .80).
 
+**Realistic-neighbour predictor** (`did_antibody_real.py`, `out/did_antibody_real.csv`, fixed before running). Planted neighbours
+are exact sequence copies whose labels agree with the test label only as much as real pairs do. Sequences cannot be mutated
+because the ESM and AbLang embeddings are cache-only.
+| setting | predictor | corr | inside CI | MAE | signed |
+|---|---|---|---|---|---|
+| A cross-lab | exact copy, 0.9 agreement | 0.55 | 8/15 | 0.096 | −0.041 |
+| A cross-lab | measured agreement (HIC .97, AC-SINS .89, SMAC .91) | 0.57 | 7/15 | 0.098 | −0.017 |
+| B within GDPa1 | exact copy | 0.41 | 19/45 | 0.116 | +0.107 |
+| B within GDPa1 | realistic labels + redundancy | 0.22 | 32/45 | 0.047 | −0.031 |
+| B within GDPa1 | same, salinity-style additive noise | 0.28 | 30/45 | 0.047 | −0.033 |
+| B within GDPa1 | **null: predict 0 leak** | – | **31/45** | **0.048** | – |
+
+- **The realistic predictor is no better than predicting zero.** Real GDPa1 pairs at 70–90% identity barely agree in label
+  (rho ≈ 0–0.25), so it predicts almost no leak. That removes the bias, but it also misses the cells that do leak
+  (HIC/SMAC memorisers at t = .85: about .14–.18 real vs ≈ .01 predicted). Calibrating on 5-nearest-neighbour pairs instead
+  of all pairs gives similar or noisier rho, so that variant was not run.
+- **Cross-lab:** the measured agreement is close to the assumed 0.9, so label realism does not explain why the memorisers' SMAC leak is
+  under-predicted (.16 vs .42–.49). Still unexplained. Most likely cause: the planted curve is built with same-lab GDPa1 training,
+  while the real model trains on 137 Jain antibodies, almost all of them copies.
+
 ## 5. Defensible claim
 
 1. Planted-leak susceptibility **ranks** models correctly in three domains.
 2. Real leak size must be measured by DiD. Threshold dedup leaves near-threshold neighbours (redundancy).
 3. **Magnitude** is predicted when planted neighbours match the real neighbour statistics and redundancy is
-   modelled (salinity, pre-specified). For images, the exact-copy curve is right on average but not per threshold.
-   Building realistic synthetic image neighbours is open.
+   modelled (salinity, pre-specified, 19k points). For images, the exact-copy curve is right on average but not per threshold.
+   Antibodies: there is no magnitude prediction better than a null. With 242 antibodies the real leaks are small and the CIs wide.
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- An antibody realistic-neighbour predictor: label noise matched to real pairs at each identity, plus redundancy
-  (the salinity recipe). Feature realism is limited because the ESM and AbLang embeddings are cache-only.
+- Why the cross-lab SMAC leak for memorisers is about 3× the prediction.
 - LUCAS 2015 as an independent replication of the salinity result.
