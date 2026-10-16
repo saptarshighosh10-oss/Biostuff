@@ -1,4 +1,4 @@
-# Cross-domain leakage results (EuroSAT, LUCAS salinity)
+# Cross-domain leakage results (antibody DiD, EuroSAT, LUCAS salinity)
 
 Status as of 2026-10-15. Every predictor variant tried is listed, including the failures. On EuroSAT, eight
 variants were tested against the same 36 rows, so treat any single EuroSAT "win" as exploratory. The salinity
@@ -66,6 +66,32 @@ Hard-threshold curve 13/36 inside CI (corr .81); closeness-calibrated 12/36 (`ca
 discarded because its logic was backwards (`headroom.py`). A direct check (`headroom_check.py`) refuted the headroom idea:
 near tiles without their neighbour are as hard as average.
 
+### Antibody, DiD estimand (`did_antibody.py`, `out/did_antibody.csv`, design fixed before running)
+Per-item loss L_i = (z(rank y) − z(rank pred))²/2 gives Spearman rho = 1 − mean(L) exactly, so the DiD is in rho units.
+
+**A. Cross-lab Jain2017 → GDPa1 (the headline setting, f = 0.54).** Removing every copy would leave about 6 training
+antibodies, so this uses half-dedup: drop the copies of a random half of the near antibodies (20 halvings, train 137 → 72).
+| | corr | inside CI | MAE (rho) | signed |
+|---|---|---|---|---|
+| DiD vs old naive-minus-honest observed | 0.87 | – | – | mean 0.27 vs 0.29 |
+| planted prediction vs DiD | 0.55 | 8/15 | 0.096 | −0.041 |
+
+Mean by model (pred / DiD): NN-copy .29/.44, kmer-ridge .33/.44, physchem-RF .27/.18, esm2-ridge .15/.15, ablang2-ridge .12/.15.
+- The old observed drop holds up in aggregate. physchem-RF was the exception: its old value of .29 is really .18 under the DiD.
+- The cell-level fit weakens from 12/15 to 8/15. Memorisers leak more than predicted, physchem-RF less. Ranking holds: memorisers > PLM ridge.
+- Caveat: half-dedup halves the training set. The DiD assumes the size effect hits near and far antibodies equally.
+
+**B. Within GDPa1 random folds, identity dedup at t = .90/.85/.80** (t = .95 skipped, only 2 near antibodies).
+| t | f_near | closeness after dedup s2 | exact-copy pred | DiD |
+|---|---|---|---|---|
+| .90 | .06 | .84 | .027 | .010 |
+| .85 | .27 | .83 | .117 | .050 |
+| .80 | .64 | .78 | .279 | .041 |
+
+The exact-copy curve over-predicts: corr 0.41, 19/45 inside the CI, signed +0.107, the same pattern as salinity.
+- GDPa1 has almost no near-duplicates. Its "near" antibodies are 80–90% identity neighbours, which are weak copies, and they keep a .78–.84 neighbour after dedup (redundancy).
+- The assay matters: AC-SINS real leak ≈ 0 at every t, HIC is the largest (NN-copy .27 at t = .80).
+
 ## 5. Defensible claim
 
 1. Planted-leak susceptibility **ranks** models correctly in three domains.
@@ -76,5 +102,6 @@ near tiles without their neighbour are as hard as average.
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- The DiD estimand applied to the antibody (FLAb) audit.
+- An antibody realistic-neighbour predictor: label noise matched to real pairs at each identity, plus redundancy
+  (the salinity recipe). Feature realism is limited because the ESM and AbLang embeddings are cache-only.
 - LUCAS 2015 as an independent replication of the salinity result.
