@@ -46,6 +46,27 @@ Why exact copies over-predict here: real soil samples 1–55 km apart differ by 
 unrelated points. A neighbour is a weak copy.
 Radii of 25 and 50 km are excluded because buffering leaves about 2,500 and 150 training points (degenerate).
 
+**Noise-form check and null baseline (2026-10-16, `salinity/did_rank.py`, fixed before running).** The realistic planting added
+N(0, rms_pair) to the test label. That keeps the planted label centred on the true one, so it agrees at Pearson 0.67, while real 5-NN
+pairs agree at only 0.40 (a real neighbour's label regresses to the mean). Soil features were roughly matched (Spearman 0.51 planted vs 0.59 real).
+The rerun used rank-matched (copula) labels and features at the measured pair agreement, the same recipe as the antibodies.
+| seeds | predictor | corr | inside CI | MAE | signed | knn_geo only: inside / MAE / signed |
+|---|---|---|---|---|---|---|
+| 0–2 | additive noise + redundancy (original) | 0.84 | 26/36 | 0.009 | −0.002 | 9/9 / .011 / +.009 |
+| 0–2 | rank-matched + redundancy | 0.84 | 31/36 | 0.010 | −0.010 | 9/9 / .017 / −.017 |
+| 0–2 | **null: predict 0** | – | 23/36 | 0.016 | – | 3/9 / .037 / −.037 |
+| 3–5 | additive noise + redundancy (original) | 0.79 | 27/36 | 0.010 | −0.002 | 9/9 / .017 / +.004 |
+| 3–5 | rank-matched + redundancy | 0.82 | 27/36 | 0.012 | −0.011 | 7/9 / .024 / −.024 |
+| 3–5 | **null: predict 0** | – | 28/36 | 0.017 | – | 5/9 / .041 / −.041 |
+
+- **The inside-CI count is a weak test here.** Only knn_geo leaks materially. Most of the 36 cells are ≈ 0 with CIs covering 0, so
+  predicting 0 scores 23/36 and 28/36. The predictor's real advantage is on knn_geo (MAE about 2–3× lower than the null) and in correlation.
+- Rank-matched labels shrink the knn_geo prediction by half and under-predict the r = 15 km leak (.038 vs .070/.085). The original
+  fit was partly two errors cancelling.
+- A likely reason, post-hoc and untested: each test point gets one planted neighbour, but dedup removes several real ones (mean 1.3 train
+  points within 5 km of a near test point, 2.1 within 10 km, 3.8 within 15 km). The under-prediction grows with r, as this predicts. The over-informative
+  additive label made up for the missing neighbours.
+
 ### EuroSAT, t = .80–.95, 36 rows (DiD estimand)
 | predictor | corr | inside CI | MAE (pts) | signed |
 |---|---|---|---|---|
@@ -55,6 +76,8 @@ Radii of 25 and 50 km are excluded because buffering leaves about 2,500 and 150 
 | blended soft copies + redundancy (`did_red.py`) | 0.26 | 8/36 | 1.19 | −1.17 |
 | real reserve tiles planted + redundancy (`real_planted.py`) | 0.37 | 17/36 | 1.23 | −1.23 |
 
+- Label noise is not the EuroSAT problem. Test tiles share their nearest train tile's class 100% of the time at cos ≥ .90, and 92–97% at .80–.90,
+  so planted copies with true labels are close to realistic. The mismatch is in the features.
 - The exact-copy curve is nearly **unbiased in aggregate** (+0.3 points, replicated), but it mis-allocates across
   thresholds. It over-predicts at high t (redundancy) and under-predicts 5-NN at t = .80.
 - Realistic image neighbours could not be synthesised. Blends are too strong: a 1-NN gain of about 17% even at cosine .73.
@@ -137,12 +160,14 @@ The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
 
 1. Planted-leak susceptibility **ranks** models correctly in three domains.
 2. Real leak size must be measured by DiD. Threshold dedup leaves near-threshold neighbours (redundancy).
-3. **Magnitude** is predicted when planted neighbours match the real neighbour statistics and redundancy is
-   modelled (salinity, pre-specified, 19k points). For images, the exact-copy curve is right on average but not per threshold.
+3. **Magnitude** is approximately predicted when planted neighbours resemble real ones and redundancy is modelled (salinity, 19k points):
+   for the one model that leaks (knn_geo), MAE is 2–3× lower than a predict-0 null. It is not a clean win, though. The original fit relied on
+   over-informative labels offsetting single-neighbour planting, and with matched labels the large-radius leak is under-predicted by about half.
+   For images, the exact-copy curve is right on average but not per threshold.
    Antibodies: there is no magnitude prediction better than a null. With 242 antibodies the real leaks are small and the CIs wide.
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- Check whether the salinity and EuroSAT label noise has the same SD-vs-rank problem. Salinity log EC is less skewed, and EuroSAT is classification.
+- Salinity: plant as many neighbours as dedup actually removes (rank-matched labels), pre-specified and judged against the predict-0 null.
 - Directly test the skew explanation for SMAC kmer-ridge.
 - LUCAS 2015 as an independent replication of the salinity result.
