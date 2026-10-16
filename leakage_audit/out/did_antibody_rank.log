@@ -1,0 +1,21 @@
+HIC: real cross-lab spearman 0.97, planted rank-matched spearman 0.97
+AC-SINS: real cross-lab spearman 0.89, planted rank-matched spearman 0.89
+SMAC: real cross-lab spearman 0.91, planted rank-matched spearman 0.91
+  assay         model  agree  pred_old  pred_rank   did    lo    hi
+    HIC       NN-copy  0.968      0.45      0.558 0.473 0.381 0.575
+    HIC    kmer-ridge  0.968      0.39      0.471 0.430 0.342 0.515
+    HIC   physchem-RF  0.968      0.36      0.410 0.204 0.139 0.274
+    HIC    esm2-ridge  0.968      0.17      0.221 0.189 0.113 0.261
+    HIC ablang2-ridge  0.968      0.18      0.209 0.211 0.129 0.288
+AC-SINS       NN-copy  0.890      0.28      0.398 0.439 0.343 0.544
+AC-SINS    kmer-ridge  0.890      0.44      0.490 0.392 0.306 0.480
+AC-SINS   physchem-RF  0.890      0.29      0.320 0.164 0.098 0.229
+AC-SINS    esm2-ridge  0.890      0.19      0.196 0.112 0.058 0.172
+AC-SINS ablang2-ridge  0.890      0.11      0.114 0.118 0.051 0.184
+   SMAC       NN-copy  0.912      0.14      0.485 0.416 0.316 0.509
+   SMAC    kmer-ridge  0.912      0.17      0.251 0.487 0.395 0.582
+   SMAC   physchem-RF  0.912      0.16      0.239 0.178 0.113 0.243
+   SMAC    esm2-ridge  0.912      0.09      0.105 0.158 0.098 0.220
+   SMAC ablang2-ridge  0.912      0.06      0.067 0.129 0.048 0.216
+pred_old: corr=0.55 inside=8/15 MAE=0.096 signed=-0.041
+pred_rank: corr=0.76 inside=10/15 MAE=0.082 signed=+0.029

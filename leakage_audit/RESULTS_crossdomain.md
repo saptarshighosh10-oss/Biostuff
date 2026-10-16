@@ -109,8 +109,27 @@ because the ESM and AbLang embeddings are cache-only.
   (HIC/SMAC memorisers at t = .85: about .14–.18 real vs ≈ .01 predicted). Calibrating on 5-nearest-neighbour pairs instead
   of all pairs gives similar or noisier rho, so that variant was not run.
 - **Cross-lab:** the measured agreement is close to the assumed 0.9, so label realism does not explain why the memorisers' SMAC leak is
-  under-predicted (.16 vs .42–.49). Still unexplained. Most likely cause: the planted curve is built with same-lab GDPa1 training,
-  while the real model trains on 137 Jain antibodies, almost all of them copies.
+  under-predicted (.16 vs .42–.49). The next subsection explains it.
+
+**Why SMAC was under-predicted: the planted noise was sized wrong for skewed labels** (`did_antibody_rank.py`, post-hoc).
+The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
+- SMAC is very skewed (skew 5.7; 90% of values ≤ 3.2, max 10). The few outliers inflate the SD, so that noise scrambles the tightly packed bulk.
+- As a result, planted copies agreed with the true label at Spearman 0.37, against 0.91 for real cross-lab copies. HIC (0.84 vs 0.97)
+  and AC-SINS (0.78 vs 0.89) had the same problem, but milder.
+- The fix is rank-matched noise (Gaussian copula). It hits the measured Spearman exactly and keeps each assay's own value distribution.
+
+| predictor vs DiD | corr | inside CI | MAE | signed |
+|---|---|---|---|---|
+| SD-sized noise (original) | 0.55 | 8/15 | 0.096 | −0.041 |
+| rank-matched noise | **0.76** | **10/15** | 0.082 | +0.029 |
+
+- SMAC NN-copy goes from .14 to .49 predicted, against .42 real (now inside the CI).
+- SMAC kmer-ridge is still under-predicted (.25 vs .49). A likely reason, not directly tested: GDPa1 SMAC is far more skewed than Jain's
+  (5.7 vs 3.4). Ridge on skewed labels wastes the copies; ridge on ranked labels jumps from 0.44 to 0.64 cross-lab.
+- physchem-RF is still over-predicted on HIC and AC-SINS.
+- Post-hoc: the hypothesis came after seeing the miss. The noise level comes from the measured agreement, not from fitting the DiD.
+- **Consequence:** the LS values in `DEFINITION.md` used SD-sized noise, so they understate susceptibility on skewed assays.
+  They should be recomputed with rank-matched noise.
 
 ## 5. Defensible claim
 
@@ -122,5 +141,6 @@ because the ESM and AbLang embeddings are cache-only.
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- Why the cross-lab SMAC leak for memorisers is about 3× the prediction.
+- Recompute the LS table (`synthetic.py`, `DEFINITION.md`) with rank-matched label noise.
+- Directly test the skew explanation for SMAC kmer-ridge.
 - LUCAS 2015 as an independent replication of the salinity result.
