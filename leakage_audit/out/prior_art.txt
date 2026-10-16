@@ -1,0 +1,87 @@
+== antibody developability prediction data leakage
+  2026 0 An interpretable open platform for sequence-based antibody developability prediction | https://doi.org/10.64898/2026.09.16.750421
+  2024 3 Improving Antibody Humanness Prediction using Patent Data | https://doi.org/10.48550/arxiv.2401.14442
+  2024 6 Revealing data leakage in protein interaction benchmarks | https://doi.org/10.48550/arxiv.2404.10457
+  2026 0 A structural antibody benchmark for leakage-aware deep-learning evaluation | https://doi.org/10.64898/2026.09.06.749672
+  2018 35 Antibodies in the Diagnosis, Prognosis, and Prediction of Psychotic Disorders | https://doi.org/10.1093/schbul/sby021
+  2018 25 Serum cytokines in early prediction of anastomotic leakage following low anterior resection. | https://doi.org/10.5114/wiitm.2018.72785
+  2023 39 A machine learning strategy for the identification of key in silico descriptors and prediction models for | https://doi.org/10.1080/19420862.2023.2248671
+  2023 14 A ligand-independent Tie2-activating antibody reduces vascular leakage in models of Clarkson disease | https://doi.org/10.1126/sciadv.adi1394
+== leakage susceptibility benchmark overlap
+  2026 0 Leakage-Safe Benchmarks for Financial Stress Early Warning and Risk Forecasting | None
+  2026 0 Benchmark Leakage Trap: Can We Trust LLM-based Recommendation? | https://doi.org/10.48550/arxiv.2602.13626
+  2026 0 Leakage-Aware Cross-Distress Modeling of Extreme-Weather Effects on Asphalt Pavements: A Controlled Multi | https://doi.org/10.54097/4jkq3v27
+  2022 21 Confound-leakage: confound removal in machine learning leads to leakage | https://doi.org/10.1093/gigascience/giad071
+  2026 0 Ground-truth reconstruction for photovoltaic fault prognosis: Circularity assessment, leakage-free evalua | https://doi.org/10.1016/j.sciaf.2026.e03672
+  2022 4 Confound-leakage: Confound Removal in Machine Learning Leads to Leakage | https://doi.org/10.48550/arxiv.2210.09232
+  2022 68 Survey: Leakage and Privacy at Inference Time | https://doi.org/10.1109/tpami.2022.3229593
+  2025 14 Are Large Language Models Memorizing Bug Benchmarks? | https://doi.org/10.1109/llm4code66737.2025.00005
+== EuroSAT duplicate leakage
+  2025 0 Hierarchical Prompt Engineering for Remote Sensing Scene Understanding with Large Vision–Language Models | https://doi.org/10.3390/rs17223727
+  2026 1 PruDensNet: a parameter efficient depthwise separable CNN for MRI-based brain tumor classification | https://doi.org/10.3389/fmed.2026.1743015
+  2022 388 LiT: Zero-Shot Transfer with Locked-image text Tuning | https://doi.org/10.1109/cvpr52688.2022.01759
+  2026 0 Scene Classification Using Deep Learning: A Critical Review of Representations, Benchmarks, and Evaluatio | https://doi.org/10.71426/jcdt.v2.i2.pp182-192
+  2026 0 Level, Sharpness, and Corpus: Why Zero-Shot OOD Detector Rankings Do Not Transfer | https://doi.org/10.48550/arxiv.2607.26582
+  2026 0 MetaMoE: Diversity-Aware Proxy Selection for Privacy-Preserving Mixture-of-Experts Unification | https://doi.org/10.48550/arxiv.2605.14289
+  2026 0 BELDE: Building a Large-scale Earth-observation Land-cover Dataset for Europe | https://doi.org/10.48550/arxiv.2606.20909
+  2026 0 SAREO-FM: Decoupled Semantic Supervision for SAR-EO Foundation Models | https://doi.org/10.48550/arxiv.2610.09317
+== homology leakage protein property prediction split
+  2022 17 Ten quick tips for sequence-based prediction of protein properties using machine learning | https://doi.org/10.1371/journal.pcbi.1010669
+  2024 226 Fine-tuning protein language models boosts predictions across diverse tasks | https://doi.org/10.1038/s41467-024-51844-2
+  2026 0 AlphaFunctor: Bridging The Gap Between Protein Function Annotation and Property Prediction | https://doi.org/10.48550/arxiv.2607.12196
+  2025 13 Accurate Predictions of Molecular Properties of Proteins via Graph Neural Networks and Transfer Learning | https://doi.org/10.1021/acs.jctc.4c01682
+  2024 95 PLMSearch: Protein language model powers accurate and fast sequence search for remote homology | https://doi.org/10.1038/s41467-024-46808-5
+  2024 3 Turbocharging protein binding site prediction with geometric attention, inter-resolution transfer learnin | https://doi.org/10.1186/s12859-024-05923-2
+  2023 173 Rapid protein stability prediction using deep learning representations | https://doi.org/10.7554/elife.82593
+  2023 421 Genome-wide prediction of disease variant effects with a deep protein language model | https://doi.org/10.1038/s41588-023-01465-0
+== Ginkgo antibody developability competition GDPa1 cross-validation
+  2026 1 Decoding Bispecific Antibody Developability: Design Rules and Predictive Models from a 160-Member Library | https://doi.org/10.64898/2026.06.15.732449
+  2026 1 Biologically-Grounded Multi-Encoder Architectures as Developability Oracles for Antibody Design | https://doi.org/10.48550/arxiv.2604.09369
+  2026 0 Predicting VHH-Fc Developability from Large-Scale IgG Data | https://doi.org/10.64898/2026.08.18.745296
+  2026 0 Advances in database resources and computational methods for predicting antibody polyreactivity | https://doi.org/10.70401/cbm.2026.0021
+== train test overlap inflation predicted from synthetic contamination
+  2026 0 Correcting test set contamination by spiking the training data | https://doi.org/10.48550/arxiv.2605.24818
+  2024 0 INFLATION – CAUSES, CONSEQUENCES, REGULATION | https://doi.org/10.34660/inf.2023.31.89.062
+  2025 4 Environmental contamination predicts mammal diversity and mesocarnivore activity in the Seattle-Tacoma me | https://doi.org/10.1007/s11252-025-01758-8
+  2024 0 CRUSTACEA AS A TEST OBJECT FOR THE RESEARCH OF THE OIL CONTAMINATION OF AQUATIC ENVIRONMENTS | https://doi.org/10.34660/inf.2019.18.39096
+  2026 0 Synthetic minority data is redundant or invalid: a data-dependent validity theory and a de-biased test | https://doi.org/10.48550/arxiv.2607.20787
+  2017 11 Advantages of Synthetic Noise and Machine Learning for Analyzing Radioecological Data Sets | https://doi.org/10.1371/journal.pone.0170007
+  2026 0 Are LLM Benchmarks Already Contaminated? A Systematic Review of Contamination Detection Methods | https://doi.org/10.18653/v1/2026.gem-main.50
+  2026 0 Metric-Construction Coupling Inflates Measured Synthetic Dialect Recovery | None
+== cited_by of Rosenblatt 2024 ( Data leakage inflates prediction performance in connectome-b )
+  2025 110 Don’t push the button! Exploring data leakage risks in machine learning and transfer learning | https://doi.org/10.1007/s10462-025-11326-3
+  2025 84 Overview of leakage scenarios in supervised machine learning | https://doi.org/10.1186/s40537-025-01193-8
+  2024 51 A review of machine learning methods for cancer characterization from microbiome data | https://doi.org/10.1038/s41698-024-00617-7
+  2025 44 AI-driven virtual cell models in preclinical research: technical pathways, validation mechanisms, and cli | https://doi.org/10.1038/s41746-025-02198-6
+  2024 43 Artificial intelligence investments reduce risks to critical mineral supply | https://doi.org/10.1038/s41467-024-51661-7
+  2025 28 The problematic case of data leakage: A case for leave-profile-out cross-validation in 3-dimensional digi | https://doi.org/10.1016/j.geoderma.2025.117223
+  2025 25 The Effect of Data Leakage and Feature Selection on Machine Learning Performance for Early Parkinson’s Di | https://doi.org/10.3390/bioengineering12080845
+  2024 25 Power and reproducibility in the external validation of brain-phenotype predictions | https://doi.org/10.1038/s41562-024-01931-7
+  2024 23 Quality over quantity: powering neuroimaging samples in psychiatry | https://doi.org/10.1038/s41386-024-01893-4
+  2024 22 Edge-centric connectome-genetic markers of bridging factor to comorbidity between depression and anxiety | https://doi.org/10.1038/s41467-024-55008-0
+  2024 21 Prediction of significant wave height using a VMD-LSTM-rolling model in the South Sea of China | https://doi.org/10.3389/fmars.2024.1382248
+  2026 17 Hybrid generative–ensemble approach for predicting recycled aggregate concrete strength properties | https://doi.org/10.1038/s41598-026-42598-6
+== cited_by of FLAb 2024 ( FLAb: Benchmarking deep learning methods for antibody fitnes )
+  2025 26 Crowdsourced Protein Design: Lessons From the Adaptyv EGFR Binder Competition | https://doi.org/10.1101/2025.04.17.648362
+  2026 25 Learning the language of protein-protein interactions | https://doi.org/10.1038/s41467-025-67971-3
+  2024 14 A comprehensive overview of recent advances in generative models for antibodies | https://doi.org/10.1016/j.csbj.2024.06.016
+  2025 13 Prediction of protein biophysical traits from limited data: a case study on nanobody thermostability thro | https://doi.org/10.1080/19420862.2024.2442750
+  2025 9 Nucleotide context models outperform protein language models for predicting antibody affinity maturation | https://doi.org/10.1371/journal.pcbi.1013758
+  2026 3 ASD: antigen-specific antibody database | https://doi.org/10.1080/19420862.2026.2623330
+  2026 1 Preferential CDR masking in paired antibody language models improves binding affinity prediction | https://doi.org/10.1038/s44488-026-00010-2
+  2026 1 Separating selection from mutation in antibody language models | https://doi.org/10.7554/elife.109644
+  2026 0 Separating selection from mutation in antibody language models | https://doi.org/10.7554/elife.109644.3
+  2026 0 Separating selection from mutation in antibody language models | https://doi.org/10.7554/elife.109644.2
+== cited_by of Elangovan 2021 ( Memorization vs. Generalization : Quantifying Data Leakage i )
+  2024 159 Automated data processing and feature engineering for deep learning and big data applications: A survey | https://doi.org/10.1016/j.jiixd.2024.01.002
+  2025 97 Data splitting to avoid information leakage with DataSAIL | https://doi.org/10.1038/s41467-025-58606-8
+  2024 86 A large-scale audit of dataset licensing and attribution in AI | https://doi.org/10.1038/s42256-024-00878-8
+  2024 19 Automating Zero-Shot Patch Porting for Hard Forks | https://doi.org/10.1145/3650212.3652134
+  2025 16 Survey on legal information extraction: current status and open challenges | https://doi.org/10.1007/s10115-025-02600-5
+  2025 12 BLAZE: Cross-Language and Cross-Project Bug Localization via Dynamic Chunking and Hard Example Learning | https://doi.org/10.1109/tse.2025.3579574
+  2024 11 A cautionary tale about properly vetting datasets used in supervised learning predicting metabolic pathwa | https://doi.org/10.1371/journal.pone.0299583
+  2024 4 Family lexicon: Using language models to encode memories of personally familiar and famous people and pla | https://doi.org/10.1371/journal.pone.0291099
+  2025 3 Has My Code Been Stolen for Model Training? A Naturalness Based Approach to Code Contamination Detection | https://doi.org/10.1145/3715765
+  2025 3 On the Workflows and Smells of Leaderboard Operations (LBOps): An Exploratory Study of Foundation Model L | https://doi.org/10.1109/tse.2025.3533972
+  2025 2 Towards Generalized Offensive Language Identification | https://doi.org/10.1007/978-3-031-78541-2_17
+  2026 1 Unmasking the Type Inference Capabilities of LLMs for Java Code Snippets | https://doi.org/10.1145/3790099

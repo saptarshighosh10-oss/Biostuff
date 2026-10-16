@@ -1,0 +1,197 @@
+
+PAIRED bootstrap (diff = score on leaky split minus score on honest split; CI excluding 0 => real inflation)
+                           comparison    assay         model  diff    lo    hi  p_le0
+E4 cluster-strict0.90 (avg train 193)      HIC       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)      HIC    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)      HIC   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)      HIC    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)      HIC ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)      HIC       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)      HIC    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)      HIC   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)      HIC    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)      HIC ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.80 (avg train 192)      HIC       NN-copy  0.04 -0.02  0.10   0.09
+E4 cluster-strict0.80 (avg train 192)      HIC    kmer-ridge -0.01 -0.03  0.00   0.94
+E4 cluster-strict0.80 (avg train 192)      HIC   physchem-RF -0.01 -0.03  0.01   0.88
+E4 cluster-strict0.80 (avg train 192)      HIC    esm2-ridge  0.00 -0.01  0.01   0.46
+E4 cluster-strict0.80 (avg train 192)      HIC ablang2-ridge -0.02 -0.04  0.00   0.97
+          E5 naive-vs-id<0.99 (n=111)      HIC       NN-copy  0.48  0.36  0.62   0.00
+          E5 naive-vs-id<0.95 (n=110)      HIC       NN-copy  0.49  0.37  0.63   0.00
+          E5 naive-vs-id<0.90 (n=105)      HIC       NN-copy  0.48  0.34  0.62   0.00
+                      E2 naive-honest      HIC       NN-copy  0.48  0.36  0.63   0.00
+          E5 naive-vs-id<0.99 (n=111)      HIC    kmer-ridge  0.52  0.39  0.66   0.00
+          E5 naive-vs-id<0.95 (n=110)      HIC    kmer-ridge  0.53  0.40  0.69   0.00
+          E5 naive-vs-id<0.90 (n=105)      HIC    kmer-ridge  0.56  0.41  0.71   0.00
+                      E2 naive-honest      HIC    kmer-ridge  0.52  0.39  0.65   0.00
+          E5 naive-vs-id<0.99 (n=111)      HIC   physchem-RF  0.34  0.20  0.49   0.00
+          E5 naive-vs-id<0.95 (n=110)      HIC   physchem-RF  0.35  0.21  0.50   0.00
+          E5 naive-vs-id<0.90 (n=105)      HIC   physchem-RF  0.37  0.22  0.52   0.00
+                      E2 naive-honest      HIC   physchem-RF  0.34  0.20  0.49   0.00
+          E5 naive-vs-id<0.99 (n=111)      HIC    esm2-ridge  0.27  0.14  0.40   0.00
+          E5 naive-vs-id<0.95 (n=110)      HIC    esm2-ridge  0.28  0.15  0.43   0.00
+          E5 naive-vs-id<0.90 (n=105)      HIC    esm2-ridge  0.32  0.19  0.48   0.00
+                      E2 naive-honest      HIC    esm2-ridge  0.27  0.14  0.40   0.00
+          E5 naive-vs-id<0.99 (n=111)      HIC ablang2-ridge  0.23  0.11  0.37   0.00
+          E5 naive-vs-id<0.95 (n=110)      HIC ablang2-ridge  0.25  0.13  0.39   0.00
+          E5 naive-vs-id<0.90 (n=105)      HIC ablang2-ridge  0.29  0.15  0.44   0.00
+                      E2 naive-honest      HIC ablang2-ridge  0.23  0.11  0.38   0.00
+E4 cluster-strict0.90 (avg train 193)  AC-SINS       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)  AC-SINS    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)  AC-SINS   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)  AC-SINS    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)  AC-SINS ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)  AC-SINS       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)  AC-SINS    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)  AC-SINS   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)  AC-SINS    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)  AC-SINS ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.80 (avg train 192)  AC-SINS       NN-copy -0.00 -0.03  0.03   0.56
+E4 cluster-strict0.80 (avg train 192)  AC-SINS    kmer-ridge -0.00 -0.01  0.00   0.86
+E4 cluster-strict0.80 (avg train 192)  AC-SINS   physchem-RF  0.01 -0.00  0.03   0.03
+E4 cluster-strict0.80 (avg train 192)  AC-SINS    esm2-ridge -0.00 -0.01  0.00   0.71
+E4 cluster-strict0.80 (avg train 192)  AC-SINS ablang2-ridge  0.00 -0.00  0.00   0.37
+          E5 naive-vs-id<0.99 (n=111)  AC-SINS       NN-copy  0.40  0.27  0.54   0.00
+          E5 naive-vs-id<0.95 (n=110)  AC-SINS       NN-copy  0.41  0.28  0.55   0.00
+          E5 naive-vs-id<0.90 (n=105)  AC-SINS       NN-copy  0.43  0.29  0.58   0.00
+                      E2 naive-honest  AC-SINS       NN-copy  0.40  0.28  0.54   0.00
+          E5 naive-vs-id<0.99 (n=111)  AC-SINS    kmer-ridge  0.42  0.29  0.55   0.00
+          E5 naive-vs-id<0.95 (n=110)  AC-SINS    kmer-ridge  0.43  0.30  0.57   0.00
+          E5 naive-vs-id<0.90 (n=105)  AC-SINS    kmer-ridge  0.48  0.35  0.63   0.00
+                      E2 naive-honest  AC-SINS    kmer-ridge  0.42  0.29  0.56   0.00
+          E5 naive-vs-id<0.99 (n=111)  AC-SINS   physchem-RF  0.26  0.14  0.38   0.00
+          E5 naive-vs-id<0.95 (n=110)  AC-SINS   physchem-RF  0.26  0.14  0.40   0.00
+          E5 naive-vs-id<0.90 (n=105)  AC-SINS   physchem-RF  0.25  0.13  0.39   0.00
+                      E2 naive-honest  AC-SINS   physchem-RF  0.26  0.14  0.38   0.00
+          E5 naive-vs-id<0.99 (n=111)  AC-SINS    esm2-ridge  0.12  0.00  0.23   0.02
+          E5 naive-vs-id<0.95 (n=110)  AC-SINS    esm2-ridge  0.13  0.02  0.25   0.01
+          E5 naive-vs-id<0.90 (n=105)  AC-SINS    esm2-ridge  0.15  0.03  0.29   0.00
+                      E2 naive-honest  AC-SINS    esm2-ridge  0.12  0.01  0.23   0.01
+          E5 naive-vs-id<0.99 (n=111)  AC-SINS ablang2-ridge  0.07 -0.01  0.17   0.05
+          E5 naive-vs-id<0.95 (n=110)  AC-SINS ablang2-ridge  0.07 -0.00  0.17   0.03
+          E5 naive-vs-id<0.90 (n=105)  AC-SINS ablang2-ridge  0.08 -0.00  0.18   0.03
+                      E2 naive-honest  AC-SINS ablang2-ridge  0.07 -0.01  0.16   0.04
+E4 cluster-strict0.90 (avg train 193)     SMAC       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)     SMAC    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)     SMAC   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)     SMAC    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193)     SMAC ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)     SMAC       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)     SMAC    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)     SMAC   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)     SMAC    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193)     SMAC ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.80 (avg train 192)     SMAC       NN-copy  0.03 -0.01  0.09   0.10
+E4 cluster-strict0.80 (avg train 192)     SMAC    kmer-ridge  0.00 -0.02  0.03   0.47
+E4 cluster-strict0.80 (avg train 192)     SMAC   physchem-RF  0.00 -0.02  0.02   0.37
+E4 cluster-strict0.80 (avg train 192)     SMAC    esm2-ridge -0.00 -0.01  0.01   0.64
+E4 cluster-strict0.80 (avg train 192)     SMAC ablang2-ridge  0.03  0.00  0.07   0.02
+          E5 naive-vs-id<0.99 (n=111)     SMAC       NN-copy  0.38  0.27  0.51   0.00
+          E5 naive-vs-id<0.95 (n=110)     SMAC       NN-copy  0.39  0.26  0.51   0.00
+          E5 naive-vs-id<0.90 (n=105)     SMAC       NN-copy  0.39  0.26  0.53   0.00
+                      E2 naive-honest     SMAC       NN-copy  0.38  0.26  0.51   0.00
+          E5 naive-vs-id<0.99 (n=111)     SMAC    kmer-ridge  0.34  0.21  0.49   0.00
+          E5 naive-vs-id<0.95 (n=110)     SMAC    kmer-ridge  0.35  0.22  0.49   0.00
+          E5 naive-vs-id<0.90 (n=105)     SMAC    kmer-ridge  0.34  0.20  0.48   0.00
+                      E2 naive-honest     SMAC    kmer-ridge  0.34  0.22  0.49   0.00
+          E5 naive-vs-id<0.99 (n=111)     SMAC   physchem-RF  0.27  0.12  0.41   0.00
+          E5 naive-vs-id<0.95 (n=110)     SMAC   physchem-RF  0.27  0.13  0.42   0.00
+          E5 naive-vs-id<0.90 (n=105)     SMAC   physchem-RF  0.28  0.12  0.44   0.00
+                      E2 naive-honest     SMAC   physchem-RF  0.27  0.12  0.42   0.00
+          E5 naive-vs-id<0.99 (n=111)     SMAC    esm2-ridge  0.13  0.00  0.27   0.02
+          E5 naive-vs-id<0.95 (n=110)     SMAC    esm2-ridge  0.13 -0.00  0.28   0.03
+          E5 naive-vs-id<0.90 (n=105)     SMAC    esm2-ridge  0.13 -0.00  0.28   0.03
+                      E2 naive-honest     SMAC    esm2-ridge  0.13  0.00  0.27   0.02
+          E5 naive-vs-id<0.99 (n=111)     SMAC ablang2-ridge  0.13  0.01  0.27   0.02
+          E5 naive-vs-id<0.95 (n=110)     SMAC ablang2-ridge  0.13  0.01  0.28   0.02
+          E5 naive-vs-id<0.90 (n=105)     SMAC ablang2-ridge  0.14  0.01  0.28   0.01
+                      E2 naive-honest     SMAC ablang2-ridge  0.13  0.00  0.27   0.02
+E4 cluster-strict0.90 (avg train 193) SEC%mono       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193) SEC%mono    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193) SEC%mono   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193) SEC%mono    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.90 (avg train 193) SEC%mono ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193) SEC%mono       NN-copy  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193) SEC%mono    kmer-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193) SEC%mono   physchem-RF  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193) SEC%mono    esm2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.85 (avg train 193) SEC%mono ablang2-ridge  0.00  0.00  0.00   1.00
+E4 cluster-strict0.80 (avg train 192) SEC%mono       NN-copy -0.03 -0.06 -0.00   1.00
+E4 cluster-strict0.80 (avg train 192) SEC%mono    kmer-ridge  0.01 -0.01  0.02   0.23
+E4 cluster-strict0.80 (avg train 192) SEC%mono   physchem-RF -0.03 -0.06  0.00   0.97
+E4 cluster-strict0.80 (avg train 192) SEC%mono    esm2-ridge  0.01  0.00  0.02   0.02
+E4 cluster-strict0.80 (avg train 192) SEC%mono ablang2-ridge  0.04  0.00  0.07   0.01
+                    E1 random-cluster      HIC       NN-copy  0.16 -0.03  0.34   0.05
+                    E1 random-cluster      HIC    kmer-ridge  0.06 -0.05  0.18   0.14
+                    E1 random-cluster      HIC   physchem-RF -0.01 -0.09  0.07   0.58
+                    E1 random-cluster      HIC    esm2-ridge -0.01 -0.08  0.05   0.65
+                    E1 random-cluster      HIC ablang2-ridge  0.02 -0.05  0.08   0.28
+                    E1 random-cluster  AC-SINS       NN-copy -0.14 -0.30  0.03   0.95
+                    E1 random-cluster  AC-SINS    kmer-ridge  0.11  0.01  0.20   0.02
+                    E1 random-cluster  AC-SINS   physchem-RF  0.05 -0.02  0.11   0.07
+                    E1 random-cluster  AC-SINS    esm2-ridge  0.12  0.05  0.20   0.00
+                    E1 random-cluster  AC-SINS ablang2-ridge  0.03 -0.02  0.08   0.14
+                    E1 random-cluster     SMAC       NN-copy  0.08 -0.11  0.27   0.20
+                    E1 random-cluster     SMAC    kmer-ridge  0.02 -0.09  0.13   0.38
+                    E1 random-cluster     SMAC   physchem-RF  0.06 -0.01  0.14   0.05
+                    E1 random-cluster     SMAC    esm2-ridge  0.05 -0.03  0.14   0.12
+                    E1 random-cluster     SMAC ablang2-ridge -0.05 -0.12  0.02   0.92
+                    E1 random-cluster SEC%mono       NN-copy  0.11 -0.06  0.28   0.11
+                    E1 random-cluster SEC%mono    kmer-ridge  0.16  0.05  0.28   0.00
+                    E1 random-cluster SEC%mono   physchem-RF  0.07 -0.05  0.18   0.12
+                    E1 random-cluster SEC%mono    esm2-ridge  0.20  0.05  0.35   0.00
+                    E1 random-cluster SEC%mono ablang2-ridge -0.05 -0.16  0.05   0.84/Users/saptarshighosh/Biostuff/leakage_audit/audit.py:178: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  B = E2.groupby(["assay", "model", "id_bin"], observed=True).apply(lambda d: pd.Series(dict(n=len(d), rho=spearmanr(d.y, d.pred)[0]))).reset_index()
+
+
+E2 naive: rho by nearest-train TRUE identity
+id_bin                 <0.70  0.70-0.90  >=0.90
+assay   model                                  
+AC-SINS NN-copy         -1.0       0.16    0.87
+        ablang2-ridge   -0.5       0.61    0.72
+        esm2-ridge       0.5       0.36    0.63
+        kmer-ridge      -0.5       0.03    0.87
+        physchem-RF     -1.0       0.38    0.74
+HIC     NN-copy          0.5       0.16    0.93
+        ablang2-ridge    1.0       0.22    0.72
+        esm2-ridge       1.0       0.14    0.69
+        kmer-ridge      -0.5       0.01    0.92
+        physchem-RF      1.0       0.22    0.80
+SMAC    NN-copy          1.0       0.18    0.88
+        ablang2-ridge    0.5       0.31    0.54
+        esm2-ridge       1.0       0.28    0.52
+        kmer-ridge       1.0       0.08    0.75
+        physchem-RF      1.0       0.08    0.55
+id_bin   <0.70  0.70-0.90  >=0.90
+assay                            
+AC-SINS    3.0      102.0   137.0
+HIC        3.0      102.0   137.0
+SMAC       3.0      102.0   137.0
+experiment              E1_hierarchical_cluster_fold  E1_random_fold  E2_honest_unseen  E2_naive_all  E3_Jain17_to_Jain24  E4_strict_0.80  E4_strict_0.85  E4_strict_0.90  E5_lt_0.90  E5_lt_0.95  E5_lt_0.99
+assay    model                                                                                                                                                                                               
+AC-SINS  NN-copy                                0.15            0.01              0.16          0.56                 0.17            0.15            0.15            0.15        0.13        0.15        0.16
+         ablang2-ridge                          0.59            0.62              0.61          0.67                 0.33            0.59            0.59            0.59        0.60        0.60        0.61
+         esm2-ridge                             0.33            0.46              0.41          0.52                -0.08            0.33            0.33            0.33        0.37        0.40        0.41
+         kmer-ridge                             0.10            0.20              0.08          0.50                -0.25            0.10            0.10            0.10        0.02        0.07        0.08
+         physchem-RF                            0.25            0.30              0.33          0.59                -0.27            0.24            0.25            0.25        0.33        0.33        0.33
+HIC      NN-copy                                0.04            0.21              0.14          0.62                 0.28            0.00            0.04            0.04        0.15        0.13        0.14
+         ablang2-ridge                          0.45            0.47              0.30          0.54                 0.33            0.47            0.45            0.45        0.24        0.29        0.30
+         esm2-ridge                             0.49            0.47              0.19          0.46                 0.24            0.48            0.49            0.49        0.14        0.18        0.19
+         kmer-ridge                             0.23            0.29              0.04          0.56                 0.12            0.24            0.23            0.23        0.00        0.03        0.04
+         physchem-RF                            0.25            0.25              0.26          0.60                 0.36            0.26            0.25            0.25        0.23        0.25        0.26
+SEC%mono NN-copy                                0.00            0.11               NaN           NaN                  NaN            0.03            0.00            0.00         NaN         NaN         NaN
+         ablang2-ridge                          0.14            0.09               NaN           NaN                  NaN            0.10            0.14            0.14         NaN         NaN         NaN
+         esm2-ridge                            -0.08            0.13               NaN           NaN                  NaN           -0.08           -0.08           -0.08         NaN         NaN         NaN
+         kmer-ridge                            -0.04            0.12               NaN           NaN                  NaN           -0.05           -0.04           -0.04         NaN         NaN         NaN
+         physchem-RF                           -0.11           -0.05               NaN           NaN                  NaN           -0.09           -0.11           -0.11         NaN         NaN         NaN
+SMAC     NN-copy                                0.07            0.15              0.20          0.58                  NaN            0.03            0.07            0.07        0.20        0.20        0.20
+         ablang2-ridge                          0.32            0.27              0.32          0.45                  NaN            0.29            0.32            0.32        0.31        0.32        0.32
+         esm2-ridge                             0.23            0.28              0.30          0.42                  NaN            0.23            0.23            0.23        0.30        0.29        0.30
+         kmer-ridge                             0.10            0.12              0.10          0.44                  NaN            0.10            0.10            0.10        0.10        0.09        0.10
+         physchem-RF                            0.11            0.18              0.11          0.38                  NaN            0.11            0.11            0.11        0.10        0.10        0.11
+experiment  E1_hierarchical_cluster_fold  E1_random_fold  E2_honest_unseen  E2_naive_all  E3_Jain17_to_Jain24  E4_strict_0.80  E4_strict_0.85  E4_strict_0.90  E5_lt_0.90  E5_lt_0.95  E5_lt_0.99
+assay                                                                                                                                                                                            
+AC-SINS                             0.73            0.82               0.8          0.91                 0.86            0.73            0.73            0.73         0.8         0.8         0.8
+HIC                                 0.73            0.82               0.8          0.91                 0.86            0.73            0.73            0.73         0.8         0.8         0.8
+SEC%mono                            0.73            0.82               NaN           NaN                  NaN            0.73            0.73            0.73         NaN         NaN         NaN
+SMAC                                0.73            0.82               0.8          0.91                  NaN            0.73            0.73            0.73         0.8         0.8         0.8

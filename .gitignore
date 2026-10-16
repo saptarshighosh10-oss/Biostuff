@@ -39,3 +39,10 @@ data/external/gdpa/
 data/external/structures/
 data/external/public_sources/
 data/cache/
+
+# LUCAS licence: raw data must not be redistributed
+data/external/lucas2018/
+
+# EuroSAT: raw tiles and 287 MB embedding cache (regenerate with leakage_audit/sat/embed.py)
+data/external/eurosat_raw/
+leakage_audit/sat/eurosat.npz
