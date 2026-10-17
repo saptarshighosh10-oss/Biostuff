@@ -192,3 +192,8 @@ LUCAS 2018 raw data stays in the gitignored `data/external/lucas2018/`. Per-poin
 **2026-10-16, before any stage-2 antibody DiD was run** (stage 1 committed in c9fa415 and pushed). These clarify two cases §4 leaves undefined. No rule changes.
 1. **Bootstrap draws.** Within each replicate, near and far antibodies are resampled once per pair, and that draw is shared by the pair's 5 models. The 3 planting seeds are resampled once per replicate, shared by all cells.
 2. **Size check when the near drop is ≤ 0.** In that case the ratio is undefined. Such a cell is flagged size-sensitive (the conservative choice).
+
+**2026-10-16, before any C3 run.** These are implementation details for C3, written in `salinity/confirm_c3.py`. No rule changes. Base and censored counts were checked and match §4.
+3. **Split.** Each seed's 80/20 split is drawn on all 18,975 points, as in did_multi. Points missing the target are then dropped from both train and test. This lets one test-point draw be shared across the five properties.
+4. **Arm B pairs.** These are 5-NN pairs among that seed's training points. A pair with a missing value is skipped, as arm A already does.
+5. **Extra arms and intervals.** The ρ = 0 arm (§3) is included. Per-cell CIs use 300 replicates, as in did_multi. The C3 p-value uses 2000.
