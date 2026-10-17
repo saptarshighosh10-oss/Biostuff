@@ -1,0 +1,62 @@
+natural pair rms dLogEC by distance bin (km): {1.5: np.float64(0.76), 5.0: np.float64(0.75), 11.0: np.float64(0.76), 22.5: np.float64(0.77), 42.5: np.float64(0.82)}
+label spearman real 0.4 planted 0.41
+seed 6 pH_H2O: n_test 3795, agreement bin0 label A 0.77 B 0.75
+seed 6 OC: n_test 3791, agreement bin0 label A 0.57 B 0.58
+seed 6 CaCO3: n_test 2200, agreement bin0 label A 0.68 B 0.70
+seed 6 N: n_test 3793, agreement bin0 label A 0.52 B 0.52
+seed 6 K: n_test 3793, agreement bin0 label A 0.48 B 0.47
+seed 7 pH_H2O: n_test 3795, agreement bin0 label A 0.77 B 0.77
+seed 7 OC: n_test 3793, agreement bin0 label A 0.57 B 0.55
+seed 7 CaCO3: n_test 2263, agreement bin0 label A 0.68 B 0.65
+seed 7 N: n_test 3792, agreement bin0 label A 0.52 B 0.50
+seed 7 K: n_test 3784, agreement bin0 label A 0.48 B 0.48
+seed 8 pH_H2O: n_test 3795, agreement bin0 label A 0.77 B 0.78
+seed 8 OC: n_test 3792, agreement bin0 label A 0.57 B 0.55
+seed 8 CaCO3: n_test 2190, agreement bin0 label A 0.68 B 0.67
+seed 8 N: n_test 3791, agreement bin0 label A 0.52 B 0.49
+seed 8 K: n_test 3785, agreement bin0 label A 0.48 B 0.47
+                      f_near  n_nearest    obs     lo     hi  pred_B  pred_A  pred_rho0
+target model      r                                                                    
+CaCO3  knn_geo    5    0.242    511.000  0.008 -0.000  0.017   0.014   0.018     -0.028
+                  10   0.563   1148.667  0.041  0.022  0.060   0.034   0.036     -0.099
+                  15   0.805   1599.333  0.081  0.045  0.118   0.048   0.041     -0.183
+       ridge_soil 5    0.242    511.000  0.003  0.002  0.004  -0.001  -0.001     -0.003
+                  10   0.563   1148.667  0.023  0.018  0.028  -0.005  -0.005     -0.014
+                  15   0.805   1599.333  0.068  0.053  0.082  -0.008  -0.014     -0.042
+K      knn_geo    5    0.275    997.667  0.006 -0.001  0.014   0.018   0.020     -0.017
+                  10   0.684   2358.333  0.018 -0.004  0.039   0.040   0.037     -0.046
+                  15   0.909   3040.333  0.032 -0.027  0.091   0.064   0.036     -0.077
+       ridge_soil 5    0.275    997.667  0.000  0.000  0.000   0.001   0.001      0.001
+                  10   0.684   2358.333  0.001  0.000  0.003   0.007   0.008      0.012
+                  15   0.909   3040.333  0.006 -0.001  0.013   0.021   0.023      0.032
+N      knn_geo    5    0.275   1000.333  0.007 -0.001  0.016   0.024   0.020     -0.011
+                  10   0.685   2364.667  0.020 -0.010  0.047   0.039   0.058     -0.069
+                  15   0.910   3045.333  0.035 -0.053  0.135   0.069   0.074     -0.105
+       ridge_soil 5    0.275   1000.333  0.001  0.000  0.001  -0.001  -0.001     -0.002
+                  10   0.685   2364.667  0.004  0.002  0.006  -0.008  -0.007     -0.009
+                  15   0.910   3045.333  0.008  0.002  0.014   0.005   0.006      0.007
+OC     knn_geo    5    0.275    998.333  0.006 -0.001  0.013   0.021   0.025     -0.013
+                  10   0.684   2364.667  0.016 -0.006  0.040   0.053   0.055     -0.062
+                  15   0.910   3046.667  0.033 -0.034  0.093   0.087   0.055     -0.134
+       ridge_soil 5    0.275    998.333  0.000  0.000  0.001  -0.001  -0.001     -0.001
+                  10   0.684   2364.667  0.002  0.001  0.004  -0.005  -0.005     -0.006
+                  15   0.910   3046.667  0.009  0.001  0.017  -0.014  -0.014     -0.015
+pH_H2O knn_geo    5    0.275   1001.000  0.004 -0.001  0.009   0.021   0.020     -0.027
+                  10   0.685   2367.667  0.013 -0.001  0.028   0.047   0.046     -0.115
+                  15   0.910   3047.667  0.030 -0.013  0.069   0.063   0.046     -0.220
+       ridge_soil 5    0.275   1001.000  0.001  0.001  0.002   0.003   0.002      0.003
+                  10   0.685   2367.667  0.007  0.002  0.011   0.011   0.011      0.012
+                  15   0.910   3047.667  0.021 -0.002  0.046   0.021   0.018      0.017
+
+C3  knn_geo S(arm B) over 45 cells = -0.153  p = 0.7210
+    beside: S(arm A) -0.000  S(rho0) -3.388  S(null b, oracle const) 0.228  inside CI 17/45 (descriptive)
+    pH_H2O  S(B) -0.862  mean obs 0.016  mean pred_B 0.044
+    OC      S(B) -0.932  mean obs 0.018  mean pred_B 0.054
+    CaCO3   S(B) +0.623  mean obs 0.043  mean pred_B 0.032
+    N       S(B) -0.413  mean obs 0.020  mean pred_B 0.044
+    K       S(B) -0.296  mean obs 0.019  mean pred_B 0.041
+    ridge_soil control: mean obs +0.0104, mean pred_B +0.0018
+Holm C2: p 0.0000 vs 0.0167 -> PASS
+Holm C1: p 0.4215 vs 0.0250 -> fail
+Holm C3: p 0.7210 vs 0.0500 -> fail
+/opt/anaconda3/bin/python -I leakage_audit/salinity/confirm_c3.py  20.72s user 1.90s system 108% cpu 20.828 total

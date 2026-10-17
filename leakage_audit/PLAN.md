@@ -36,7 +36,11 @@ GDPa4 (a noise-model check) and LUCAS 2015 (conditional) are also new data.
   - C2 passes: p < .001.
   - null d beats planting: S .22.
   - Readings are in RESULTS §0b.
-- Next: Step 5 (GDPa4) or Step 6/7 (salinity seeds 6–11, C3). Holm for C1/C2 is final once C3 has its p-value. Step 2 prior-art reading is still open. Student: ESDAC application, fair dates by Oct 23.
+- 2026-10-16: Step 7 done (`salinity/confirm_c3.py`; Deviations 3–5 in 0e4961f, committed before the run).
+  - C3 fails: S −.15, p .72. Planting over-predicts the knn_geo leak 2–3× on pH, OC, N and K; CaCO3 is under-predicted.
+  - Code check: on log-EC it reproduces `did_multi.py` exactly.
+  - Final Holm: C2 passes, C1 and C3 fail. Soil magnitude is "log-EC only, exploratory", and the fallback headline stands. Details in RESULTS §0c.
+- Next: Step 5 (GDPa4) and Step 6 (salinity log-EC seeds 6–11, needed for the rest of R). Step 2 prior-art reading is still open. Student: ESDAC application, fair dates by Oct 23.
 
 ---
 

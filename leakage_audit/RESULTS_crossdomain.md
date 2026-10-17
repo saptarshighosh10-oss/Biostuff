@@ -22,11 +22,11 @@ Every variant ever tried, with its commit and whether it was fixed before its Di
 
 Stage 1 (c9fa415) was committed and pushed before stage 2 ran. The stage-2 script is `confirm_antibody_did.py`. Its outputs are `out/fresh_antibody_did.csv` and `out/confirm_antibody_did.log`.
 
-| test | result | p (2000 bootstrap replicates) | verdict (Holm; C3 still pending) |
+| test | result | p (2000 bootstrap replicates) | verdict (Holm, final with C3 in §0c) |
 |---|---|---|---|
-| C1: S(planting) over 20 cells vs predict-0 | S = **.05** | .42 | **fails**, whatever C3 gives |
-| C1 without the 10 size-sensitive cells | S = .32 | .026 | depends on where C3 lands in Holm |
-| C2: MAE(planting) vs MAE(null c) | .092 vs .232 | < .001 | **passes**, whatever C3 gives |
+| C1: S(planting) over 20 cells vs predict-0 | S = **.05** | .42 | **fails** |
+| C1 without the 10 size-sensitive cells | S = .32 | .026 | fails (second Holm cut-off is .025) |
+| C2: MAE(planting) vs MAE(null c) | .092 vs .232 | < .001 | **passes** |
 
 Secondary comparisons:
 - null d (agreement-scaled LS): S **.22**, above planting;
@@ -45,6 +45,46 @@ Most of the Tm1 cells and the ELISA → PR_Ova smooth-model cells are size-sensi
 - C2 passes, so label agreement matters: a model-only LS (null c) over-predicts badly on assays where the labs agree weakly.
 - null d ≥ planting, so **"scale LS by agreement" replaces "plant per assay"**.
 - C1 changes when the size-sensitive cells are removed, so antibody magnitude is "assumption-dependent".
+
+## 0c. Confirmatory: salinity held-out soil properties, C3, and the final Holm verdicts
+
+Script `salinity/confirm_c3.py`. Deviations 3–5 (0e4961f) were committed and pushed before it ran. Outputs are `salinity/confirm_c3.csv` (aggregates only) and `salinity/confirm_c3.log`. Per-point vectors stay in the gitignored `salinity/_local/` (LUCAS licence).
+
+**Code check:** the same script run on log-EC, seeds 0–2, with the RNG pinned before planting, reproduces the `did_multi.py` nearest arm exactly (obs and pred, 18/18 cells, difference 0.0). The failure is in the predictor, not the code.
+
+| knn_geo, 45 cells (5 properties × 3 radii × seeds 6–8) | S vs predict-0 |
+|---|---|
+| **C3: arm B (predictor of record)** | **−.15**, p = .72 |
+| arm A (all-point calibration) | −.00 |
+| ρ = 0 arm | −3.39 |
+| null b (oracle constant) | .23 |
+
+Results by property (arm B):
+
+| property | S | mean obs | mean pred |
+|---|---|---|---|
+| pH_H2O | −.86 | .016 | .044 |
+| OC | −.93 | .018 | .054 |
+| N | −.41 | .020 | .044 |
+| K | −.30 | .019 | .041 |
+| CaCO3 (11k points only) | +.62 | .043 | .032 |
+
+So planting over-predicts the knn_geo leak 2–3× for four of the five properties. 17/45 cells are inside the CI (descriptive).
+
+**Final Holm (C1, C2, C3; one-sided α .05):**
+- C2: p < .0005 vs .0167, **pass**.
+- C1: p .42 vs .025, **fail**.
+- C3: p .72 vs .05, **fail**.
+
+**Pre-registered readings (§6):**
+- C3 fails, so soil magnitude is **"log-EC only, exploratory"**.
+- With C1 also failing, there is no confirmed magnitude claim in any domain, and the fallback headline stands.
+- Ranking check R, the C3-target part: knn_geo > ridge_soil at 10 and 15 km in 10/10 property × radius means (25/30 seed cells). The fresh log-EC seeds needed for the rest of R are not run yet.
+
+**Not pre-specified (descriptive only):**
+- ridge_soil has a real leak on these properties. Its obs is 58–84% of knn_geo's for CaCO3 and 53–70% for pH (10–15 km), and planting misses it (mean pred .002 vs obs .010). PREREG's 25% negative-control flag is defined only for log-EC.
+- Each cell's prediction is a single random copula draw. On log-EC, a different draw moved single knn_geo cells by up to .04. The over-prediction is consistent across 4 properties × 3 seeds, so it is not draw noise.
+- Likely cause (a hypothesis, not tested): pH, OC, N and K agree strongly between neighbours (5-NN agreement .48–.77 vs .42 for log-EC). A planted copy is therefore very informative. Real neighbours share a regional signal, so after dedup the next point still carries most of it, and removing one neighbour costs less than the copy adds back. This is the same mechanism seen in `did_multi.py`.
 
 ## 1. Susceptibility ranking (robust, all three domains)
 
@@ -226,7 +266,8 @@ The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
 1. Planted-leak susceptibility **ranks** models correctly in three domains.
 2. Real leak size must be measured by DiD. Threshold dedup leaves near-threshold neighbours (redundancy).
 3. **Magnitude** is approximately predicted when planted neighbours resemble real ones and redundancy is modelled (salinity, 19k points):
-   for the one model that leaks (knn_geo), MAE is 2–3× lower than a predict-0 null. It is not a clean win, though. The original fit relied on
+   for the one model that leaks (knn_geo), MAE is 2–3× lower than a predict-0 null. This is log-EC only and exploratory: the pre-registered test on
+   five other soil properties failed (C3, §0c, S −.15). Even on log-EC it is not a clean win. The original fit relied on
    over-informative labels offsetting single-neighbour planting, and with matched labels the large-radius leak is under-predicted by about half.
    For images, the exact-copy curve is right on average but not per threshold.
    Antibodies: there is no magnitude prediction better than a null. With 242 antibodies the real leaks are small and the CIs wide.
