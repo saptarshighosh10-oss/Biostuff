@@ -21,7 +21,16 @@ GDPa4 (a noise-model check) and LUCAS 2015 (conditional) are also new data.
 **Progress (update as steps finish).**
 - 2026-10-16: Step 0 done (commit A 26ef104, PREREG b9076c3). Step 3 done: `score.py` reproduces all 40 §3 values to ±.01.
 - 2026-10-16: Step 4 stage 1 done. `confirm_antibody.py` → `out/fresh_antibody_pred.csv`. All 7 agreements are within .01 of PREREG. f_near is .54–.55, the same as the old cross-lab f_near (.54). The sensitivity and semi-fresh rows are predicted too.
-- Still open from stage 1: the construct check (what each column measures).
+- Construct check (sources: GDPa4.1 Definitions sheet and the FLAb column headers):
+
+  | pair | Jain 2017 assay | GDPa1 assay | construct |
+  |---|---|---|---|
+  | PSR → PR_CHO | PSR SMP score, CHO membrane reagent | polyreactivity vs CHO cell lysate | same construct |
+  | ELISA → PR_Ova | multi-antigen ELISA | polyreactivity vs ovalbumin | related; antigen differs |
+  | Tm → Tm1 | Fab Tm by DSF | whole-IgG first transition, PTS-IF | **labels that don't match**; IgG Tm1 need not be the Fab |
+  | HEK → Titer | HEK titer, mg/L | not defined in GDPa4 | check GDPa1 docs |
+
+  Cells stay as fixed.
 - Next: Step 4 stage 2 (DiD). It must not change the stage-1 file. Step 2 prior-art reading is still open. Student: ESDAC application, fair dates by Oct 23.
 
 ---
