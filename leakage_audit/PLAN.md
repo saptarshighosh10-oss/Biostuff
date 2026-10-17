@@ -31,7 +31,12 @@ GDPa4 (a noise-model check) and LUCAS 2015 (conditional) are also new data.
   | HEK → Titer | HEK titer, mg/L | not defined in GDPa4 | check GDPa1 docs |
 
   Cells stay as fixed.
-- Next: Step 4 stage 2 (DiD). It must not change the stage-1 file. Step 2 prior-art reading is still open. Student: ESDAC application, fair dates by Oct 23.
+- 2026-10-16: Step 4 stage 2 done (`confirm_antibody_did.py`; Deviations entry b97f07a committed before the run).
+  - C1 fails: S .05, p .42.
+  - C2 passes: p < .001.
+  - null d beats planting: S .22.
+  - Readings are in RESULTS §0b.
+- Next: Step 5 (GDPa4) or Step 6/7 (salinity seeds 6–11, C3). Holm for C1/C2 is final once C3 has its p-value. Step 2 prior-art reading is still open. Student: ESDAC application, fair dates by Oct 23.
 
 ---
 

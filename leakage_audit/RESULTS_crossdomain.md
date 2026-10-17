@@ -18,6 +18,34 @@ alone gets 23–29/36 in salinity and 31/45 within GDPa1. All numbers here are o
 
 Every variant ever tried, with its commit and whether it was fixed before its DiD was seen, is in `out/forking_paths.csv`.
 
+## 0b. Confirmatory: antibody fresh pairs, C1 and C2 (PREREG b9076c3)
+
+Stage 1 (c9fa415) was committed and pushed before stage 2 ran. The stage-2 script is `confirm_antibody_did.py`. Its outputs are `out/fresh_antibody_did.csv` and `out/confirm_antibody_did.log`.
+
+| test | result | p (2000 bootstrap replicates) | verdict (Holm; C3 still pending) |
+|---|---|---|---|
+| C1: S(planting) over 20 cells vs predict-0 | S = **.05** | .42 | **fails**, whatever C3 gives |
+| C1 without the 10 size-sensitive cells | S = .32 | .026 | depends on where C3 lands in Holm |
+| C2: MAE(planting) vs MAE(null c) | .092 vs .232 | < .001 | **passes**, whatever C3 gives |
+
+Secondary comparisons:
+- null d (agreement-scaled LS): S **.22**, above planting;
+- null b (oracle constant): S .06;
+- null c: S −1.40;
+- corr .56; 9/20 inside the CI (descriptive).
+
+Other rows:
+- semi-fresh CSIBLI → AC-SINS: S .65;
+- sensitivity rows (ELISA and BVP → PR_CHO): S −.07.
+
+Most of the Tm1 cells and the ELISA → PR_Ova smooth-model cells are size-sensitive.
+
+**Pre-registered readings (§6):**
+- C1 fails, so there is **no antibody magnitude claim**, and the fallback headline is used.
+- C2 passes, so label agreement matters: a model-only LS (null c) over-predicts badly on assays where the labs agree weakly.
+- null d ≥ planting, so **"scale LS by agreement" replaces "plant per assay"**.
+- C1 changes when the size-sensitive cells are removed, so antibody magnitude is "assumption-dependent".
+
 ## 1. Susceptibility ranking (robust, all three domains)
 
 Planted exact-copy inflation at f = 1 (all test items copied into train):

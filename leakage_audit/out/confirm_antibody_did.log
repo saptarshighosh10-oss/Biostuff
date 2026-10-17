@@ -1,0 +1,44 @@
+       role                  pair         model  f_near  n_near  n_far   pred  null_c  null_d    obs     lo     hi  far_over_near  size_sensitive
+       C1C2           PSR->PR_CHO       NN-copy   0.548     108     89  0.230   0.457   0.322  0.292  0.175  0.408          0.030           False
+       C1C2           PSR->PR_CHO    kmer-ridge   0.548     108     89  0.180   0.402   0.283  0.200  0.097  0.310         -0.077           False
+       C1C2           PSR->PR_CHO   physchem-RF   0.548     108     89  0.311   0.320   0.225  0.120  0.044  0.201          0.032           False
+       C1C2           PSR->PR_CHO    esm2-ridge   0.548     108     89  0.125   0.170   0.120  0.033 -0.011  0.076          0.553            True
+       C1C2           PSR->PR_CHO ablang2-ridge   0.548     108     89  0.176   0.128   0.090  0.112  0.062  0.164          0.133           False
+       C1C2         ELISA->PR_Ova       NN-copy   0.548     108     89  0.112   0.457   0.212  0.288  0.132  0.448         -0.317           False
+       C1C2         ELISA->PR_Ova    kmer-ridge   0.548     108     89  0.109   0.402   0.187  0.243  0.116  0.367         -0.322           False
+       C1C2         ELISA->PR_Ova   physchem-RF   0.548     108     89  0.105   0.320   0.148 -0.042 -0.113  0.028          2.795            True
+       C1C2         ELISA->PR_Ova    esm2-ridge   0.548     108     89  0.046   0.170   0.079  0.015 -0.027  0.056          0.639            True
+       C1C2         ELISA->PR_Ova ablang2-ridge   0.548     108     89  0.039   0.128   0.059  0.023 -0.059  0.104          0.751            True
+       C1C2            HEK->Titer       NN-copy   0.540     129    110  0.246   0.450   0.159  0.093 -0.021  0.212         -0.178           False
+       C1C2            HEK->Titer    kmer-ridge   0.540     129    110  0.101   0.396   0.140 -0.045 -0.151  0.052         16.627            True
+       C1C2            HEK->Titer   physchem-RF   0.540     129    110  0.202   0.315   0.111  0.038 -0.062  0.141          0.650            True
+       C1C2            HEK->Titer    esm2-ridge   0.540     129    110  0.122   0.167   0.059  0.034 -0.022  0.094          0.498           False
+       C1C2            HEK->Titer ablang2-ridge   0.540     129    110  0.101   0.126   0.044  0.056 -0.003  0.121         -0.457           False
+       C1C2               Tm->Tm1       NN-copy   0.551     129    105 -0.006   0.459   0.044  0.011 -0.114  0.137          0.821            True
+       C1C2               Tm->Tm1    kmer-ridge   0.551     129    105 -0.049   0.404   0.038 -0.083 -0.211  0.040         -0.345            True
+       C1C2               Tm->Tm1   physchem-RF   0.551     129    105  0.014   0.322   0.031 -0.151 -0.271 -0.036         -0.470            True
+       C1C2               Tm->Tm1    esm2-ridge   0.551     129    105  0.002   0.171   0.016 -0.022 -0.087  0.048         -3.585            True
+       C1C2               Tm->Tm1 ablang2-ridge   0.551     129    105 -0.041   0.129   0.012  0.033 -0.050  0.118         -2.646           False
+sensitivity         ELISA->PR_CHO       NN-copy   0.548     108     89  0.075   0.457   0.214  0.233  0.087  0.377         -0.080           False
+sensitivity         ELISA->PR_CHO    kmer-ridge   0.548     108     89  0.038   0.402   0.188  0.293  0.171  0.420         -0.291           False
+sensitivity         ELISA->PR_CHO   physchem-RF   0.548     108     89  0.199   0.320   0.150 -0.014 -0.091  0.060          1.753            True
+sensitivity         ELISA->PR_CHO    esm2-ridge   0.548     108     89  0.053   0.170   0.080  0.016 -0.032  0.063          0.514            True
+sensitivity         ELISA->PR_CHO ablang2-ridge   0.548     108     89  0.096   0.128   0.060  0.046 -0.035  0.125          0.448           False
+sensitivity      BVPELISA->PR_CHO       NN-copy   0.548     108     89  0.098   0.457   0.232  0.259  0.116  0.391         -0.135           False
+sensitivity      BVPELISA->PR_CHO    kmer-ridge   0.548     108     89  0.063   0.402   0.204  0.218  0.098  0.336         -0.081           False
+sensitivity      BVPELISA->PR_CHO   physchem-RF   0.548     108     89  0.220   0.320   0.162  0.025 -0.055  0.109          0.609            True
+sensitivity      BVPELISA->PR_CHO    esm2-ridge   0.548     108     89  0.065   0.170   0.086  0.032 -0.037  0.102          0.440           False
+sensitivity      BVPELISA->PR_CHO ablang2-ridge   0.548     108     89  0.110   0.128   0.065  0.071 -0.005  0.142         -0.227           False
+ semi-fresh CSIBLI->AC-SINS_pH7.4       NN-copy   0.541     131    111  0.327   0.451   0.367  0.331  0.229  0.439          0.093           False
+ semi-fresh CSIBLI->AC-SINS_pH7.4    kmer-ridge   0.541     131    111  0.412   0.397   0.323  0.427  0.316  0.539         -0.074           False
+ semi-fresh CSIBLI->AC-SINS_pH7.4   physchem-RF   0.541     131    111  0.264   0.316   0.257  0.149  0.066  0.230          0.167           False
+ semi-fresh CSIBLI->AC-SINS_pH7.4    esm2-ridge   0.541     131    111  0.161   0.168   0.137  0.047 -0.004  0.099         -0.327           False
+ semi-fresh CSIBLI->AC-SINS_pH7.4 ablang2-ridge   0.541     131    111  0.091   0.126   0.103  0.008 -0.032  0.046          0.789            True
+
+C1  S(pred) all 20 cells = 0.047  p = 0.4215
+C1  S(pred) without 10 size-sensitive cells = 0.317  p = 0.0260
+C2  MAE(pred) 0.092 vs MAE(null c) 0.232  p = 0.0000
+Holm (C3 pending): p < .0167 passes regardless, p >= .05 fails regardless.
+secondary: S(null c) -1.401  S(null d) 0.222  S(null b, oracle const) 0.057  corr(pred,obs) 0.56  inside CI 9/20 (descriptive)
+semi-fresh: S(pred) 0.654  S(null c) 0.421  n=5
+sensitivity: S(pred) -0.073  S(null c) -0.471  n=10
