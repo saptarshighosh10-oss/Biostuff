@@ -4,6 +4,20 @@ Status as of 2026-10-15. Every predictor variant tried is listed, including the 
 variants were tested against the same 36 rows, so treat any single EuroSAT "win" as exploratory. The salinity
 redundancy predictor was fixed in the script docstring before it was run.
 
+## 0. Scoreboard: skill vs "predict 0 leak" (primary evidence; `score.py` → `out/scoreboard.csv`, `out/forking_paths.csv`)
+
+S = 1 − Σ|pred − obs| / Σ|obs|. S > 0 beats predicting no leak. Inside-CI counts below are descriptive only, because predict-0
+alone gets 23–29/36 in salinity and 31/45 within GDPa1. All numbers here are on old (burned) data; the confirmatory tests are in `PREREG.md`.
+
+| setting | predictor of record | S | best null |
+|---|---|---|---|
+| antibody cross-lab (15 cells) | I_M(.54), copula | .70 | LOAO model mean **.76** (beats the record) |
+| within-GDPa1 (45 cells) | realistic neighbour | .01 | ties predict-0 |
+| EuroSAT (36 rows, seeds 0–2) | exact-copy curve | .39 (.35/.36/.45) | oracle constant −.25 |
+| salinity knn_geo (seeds 0–2 / 3–5) | did_multi nearest | .58 / .57 | oracle constant .41 / .18 |
+
+Every variant ever tried, with its commit and whether it was fixed before its DiD was seen, is in `out/forking_paths.csv`.
+
 ## 1. Susceptibility ranking (robust, all three domains)
 
 Planted exact-copy inflation at f = 1 (all test items copied into train):

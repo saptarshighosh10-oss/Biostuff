@@ -12,9 +12,11 @@ mapped back through the assay's own quantiles. SD-sized Gaussian noise made plan
 because SMAC is skewed (5.7), and that under-stated LS on skewed assays. Recomputed by `synthetic.py`; the table is `out/leakage_susceptibility.csv`.
 
 Antibody evidence (Jain2017 -> GDPa1, f = 131/242 = 0.54, 15 model x assay cells; measured agreement HIC .97, AC-SINS .89, SMAC .91):
-- vs naive-minus-honest drop: corr 0.92, 15/15 inside the paired 95% CI (SD-sized noise gave 0.79, 12/15).
-- vs the DiD leak (`did_antibody.py`): corr 0.76, 10/15 inside the CI.
-  Misses: physchem-RF over-predicted (HIC, AC-SINS), SMAC kmer-ridge under-predicted (.28 vs .49), and AC-SINS NN-copy and esm2 just outside the CI.
+- vs naive-minus-honest drop: corr 0.92, 15/15 inside the paired 95% CI (SD-sized noise gave 0.79, 12/15). Demoted to exploratory:
+  `audit.py` E2 scores naive on all of GDPa1 but honest on the unseen subset only (range restriction).
+- vs the DiD leak (`did_antibody.py`), predictor I_M(.54) by copula planting (`did_antibody_rank.py`): corr 0.76, 10/15 inside the CI, S .70.
+  An agreement-blind null (each model's mean LS from the other assays × f) scores S .76 (`score.py`).
+  Misses: physchem-RF over-predicted (HIC, AC-SINS), SMAC kmer-ridge under-predicted (I_M .25 vs .49; LS × f gives .28), and AC-SINS NN-copy and esm2 just outside the CI.
 
 LS by model (rank-matched labels, mean of 3 assays): NN-copy 0.83, kmer-ridge 0.73, physchem-RF 0.58, esm2-ridge 0.31, ablang2-ridge 0.23.
 (SD-sized noise gave 0.56 / 0.61 / 0.51 / 0.29 / 0.21. NN-copy is now the ceiling, as it should be.)

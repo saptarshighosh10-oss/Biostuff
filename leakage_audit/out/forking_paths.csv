@@ -1,0 +1,26 @@
+setting,variant,S_all,S_knn,script,fixed_before_did,status,commit
+EuroSAT,P(correct|closeness) + redundancy,0.55,,sat/did.py,not stated,exploratory: easiness-confounded,a229165
+EuroSAT,blended soft copies + redundancy,0.01,,sat/did_red.py,not stated,exploratory,a229165
+EuroSAT,exact-copy curve,0.39,,sat/did.py,not stated,record,a229165
+EuroSAT 60/20/20 split,exact-copy curve (replicate),0.36,,sat/real_planted.py,yes,exploratory,a229165
+EuroSAT 60/20/20 split,real reserve tiles + redundancy,0.01,,sat/real_planted.py,yes,exploratory,a229165
+EuroSAT removal control (superseded),closeness-calibrated curve,-0.31,,sat/calibrate.py,not stated,superseded estimand,a229165
+EuroSAT removal control (superseded),hard-threshold curve,-0.37,,sat/calibrate.py,not stated,superseded estimand,a229165
+EuroSAT removal control (superseded),headroom-weighted,0.23,,sat/headroom.py,not stated,superseded: logic backwards,a229165
+EuroSAT removal control (superseded),headroom-weighted (variant),0.16,,sat/headroom.py,not stated,superseded: logic backwards,a229165
+antibody cross-lab,I_M(f) copula planting,0.70,,did_antibody_rank.py,no: adopted after the SMAC miss,record,04feb58
+antibody cross-lab,LS x f (copula),0.72,,synthetic.py,no,exploratory,a229165
+antibody cross-lab,SD-noise planting,0.65,,did_antibody.py,yes,exploratory,d3464ae
+antibody cross-lab,null c: LOAO model mean,0.76,,score.py,-,null,untracked
+antibody cross-lab vs naive-minus-honest,LS x f (copula),0.81,,synthetic.py,no: rank fix post-hoc,demoted: range restriction in audit.py E2,a229165
+salinity,additive pred_dist,-0.64/-0.52,-0.59/-0.30,salinity/did.py,yes,exploratory,a229165
+salinity,additive pred_dist_red,0.43/0.38,0.71/0.59,salinity/did.py,yes,demoted: labels over-informative,a229165
+salinity,did_multi all,-0.37/-0.25,-0.04/0.01,salinity/did_multi.py,design yes (untracked until 26ef104),exploratory: pre-registered reading refuted,26ef104
+salinity,did_multi nearest,0.14/0.23,0.58/0.57,salinity/did_multi.py,design yes (untracked until 26ef104); chosen as record after seeing seeds 0-5,record,26ef104
+salinity,exact copy,-5.98/-5.44,-2.22/-1.79,salinity/did.py,yes,exploratory,a229165
+salinity,rank pred_dist,-0.11/-0.16,0.65/0.52,salinity/did_rank.py,yes,exploratory,45f8547
+salinity,rank pred_dist_red,0.34/0.27,0.55/0.41,salinity/did_rank.py,yes,exploratory,45f8547
+salinity removal control (superseded),additive pred_dist (removal control),0.08,0.33,salinity/calibrate_dist.py,not stated,superseded estimand,a229165
+within-GDPa1,exact copy,-1.42,,did_antibody.py,yes,exploratory,d3464ae
+within-GDPa1,realistic neighbour,0.01,,did_antibody_real.py,yes,exploratory,feb8845
+within-GDPa1,rms-noise neighbour,0.02,,did_antibody_real.py,yes,exploratory,feb8845

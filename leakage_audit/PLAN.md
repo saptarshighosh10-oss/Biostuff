@@ -18,6 +18,10 @@
 
 GDPa4 (a noise-model check) and LUCAS 2015 (conditional) are also new data.
 
+**Progress (update as steps finish).**
+- 2026-10-16: Step 0 done (commit A 26ef104, PREREG b9076c3). Step 3 done: `score.py` reproduces all 40 §3 values to ±.01.
+- Next: Step 4 stage 1 (antibody predictions, committed by Nov 1). Step 2 prior-art reading still open. Student: ESDAC application, fair dates by Oct 23.
+
 ---
 
 ## 1. Headline claim
