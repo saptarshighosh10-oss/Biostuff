@@ -46,3 +46,7 @@ data/external/lucas2018/
 # EuroSAT: raw tiles and 287 MB embedding cache (regenerate with leakage_audit/sat/embed.py)
 data/external/eurosat_raw/
 leakage_audit/sat/eurosat.npz
+
+# Local tool state and per-point LUCAS outputs (licence: never commit)
+.serena/
+leakage_audit/salinity/_local/

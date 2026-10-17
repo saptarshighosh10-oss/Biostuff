@@ -67,6 +67,29 @@ The rerun used rank-matched (copula) labels and features at the measured pair ag
   points within 5 km of a near test point, 2.1 within 10 km, 3.8 within 15 km). The under-prediction grows with r, as this predicts. The over-informative
   additive label made up for the missing neighbours.
 
+**Multi-neighbour planting (`salinity/did_multi.py`, fixed before running): the count explanation is refuted.** This keeps the real geometry and
+replaces every train point that dedup removes with a planted point at its own location. The planted label and soil values are drawn from the
+nearest test point (rank-matched, as above). With the real values, this reproduces the observed leak exactly, so any gap comes from the values alone.
+The ablation `nearest` replaces only the nearest removed point of each near test point.
+| seeds | predictor | corr | inside CI | MAE | knn_geo: inside / MAE / signed |
+|---|---|---|---|---|---|
+| 0–2 | all removed neighbours | 0.72 | 15/36 | 0.021 | 3/9 / .039 / +.039 |
+| 0–2 | nearest only | 0.63 | 19/36 | 0.013 | 7/9 / .015 / +.002 |
+| 0–2 | null: predict 0 | – | 24/36 | 0.016 | 4/9 / .037 / −.037 |
+| 3–5 | all removed neighbours | 0.80 | 13/36 | 0.021 | 2/9 / .041 / +.041 |
+| 3–5 | nearest only | 0.72 | 19/36 | 0.013 | 8/9 / .018 / +.004 |
+| 3–5 | null: predict 0 | – | 29/36 | 0.017 | 6/9 / .041 / −.041 |
+
+- The pre-registered expectation was that `all` would fit and `nearest` would under-predict. The opposite happened: `all` **over-predicts** the knn_geo leak
+  about 2× (.13–.15 vs .07–.09 at 15 km), and `nearest` is about unbiased.
+- **Why (checked after the run):** real neighbours of the same test point agree with *each other* (Spearman 0.34) about as much as with the
+  test point (0.35–0.39). They mostly share a regional signal, so the extra neighbours add little. Independent planted draws agree with each other
+  at only 0.13, so each one adds new information about the test label, and k of them overstate the leak.
+- **A second artifact:** ridge_soil gets a fake leak (.02–.04 vs real ≈ .005), because half the training set becomes synthetic points derived from
+  near test points, which shifts the training distribution toward them. This also drags the inside-CI counts below the null.
+- Takeaway: one realistic neighbour per test point, at the real nearest distance, predicts the knn_geo leak (15/18 inside the CI, MAE about 2.5× below the null).
+  Planting more neighbours needs them to be correlated with each other the way real ones are.
+
 ### EuroSAT, t = .80–.95, 36 rows (DiD estimand)
 | predictor | corr | inside CI | MAE (pts) | signed |
 |---|---|---|---|---|
@@ -168,6 +191,7 @@ The planted labels used Gaussian noise sized by the SD (Pearson agreement 0.9).
 
 ## Not done
 - A realistic-neighbour predictor for EuroSAT that is not tuned on these 36 rows.
-- Salinity: plant as many neighbours as dedup actually removes (rank-matched labels), pre-specified and judged against the predict-0 null.
+- Salinity: plant several neighbours that share a regional component (a one-factor model fitted to the neighbour–test 0.37 and neighbour–neighbour
+  0.34 agreement), and drop the soil features to avoid the ridge artifact. Pre-specify it and judge it against the predict-0 null.
 - Directly test the skew explanation for SMAC kmer-ridge.
 - LUCAS 2015 as an independent replication of the salinity result.
